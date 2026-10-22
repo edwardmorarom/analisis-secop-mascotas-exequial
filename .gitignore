@@ -11,4 +11,3 @@ __pycache__/
 logs/*
 !logs/.gitkeep
 *.log
-ingesta_datos.xlsx
