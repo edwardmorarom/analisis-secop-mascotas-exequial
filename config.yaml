@@ -1,0 +1,63 @@
+seed: 2026
+
+rutas:
+  raw: data/raw
+  interim: data/interim
+  processed: data/processed
+  logs: logs
+  manifiesto: data/raw/manifiesto.csv
+
+periodo:
+  anio_inicio: 2020
+  anio_fin: 2025
+  panel_mascotas_inicio: 2014
+  panel_mascotas_fin: 2025
+
+secop:
+  dominio: www.datos.gov.co
+  dataset_secop2: jbjy-vk9h
+  incluir_secop1: true
+  pagina: 50000
+  muestra_no_recuperados: 100
+  muestra_candidatos: 400
+  codigos_unspsc_funerarios: ["851715", "4813", "422621"]
+  codigos_unspsc_forenses: ["422615", "422616", "422617", "422618", "422619", "422620"]
+  codigo_excluido: "851716"
+
+camaras:
+  datasets:
+    ibague: gwqv-sqvs
+    arauca: yufs-urdt
+    villavicencio: pevq-v2xz
+  ciiu: "9603"
+
+places:
+  cuota_diaria: 150
+  municipios_prueba: 10
+  segunda_pasada_max: 200
+
+llm:
+  proveedor: deepseek
+  base_url: https://api.deepseek.com
+  modelo: deepseek-chat
+  temperatura: 0
+  ollama_url: http://localhost:11434/v1
+
+agente:
+  max_reintentos: 3
+  tope_costo_usd: 2.0
+
+evaluacion:
+  umbrales:
+    deteccion: 0.90
+    falsas_alarmas: 0.10
+    kappa: 0.70
+    anclaje: 1.0
+  fallas_sembradas:
+    duplicados: 20
+    digitos_cambiados: 15
+    municipios_borrados: 10
+    coberturas_100: 10
+    saltos_falsos: 5
+  consistencia_corridas: 3
+  revision_aleatoria_alta: 60
