@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 import pandas as pd
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -11,7 +14,7 @@ from src.etl.comun import RAIZ, cargar_config, ruta
 EJEMPLOS = {
     "funerario": ["22-13-13268646-12323242", "CO1.PCCNTR.8004130"],
     "no_funerario": ["21-12-12425554-11507189", "CO1.PCCNTR.7800399"],
-    "mixto": ["21-12-11665962-10795571", "CO1.PCCNTR.3579155"],
+    "mixto": ["CO1.PCCNTR.3260174", "CO1.PCCNTR.3579155"],
 }
 NOTAS = {
     "CO1.PCCNTR.7800399": "forense = 1",
@@ -21,10 +24,12 @@ CRITERIO = {
     "funerario": "El contrato compra servicios o bienes funerarios: inhumación, exhumación, cremación, "
                  "ataúdes, traslado de cuerpos con fin funerario, administración u operación de cementerios.",
     "no_funerario": "No hay objeto funerario, o solo hay obras, mantenimiento físico, estudios o diseños "
-                    "(incluso si mencionan un cementerio), o es contratación forense sin componente funerario.",
+                    "(incluso si mencionan un cementerio), personal administrativo o de apoyo a una dependencia "
+                    "funeraria, o contratación forense sin componente funerario.",
     "mixto": "Un mismo contrato mezcla un componente funerario claro con otro que no lo es "
-             "(escenarios deportivos, aseo, necropsias).",
+             "(aseo y ornato, necropsias).",
 }
+EJEMPLO_PERSONAL = "CO1.PCCNTR.6323489"
 
 
 def sombrear(celda, color):
@@ -52,13 +57,14 @@ def vineta(doc, texto, tamano=9):
     r.font.size = Pt(tamano)
 
 
-def main():
+def main(carpeta=None):
     config = cargar_config()
     interim = ruta(config, "interim")
     a = pd.concat([pd.read_parquet(interim / f"{n}_senales.parquet") for n in ("secop1", "secop2")],
                   ignore_index=True).set_index("llave")
     muestra = set(pd.read_parquet(ruta(config, "processed") / "muestra_secop_maestra.parquet").llave)
-    assert not muestra & {k for v in EJEMPLOS.values() for k in v}, "ejemplo dentro de la muestra"
+    assert not muestra & ({k for v in EJEMPLOS.values() for k in v} | {EJEMPLO_PERSONAL}), \
+        "ejemplo dentro de la muestra"
 
     doc = Document()
     sec = doc.sections[0]
@@ -123,14 +129,21 @@ def main():
     vineta(doc, "Si el contrato mezcla ambas cosas, mixto. Si el texto no permite decidir, anótelo en notas.")
 
     parrafo(doc, "", tamano=3, espacio=0)
+    parrafo(doc, "Personal administrativo o de apoyo", True, 10.5, 1)
+    ejemplo = " ".join(anonimizar(a.loc[EJEMPLO_PERSONAL, "objeto"]).split())
+    vineta(doc, "Contratar personal administrativo o de apoyo a una dependencia funeraria (supervisión, PQRS, "
+                "correspondencia, apoyo financiero o jurídico) = no_funerario: no compra servicios funerarios. "
+                f"Ejemplo: «{ejemplo[:190]}»")
+
+    parrafo(doc, "", tamano=3, espacio=0)
     p = parrafo(doc, "Llene solo las celdas amarillas del Excel (lista desplegable en etiqueta y forense). No cambie el orden de "
                      "las filas. Los ejemplos son casos reales ya censurados; Harold decide los desacuerdos.", tamano=8)
     p.runs[0].italic = True
 
-    destino = RAIZ / "docs" / "etiquetado" / "guia_etiquetado.docx"
+    destino = (Path(carpeta) if carpeta else RAIZ / "docs" / "etiquetado") / "guia_etiquetado.docx"
     doc.save(destino)
     print("guardado", destino)
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)

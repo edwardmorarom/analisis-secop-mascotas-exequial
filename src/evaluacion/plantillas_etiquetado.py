@@ -1,3 +1,6 @@
+import sys
+from pathlib import Path
+
 import pandas as pd
 from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
@@ -18,6 +21,8 @@ INSTRUCCIONES = [
     "(p. ej. inhumación de cuerpos no identificados), que va como mixto.",
     "Cementerio con operación o administración (inhumación, exhumación, bóvedas, concesión) = funerario; "
     "obras civiles, mantenimiento físico, estudios y diseños = no_funerario.",
+    "Personal administrativo o de apoyo a una dependencia funeraria (supervisión, PQRS, correspondencia) = "
+    "no_funerario: no compra servicios funerarios.",
     "Filas 1–40: ronda de calibración. No consulte con la otra persona hasta terminarla.",
     "No modifique el orden de las filas ni las columnas. Detalle en guia_etiquetado.docx.",
 ]
@@ -69,11 +74,11 @@ def libro(datos, revisor):
     return wb
 
 
-def main():
+def main(carpeta=None):
     config = cargar_config()
     datos = pd.read_csv(ruta(config, "processed") / "muestra_secop_etiquetado.csv", dtype=str)
     datos["anio"] = datos["anio"].astype(int)
-    destino = RAIZ / "docs" / "etiquetado"
+    destino = Path(carpeta) if carpeta else RAIZ / "docs" / "etiquetado"
     destino.mkdir(parents=True, exist_ok=True)
     for revisor in REVISORES:
         libro(datos, revisor).save(destino / f"etiquetado_{revisor}.xlsx")
@@ -81,4 +86,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else None)

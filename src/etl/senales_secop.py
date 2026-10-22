@@ -6,6 +6,7 @@ from unidecode import unidecode
 
 from src.etl.anonimizar import PATRONES, anonimizar_con_conteo
 from src.etl.comun import cargar_config, ruta
+from src.etl.tildes import reparar_tildes
 
 PALABRAS = {
     "funera": r"FUNERA", "exequ": r"EXEQU", "inhuma": r"INHUMA", "cremaci": r"CREMACI",
@@ -37,6 +38,8 @@ def censurar(df, conteo=None, ejemplos=None):
     for col in ("objeto", "descripcion"):
         nuevos = []
         for fuente, llave, texto in zip(df["fuente"], df["llave"], df[col]):
+            if fuente == "secop1":
+                texto = reparar_tildes(texto)
             censurado, cuenta = anonimizar_con_conteo(texto)
             if cuenta:
                 if conteo is not None:

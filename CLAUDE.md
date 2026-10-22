@@ -169,6 +169,7 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 - Cementerio con **operación o administración** (inhumación, exhumación, bóvedas, concesión) = `funerario`.
 - Cementerio con obras civiles, mantenimiento físico, estudios y diseños = `no_funerario`.
 - `NECR` o `CAD_VER` sin `FUNERA` ni `INHUMA` = `forense`: se reporta aparte y **queda fuera del tamaño de mercado**.
+- Contratación de **personal administrativo o de apoyo a una dependencia funeraria** (supervisión, PQRS, correspondencia, apoyo financiero o jurídico) = `no_funerario`: no compra servicios funerarios.
 - **Regla de coherencia:** si `forense = 1`, la etiqueta debe ser `no_funerario`, salvo componente funerario claro (p. ej. inhumación de cuerpos no identificados), que va como `mixto`. `forense = 1` con `funerario` es un error de etiquetado y la validación (`src/evaluacion/kappa.py`) lo exporta como desacuerdo.
 - **Texto de objetos:** toda salida (pantalla, archivo, documento) que muestre texto de objetos o descripciones pasa antes por `src.etl.anonimizar.anonimizar`. `data/raw` conserva el original; interim y processed llevan el texto censurado.
 
