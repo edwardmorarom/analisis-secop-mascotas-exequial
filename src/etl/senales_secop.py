@@ -1,8 +1,10 @@
 import re
+from collections import Counter
 
 import pandas as pd
 from unidecode import unidecode
 
+from src.etl.anonimizar import PATRONES, anonimizar_con_conteo
 from src.etl.comun import cargar_config, ruta
 
 PALABRAS = {
@@ -27,7 +29,27 @@ def contiene(serie, patron):
     return serie.str.contains(patron, regex=True)
 
 
-def cargar(config):
+TEXTO_ORIGINAL = ["objeto_del_contrato", "descripcion_del_proceso",
+                  "detalle_del_objeto_a_contratar", "objeto_del_contrato_a_la"]
+
+
+def censurar(df, conteo=None, ejemplos=None):
+    for col in ("objeto", "descripcion"):
+        nuevos = []
+        for fuente, llave, texto in zip(df["fuente"], df["llave"], df[col]):
+            censurado, cuenta = anonimizar_con_conteo(texto)
+            if cuenta:
+                if conteo is not None:
+                    conteo.update(cuenta)
+                    conteo["filas_afectadas"] += 1
+                if ejemplos is not None:
+                    ejemplos.append((fuente, llave, col, censurado, tuple(cuenta)))
+            nuevos.append(censurado)
+        df[col] = nuevos
+    return df.drop(columns=TEXTO_ORIGINAL, errors="ignore")
+
+
+def cargar(config, conteo=None, ejemplos=None):
     raw = ruta(config, "raw") / "secop"
     s2 = pd.read_json(raw / "secop2_candidatos_2020_2025.jsonl", lines=True, dtype=False)
     s1 = pd.read_json(raw / "secop1_candidatos_2020_2022.jsonl", lines=True, dtype=False)
@@ -39,7 +61,9 @@ def cargar(config):
                    descripcion=s1["objeto_del_contrato_a_la"],
                    codigo=s1["id_clase"].fillna(""),
                    anio=pd.to_datetime(s1["fecha_de_firma_del_contrato"]).dt.year)
-    return s1.drop_duplicates("uid", keep="first"), s2.drop_duplicates("id_contrato", keep="first")
+    s1 = censurar(s1.drop_duplicates("uid", keep="first"), conteo, ejemplos)
+    s2 = censurar(s2.drop_duplicates("id_contrato", keep="first"), conteo, ejemplos)
+    return s1, s2
 
 
 def senales_antes(df):
@@ -79,7 +103,8 @@ def estrato(m):
 
 def main():
     config = cargar_config()
-    s1, s2 = cargar(config)
+    conteo, ejemplos = Counter(), []
+    s1, s2 = cargar(config, conteo, ejemplos)
     destino = ruta(config, "interim")
     destino.mkdir(parents=True, exist_ok=True)
     antes, despues = [], []
@@ -91,6 +116,11 @@ def main():
         out.to_parquet(destino / f"{nombre}_senales.parquet", index=False)
         antes.append(senales_antes(df).sum().rename(nombre))
         despues.append(m.sum().rename(nombre))
+    print(f"Anonimización sobre {len(s1) + len(s2):,} filas (objeto y descripción):")
+    print({k: conteo[k] for k in ["filas_afectadas", *PATRONES]})
+    for fuente, llave, col, texto, patrones in pd.Series(ejemplos).sample(
+            min(10, len(ejemplos)), random_state=config["seed"]):
+        print(f"- [{fuente} {col} {','.join(patrones)}] {texto[:230]}")
     pd.set_option("display.width", 200)
     print("ANTES (filtro original, sobre crudos)"); print(pd.concat(antes, axis=1).fillna(0).astype(int))
     print("\nDESPUÉS (OSARIO con límite de palabra, ZOONOSIS solo con disposición)")

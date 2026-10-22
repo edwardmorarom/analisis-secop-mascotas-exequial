@@ -3,6 +3,7 @@ import re
 
 import pandas as pd
 
+from src.etl.anonimizar import anonimizar
 from src.etl.comun import cargar_config, ruta
 from src.etl.descargar_secop import PALABRAS_DESCRIPCION, PALABRAS_OBJETO
 
@@ -37,7 +38,7 @@ def aporte(config):
     print(tabla.to_string())
     print("\n10 objetos al azar (seed 2026):")
     for o in df["objeto_del_contrato"].sample(10, random_state=config["seed"]):
-        print("-", str(o)[:220])
+        print("-", anonimizar(str(o))[:220])
 
 
 def nit_digitos(serie):

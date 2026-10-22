@@ -1,8 +1,7 @@
-import re
-
 import numpy as np
 import pandas as pd
 
+from src.etl.anonimizar import anonimizar
 from src.etl.comun import cargar_config, ruta
 
 ASIGNACION = {
@@ -12,15 +11,6 @@ ASIGNACION = {
 }
 PALABRAS = ["funera", "exequ", "inhuma", "cremaci", "sepelio", "sepult"]
 UNSPSC = ["unspsc_851715", "unspsc_4813", "unspsc_422621"]
-
-
-PACIENTES = re.compile(r"(pacientes)\s.*?historia cl[ií]nica.*?(?=pacientes hospitalizados|$)", re.I | re.S)
-
-
-def anonimizar(texto):
-    if not isinstance(texto, str):
-        return texto
-    return PACIENTES.sub(r" [DATOS DE PACIENTES OMITIDOS] ", texto)
 
 
 def subestrato(r):
@@ -87,7 +77,7 @@ def main():
     for col in ("objeto", "descripcion"):
         etiquetado[col] = etiquetado[col].map(anonimizar)
     assert not etiquetado[["objeto", "descripcion"]].apply(
-        lambda c: c.fillna("").str.contains("historia cl", case=False)).any().any()
+        lambda c: c.fillna("").str.contains(r"historia cl[ií]nica\W*\d", case=False)).any().any()
     etiquetado["etiqueta"] = ""
     etiquetado["forense"] = ""
     etiquetado["notas"] = ""
