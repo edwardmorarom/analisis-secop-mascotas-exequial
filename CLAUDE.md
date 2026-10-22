@@ -122,7 +122,7 @@ WHERE fecha_de_firma BETWEEN '2020-01-01T00:00:00' AND '2025-12-31T23:59:59'
 
 - Agregar la condición por códigos UNSPSC funerarios una vez identificados en el clasificador (no inventarlos).
 - **Filtro afinado (2026-10-22).** Los crudos conservan la consulta original (19.306 filas SECOP II; 15.484 uid SECOP I) y no se vuelven a descargar. En interim (`src/etl/senales_secop.py`) cada señal es una columna booleana: `OSARIO` con límite de palabra (excluye ROSARIO: 5.943 → 53 en SECOP II) y `ZOONOSIS` solo junto a animales muertos, cadáver, disposición final, incinera, recolección de animales o sepult (10.060 → 20); esas filas llevan `posible_disposicion_animales`. `CEMENTERIO`, `NECR` y `CAD_VER` quedan como señales pendientes de decisión (mezclan obras, necropsias y servicios funerarios).
-- SECOP I: columnas distintas (`detalle_del_objeto_a_contratar`, `objeto_del_contrato_a_la`, `id_clase`/`id_familia` sin prefijo `V1.`, `cuantia_contrato`). El crudo ya viene con una fila por `uid` (primera fila en orden de `uid`). Cruce con SECOP II por NIT + valor + fecha: sin coincidencias exactas; los pares con fecha ±30 días se revisan a mano.
+- SECOP I: columnas distintas (`detalle_del_objeto_a_contratar`, `objeto_del_contrato_a_la`, `id_clase`/`id_familia` sin prefijo `V1.`, `cuantia_contrato`). El crudo ya viene con una fila por `uid` (primera fila en orden de `uid`): se verificó que los 245 `uid` repetidos (420 filas sobrantes) no difieren en `cuantia_contrato`, `valor_contrato_con_adiciones` ni `fecha_de_firma_del_contrato` (`src/etl/verificar_uid_secop1.py`). Cruce con SECOP II por NIT + valor + fecha: sin coincidencias exactas; los 10 pares con fecha ±30 días (Yumbo, Unidad Ejecutora de Saneamiento del Valle, La Samaritana) **no se eliminan**: probablemente son contratos distintos de apoyo a la gestión con el mismo valor.
 - Muestra aparte de ~100 contratos aleatorios **que no cumplan** el filtro (no recuperados), estratificada por año.
 - Si se incluye SECOP I, misma lógica sobre su conjunto en datos.gov.co.
 
@@ -164,6 +164,13 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 - Valor por departamento y municipio y **por cada 100.000 habitantes** (DANE). Distinguir ubicación de la entidad y dirección de ejecución.
 - **Patrones de compra:** por tipo de entidad (`orden`, `sector`, `rama`), por tipo de servicio (subclasificación del objeto: inhumación de NN o población vulnerable, planes exequiales colectivos, traslado de cadáveres, cremación, disposición de animales), por modalidad (participación de la contratación directa en el valor) y por mes de firma.
 - Sensibilidad: totales con y sin contratos `mixto`.
+
+**Libro de códigos del etiquetado.** Tres clases (`funerario`, `no_funerario`, `mixto`) más la marca `forense` (columna aparte, no es cuarta clase). `CEMENTERIO`, `NECR` y `CAD_VER` sin otra señal no se clasifican por regla: quedan como candidatas en el estrato C y las decide la revisión humana con estos criterios:
+- Cementerio con **operación o administración** (inhumación, exhumación, bóvedas, concesión) = `funerario`.
+- Cementerio con obras civiles, mantenimiento físico, estudios y diseños = `no_funerario`.
+- `NECR` o `CAD_VER` sin `FUNERA` ni `INHUMA` = `forense`: se reporta aparte y **queda fuera del tamaño de mercado**.
+
+**Muestra de etiquetado (400, semilla 2026).** Estratos y asignación: A1 palabra y UNSPSC 60, A2 solo palabra 90, A3 solo UNSPSC 60, B posible disposición de animales 23, C cementerio 45, C NECR 25, C CAD_VER 30, C mixtas y OSARIO 17, D sin señal 50; proporcional por fuente y año. La tabla maestra `data/processed/muestra_secop_maestra.*` guarda `peso` = N/n del estrato (suma 34.790); las métricas se calculan **ponderadas**. El archivo de etiquetado (`muestra_secop_etiquetado.csv`) va sin estrato, sin señales ni peso, sin proveedores, y con datos de pacientes omitidos (`src/modelos/muestra_secop.py`).
 
 **Proveedores (objetivo específico 3):** participación por `codigo_proveedor`, HHI, CR4, locales frente a nacionales; K-means solo si es estable.
 
