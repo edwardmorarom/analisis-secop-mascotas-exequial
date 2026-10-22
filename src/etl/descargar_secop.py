@@ -70,21 +70,24 @@ def cmd_descargar(config, estricta):
     dom, ds, pagina = s["dominio"], s["dataset_secop2"], s["pagina"]
     where = where_secop2(config, estricta=estricta)
     destino = ruta(config, "raw") / "secop" / "secop2_candidatos_2020_2025.jsonl"
-    total = contar(dom, ds, where)
-    offset = 0
+    escritas = 0
     with open(destino, "w", encoding="utf-8") as f:
-        while offset < total:
-            filas = consultar(dom, ds, {
-                "$select": COLUMNAS, "$where": where,
-                "$order": "id_contrato", "$limit": pagina, "$offset": offset})
-            if not filas:
-                break
-            for fila in filas:
-                f.write(json.dumps(fila, ensure_ascii=False) + "\n")
-            offset += len(filas)
-            print(f"{offset:,}/{total:,}")
+        for anio in range(config["periodo"]["anio_inicio"], config["periodo"]["anio_fin"] + 1):
+            w = where_anio(where, anio)
+            total, offset = contar(dom, ds, w), 0
+            while offset < total:
+                filas = consultar(dom, ds, {
+                    "$select": COLUMNAS, "$where": w,
+                    "$order": "id_contrato", "$limit": pagina, "$offset": offset})
+                if not filas:
+                    break
+                for fila in filas:
+                    f.write(json.dumps(fila, ensure_ascii=False) + "\n")
+                offset += len(filas)
+            escritas += offset
+            print(f"{anio}: {offset:,}/{total:,}", flush=True)
     registrar(destino, url_consulta(dom, ds) + "?$where=" + where, config)
-    print("guardado", destino)
+    print(f"{escritas:,} filas en {destino}")
 
 
 def cmd_muestra(config):
