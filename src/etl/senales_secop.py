@@ -39,7 +39,7 @@ def cargar(config):
                    descripcion=s1["objeto_del_contrato_a_la"],
                    codigo=s1["id_clase"].fillna(""),
                    anio=pd.to_datetime(s1["fecha_de_firma_del_contrato"]).dt.year)
-    return s1, s2
+    return s1.drop_duplicates("uid", keep="first"), s2.drop_duplicates("id_contrato", keep="first")
 
 
 def senales_antes(df):
