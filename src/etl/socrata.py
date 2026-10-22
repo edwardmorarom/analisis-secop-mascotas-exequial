@@ -9,14 +9,18 @@ def consultar(dominio, dataset, params, intentos=5, espera=5):
     url = f"https://{dominio}/resource/{dataset}.json"
     headers = {"X-App-Token": token_socrata()} if token_socrata() else {}
     for i in range(intentos):
-        r = requests.get(url, params=params, headers=headers, timeout=180)
+        try:
+            r = requests.get(url, params=params, headers=headers, timeout=300)
+        except (requests.Timeout, requests.ConnectionError):
+            time.sleep(espera * (i + 1))
+            continue
         if r.status_code == 200:
             return r.json()
         if r.status_code in (429, 500, 502, 503, 504):
             time.sleep(espera * (i + 1))
             continue
         raise RuntimeError(f"{r.status_code} en {r.url[:200]}: {r.text[:300]}")
-    raise RuntimeError(f"Sin respuesta tras {intentos} intentos: {r.url[:200]}")
+    raise RuntimeError(f"Sin respuesta tras {intentos} intentos: {url}")
 
 
 def contar(dominio, dataset, where):
