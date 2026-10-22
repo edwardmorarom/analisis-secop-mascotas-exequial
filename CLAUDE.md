@@ -169,6 +169,8 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 - Cementerio con **operación o administración** (inhumación, exhumación, bóvedas, concesión) = `funerario`.
 - Cementerio con obras civiles, mantenimiento físico, estudios y diseños = `no_funerario`.
 - `NECR` o `CAD_VER` sin `FUNERA` ni `INHUMA` = `forense`: se reporta aparte y **queda fuera del tamaño de mercado**.
+- **Regla de coherencia:** si `forense = 1`, la etiqueta debe ser `no_funerario`, salvo componente funerario claro (p. ej. inhumación de cuerpos no identificados), que va como `mixto`. `forense = 1` con `funerario` es un error de etiquetado y la validación (`src/evaluacion/kappa.py`) lo exporta como desacuerdo.
+- **Texto de objetos:** toda salida (pantalla, archivo, documento) que muestre texto de objetos o descripciones pasa antes por `src.etl.anonimizar.anonimizar`. `data/raw` conserva el original; interim y processed llevan el texto censurado.
 
 **Muestra de etiquetado (400, semilla 2026).** Estratos y asignación: A1 palabra y UNSPSC 60, A2 solo palabra 90, A3 solo UNSPSC 60, B posible disposición de animales 23, C cementerio 45, C NECR 25, C CAD_VER 30, C mixtas y OSARIO 17, D sin señal 50; proporcional por fuente y año. La tabla maestra `data/processed/muestra_secop_maestra.*` guarda `peso` = N/n del estrato (suma 34.790); las métricas se calculan **ponderadas**. El archivo de etiquetado (`muestra_secop_etiquetado.csv`) va sin estrato, sin señales ni peso, sin proveedores, y con datos de pacientes omitidos (`src/modelos/muestra_secop.py`).
 
