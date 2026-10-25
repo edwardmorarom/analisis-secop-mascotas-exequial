@@ -78,11 +78,15 @@ def exportar_desacuerdos(m, destino):
     d = d[d.dif_etiqueta | d.dif_forense | d.incoherente].copy()
     d["tipo"] = d.apply(lambda r: ", ".join(t for t, f in (
         ("etiqueta", r.dif_etiqueta), ("forense", r.dif_forense), ("incoherencia", r.incoherente)) if f), axis=1)
-    d = d[["n_e", "ronda_e", "id_muestra", "objeto_e", "descripcion_e", "tipo", "etiqueta_e", "etiqueta_n",
-           "forense_e", "forense_n"]].rename(columns={
-        "n_e": "n", "ronda_e": "ronda", "objeto_e": "objeto", "descripcion_e": "descripcion",
-        "etiqueta_e": "etiqueta_edward", "etiqueta_n": "etiqueta_natalia",
-        "forense_e": "forense_edward", "forense_n": "forense_natalia"})
+    azar = np.random.default_rng(2026).random(len(d)) < 0.5
+    d["etiqueta_a"] = np.where(azar, d.etiqueta_n, d.etiqueta_e)
+    d["etiqueta_b"] = np.where(azar, d.etiqueta_e, d.etiqueta_n)
+    d["forense_a"] = np.where(azar, d.forense_n, d.forense_e)
+    d["forense_b"] = np.where(azar, d.forense_e, d.forense_n)
+    clave = pd.DataFrame({"id_muestra": d["id_muestra"].values, "a_es": np.where(azar, "natalia", "edward")})
+    d = d[["n_e", "ronda_e", "id_muestra", "objeto_e", "descripcion_e", "tipo", "etiqueta_a", "etiqueta_b",
+           "forense_a", "forense_b"]].rename(columns={
+        "n_e": "n", "ronda_e": "ronda", "objeto_e": "objeto", "descripcion_e": "descripcion"})
     for c in ("objeto", "descripcion"):
         d[c] = d[c].map(anonimizar)
     d["n"] = d["n"].astype(int)
@@ -112,7 +116,7 @@ def exportar_desacuerdos(m, destino):
         marca.add(f"L2:L{ws.max_row}")
     ws.freeze_panes = "D2"
     wb.save(destino)
-    return d
+    return d, clave
 
 
 def main():
@@ -140,7 +144,8 @@ def main():
     print(tabla.round(3).to_string(index=False))
     salida = Path(a.salida)
     tabla.to_csv(salida / "kappa_etiquetado.csv", index=False, encoding="utf-8-sig")
-    d = exportar_desacuerdos(m, salida / "desacuerdos_para_harold.xlsx")
+    d, clave = exportar_desacuerdos(m, salida / "desacuerdos_para_harold.xlsx")
+    clave.to_csv(ruta(config, "processed") / "clave_desacuerdos.csv", index=False)
     print(f"\nDesacuerdos exportados: {len(d)} → {salida / 'desacuerdos_para_harold.xlsx'}")
 
 

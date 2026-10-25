@@ -23,14 +23,14 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ### D02. SECOP II 2020–2025 más SECOP I 2020–2022
 - **Decisión:** se usan los dos sistemas de contratación pública.
-- **Por qué:** entre 2020 y 2022 las entidades migraron de SECOP I a SECOP II. En 2020, SECOP I tiene unos 6.400 candidatos y SECOP II solo 1.123. Sin SECOP I, 2020 quedaría subrepresentado más de cinco veces y la serie mostraría un crecimiento falso.
+- **Por qué:** entre 2020 y 2022 las entidades migraron de SECOP I a SECOP II. En 2020, SECOP I tiene 6.313 candidatos (un contrato por `uid`, solo firmados) y SECOP II solo 1.123; con el filtro afinado (D17), 2.069 frente a 345. Sin SECOP I, 2020 quedaría subrepresentado más de cinco veces y la serie mostraría un crecimiento falso.
 - **Descartado:** solo SECOP II (sesgo de migración).
 - **Sustento:** conteos previos de F1 (commit 46aa476); Colombia Compra Eficiente, conjuntos `jbjy-vk9h` y `f789-7hwg`.
 - **Estado:** vigente.
 
 ### D03. Descarga por API con paginación y token
 - **Decisión:** se descarga con la API SoQL de Socrata, paginando, con `SOCRATA_APP_TOKEN`.
-- **Por qué:** la exportación JSON del portal se trunca en 1.000 filas. Sin token, las consultas con muchos `LIKE` agotaban el tiempo de espera.
+- **Por qué:** la exportación JSON del portal se trunca en 1.000 filas. Sin token, las consultas con muchos `LIKE` agotaban el tiempo de espera. Reproducibilidad: el 25 de octubre de 2026 (vista modificada a las 05:45 UTC) la API de `jbjy-vk9h` devuelve `count(*)` = 1.000, aunque el 22 de octubre entregó 19.306 candidatos; los demás conjuntos usados están completos (SECOP I 6.471.634 filas; INS y cámaras con sus conteos). La referencia son los crudos de F1 con su SHA-256 en el manifiesto.
 - **Descartado:** exportar a mano desde datos.gov.co (no reproducible y truncado).
 - **Sustento:** documentación de la API de Socrata (SODA).
 - **Estado:** vigente.
@@ -44,7 +44,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ### D05. Agresiones del INS como contraste
 - **Decisión:** se usan los informes del evento 300 (agresiones por animales potencialmente transmisores de rabia) del INS en PDF, más los conjuntos agregados de datos.gov.co para 2017 (`84d4-vfax`), 2018 (`xd2n-cu8j`), 2019 (`qvnt-2igj`) y 2021 (`fhc4-jjti`).
-- **Por qué:** sirven para comprobar que las cifras de MinSalud son creíbles (agresiones por cada 1.000 perros). Los conjuntos de 2019 permiten validar con el mismo año los PDF de MinSalud. Los microdatos individuales exigen un formulario de solicitud (ver D01).
+- **Por qué:** sirven para comprobar que las cifras de MinSalud son creíbles (agresiones por cada 1.000 perros). Los conjuntos de datos.gov.co validan los totales nacionales del propio PDF del INS: coinciden exactamente con la Figura 1 del informe 2025 (p. 10) en 2018 (136.746), 2019 (141.156) y 2021 (124.760). No validan los PDF de MinSalud, que traen vacunación y no agresiones. Los microdatos individuales exigen un formulario de solicitud (ver D01).
 - **Descartado:** microdatos de SIVIGILA.
 - **Sustento:** INS, informes del evento 300; reporte de F1.
 - **Estado:** vigente.
@@ -121,7 +121,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Por qué:** Ley 1581 de 2012. Se encontraron 30 filas con datos personales, entre ellas nombres de pacientes con diagnóstico. El seudónimo es el mismo en todas las fuentes, para poder contar a un proveedor una sola vez en la concentración del mercado sin exponer su nombre. Las empresas necesitan su NIT para calcular HHI y CR4.
 - **Descartado:** borrar a los proveedores personas naturales (distorsiona la concentración); seudónimo sin sal (se puede revertir con un diccionario).
 - **Sustento:** Ley 1581 de 2012; reporte de anonimización (commit 05d1137).
-- **Estado:** vigente.
+- **Estado:** vigente. Implementado: texto libre (30 filas afectadas) y cámaras de comercio (59 personas naturales con razón social seudonimizada; NIT omitido en 21 de Ibagué y 17 de Arauca; Villavicencio no trae NIT). **Pendiente:** proveedores y contratistas personas naturales, que siguen en claro en `data/raw` e `interim` (`proveedor_adjudicado` y `nom_razon_social_contratista`): en SECOP II 16.132 de 19.306 contratos (83,6 %) tienen proveedor con cédula; en SECOP I, 10.734 de 15.484 con cédula y 1.004 con NIT de persona natural (que `identificacion_del_contratista` conserva). El «mismo seudónimo en todas las fuentes» tampoco es posible hoy: SECOP II se descarga con `codigo_proveedor`, no con el número de documento, así que no hay llave común con SECOP I.
 
 ---
 
@@ -136,7 +136,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ### D17. Ajuste del filtro: OSARIO y ZOONOSIS
 - **Decisión:** OSARIO se busca con límite de palabra. ZOONOSIS solo cuenta si va junto a términos de disposición de animales muertos.
-- **Por qué:** OSARIO coincidía con «ROSARIO» (5.943 filas, que bajan a 53 con el ajuste). ZOONOSIS traía contratos de salud pública (10.060 filas, que bajan a 20). Juntas eran el 82 % del ruido. Las 23 filas restantes de ZOONOSIS se marcan como posible disposición de animales para la parte de mascotas.
+- **Por qué:** OSARIO coincidía con «ROSARIO» (5.943 filas, que bajan a 53 con el ajuste). ZOONOSIS traía contratos de salud pública (10.060 filas, que bajan a 20). Juntas eran el 82,6 % de las filas candidatas de SECOP II (15.941 de 19.306 tienen solo una de esas dos señales). Las 23 filas que quedan con ZOONOSIS junto a disposición o con «animales muertos» (21 de SECOP II y 2 de SECOP I) se marcan como posible disposición de animales para la parte de mascotas.
 - **Descartado:** quitar ZOONOSIS por completo (se perdería la disposición pública de animales).
 - **Sustento:** commit 3f016a7; revisión de 10 objetos al azar.
 - **Estado:** vigente.
@@ -150,7 +150,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ### D19. No se eliminan los cruces SECOP I y II por fecha cercana
 - **Decisión:** los 10 pares con mismo NIT y valor y fecha a menos de 30 días se conservan.
-- **Por qué:** son contratos de apoyo a la gestión que los municipios firman con varias personas por el mismo valor. Una regla automática borraría contratos reales. Además, ninguno es funerario.
+- **Por qué:** no hay coincidencias exactas por NIT, valor y fecha (0), y los 10 pares con fecha cercana son 3 casos. Los de Yumbo (8 pares) y de la Unidad Ejecutora de Saneamiento del Valle son, probablemente, contratos de apoyo a la gestión que se firman con varias personas por el mismo valor. El de La Samaritana tiene el mismo objeto en ambos sistemas con 7 días de diferencia y podría ser el mismo contrato registrado dos veces. Una regla automática borraría contratos reales. Además, ninguno es funerario.
 - **Descartado:** regla de NIT + valor + ±30 días.
 - **Sustento:** revisión manual de los pares (Yumbo, Unidad Ejecutora de Saneamiento del Valle, La Samaritana).
 - **Estado:** vigente.
@@ -284,7 +284,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Estado:** vigente. Los 59 aproximados y los 16 de la tabla deben revisarse una vez más con muestra manual (condición de F2).
 
 ### D35. La «Población DANE 2018» del PDF no se usa como llave ni para validar el cruce
-- **Decisión:** se conserva `poblacion_dane` tal como se imprime, pero no se asume igual a las proyecciones DANE.
+- **Decisión:** se conserva la cifra del PDF tal como se imprime (hoy `pob_pdf`, ver D41), pero no se asume igual a las proyecciones DANE.
 - **Por qué:** de 1.056 filas con cruce (versión previa del cruce), solo 1 coincide con la serie 2018–2042 del DANE; frente a la serie 2005–2017 (año 2017, 1.039 cruces exactos) la razón mediana es 1,017 con rango 0,32–3,36. Es otra base, no la serie que tenemos. Ejemplo: Leticia 42.280 en el PDF y 48.182 en la serie 2018.
 - **Descartado:** corregir o reemplazar la cifra impresa.
 - **Sustento:** comparación contra `dane_proyecciones_municipales_2018_2042.xlsx` y `_2005_2017.xlsx`.
@@ -332,3 +332,14 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** usar `pob_pdf` como denominador (casi un tercio difiere más de 20–25 %); reemplazar `pob_pdf` por `pob_dane` (se perdería la detección de imputaciones).
 - **Sustento:** D14; DANE (2025), proyecciones municipales 2018–2042; `cargar_pob_dane` en `src/etl/extraer_minsalud.py`.
 - **Estado:** vigente. Cierra D35.
+
+---
+
+## I. Decisiones registradas después de implementarse
+
+### D42. SECOP I: solo procesos con contrato firmado y ejecutado
+- **Decisión:** de SECOP I se conservan los procesos con `fecha_de_firma_del_contrato` no vacía y estado Celebrado, Liquidado o Terminado sin Liquidar. Se excluyen Convocado y Adjudicado.
+- **Por qué:** con el filtro de contenido de F1, los estados son Celebrado (11.006 filas), Liquidado (4.631), Terminado sin Liquidar (267), Adjudicado (2) y Convocado (3). Los dos últimos no tienen contrato ejecutado. Quedan 15.904 filas y 15.484 `uid` (D18).
+- **Descartado:** conservar todos los estados (incluiría procesos sin contrato).
+- **Sustento:** `src/etl/descargar_secop1.py` (commit 9cdcdcf); conteo de estados de F1.
+- **Estado:** vigente.
