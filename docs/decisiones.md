@@ -190,7 +190,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Decisión:** dos revisores etiquetan por separado, sin ver estrato, señales ni peso. Las primeras 40 filas son de calibración. El acuerdo se mide con κ de Cohen (umbral de 0,70) y Harold desempata sin saber quién marcó qué.
 - **Por qué:** el κ demuestra que la definición es reproducible y no depende de una sola persona. La calibración detecta temprano las reglas que faltan. El desempate ciego evita sesgos hacia un revisor. La referencia de validación es humana, nunca un LLM, para no evaluar al modelo contra sí mismo.
 - **Sustento:** Cohen (1960).
-- **Estado:** vigente.
+- **Estado:** vigente. Para sostener el ciego, los libros de etiquetado y sus derivados (desacuerdos, κ) no se versionan hasta que el equipo lo indique (`.gitignore`); ninguna versión ya commiteada tiene etiquetas (verificado en los commits a92f09d y 3d40ac5). El archivo de desacuerdos de Harold muestra las etiquetas como A y B al azar; la clave queda fuera de `docs/`, en `data/processed/`.
 
 ---
 
