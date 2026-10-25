@@ -2,11 +2,12 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-from openpyxl import Workbook
+from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from src.etl.comun import RAIZ, cargar_config, ruta
+from src.evaluacion.reglas_etiquetado import instrucciones
 
 REVISORES = ["edward", "natalia"]
 CALIBRACION = 40
@@ -14,18 +15,42 @@ ENCABEZADO = ["n", "ronda", "id_muestra", "fuente", "anio", "entidad", "objeto",
               "etiqueta", "forense", "notas"]
 ANCHOS = [6, 13, 11, 9, 7, 34, 70, 55, 12, 14, 9, 40]
 CLASES = "funerario,no_funerario,mixto"
-INSTRUCCIONES = [
-    "Etiquete solo las celdas amarillas: etiqueta (lista) y forense (0 o 1); notas es opcional.",
-    "Las tres clases: funerario, no_funerario, mixto. forense es una marca aparte, no una cuarta clase.",
-    "Regla de coherencia: si forense = 1, la etiqueta es no_funerario, salvo componente funerario claro "
-    "(p. ej. inhumación de cuerpos no identificados), que va como mixto.",
-    "Cementerio con operación o administración (inhumación, exhumación, bóvedas, concesión) = funerario; "
-    "obras civiles, mantenimiento físico, estudios y diseños = no_funerario.",
-    "Personal administrativo o de apoyo a una dependencia funeraria (supervisión, PQRS, correspondencia) = "
-    "no_funerario: no compra servicios funerarios.",
-    "Filas 1–40: ronda de calibración. No consulte con la otra persona hasta terminarla.",
-    "No modifique el orden de las filas ni las columnas. Detalle en guia_etiquetado.docx.",
-]
+
+
+def escribir_instrucciones(guia, revisor):
+    guia["A1"] = f"Etiquetado SECOP — revisor: {revisor.capitalize()}"
+    guia["A1"].font = Font(bold=True, size=13)
+    for i, t in enumerate(instrucciones(), 3):
+        celda = guia.cell(i, 1, t)
+        celda.alignment = Alignment(wrap_text=True, vertical="top")
+        celda.font = Font(bold=t.isupper())
+    guia.column_dimensions["A"].width = 110
+
+
+def actualizar_en_sitio(path, datos, revisor):
+    """Corrige textos e instrucciones sin tocar etiqueta, forense ni notas."""
+    wb = load_workbook(path)
+    ws = wb["Etiquetado"]
+    cabecera = {c.value: c.column for c in ws[1]}
+    previos = [(ws.cell(f, cabecera[k]).value) for f in range(2, ws.max_row + 1) for k in ("etiqueta", "forense", "notas")]
+    texto = datos.set_index("id_muestra")
+    cambios = 0
+    for f in range(2, ws.max_row + 1):
+        fila = texto.loc[ws.cell(f, cabecera["id_muestra"]).value]
+        for col, campo in (("entidad", "nombre_entidad"), ("objeto", "objeto"), ("descripcion", "descripcion"),
+                           ("codigo_unspsc", "codigo")):
+            nuevo = fila[campo] if isinstance(fila[campo], str) else ""
+            celda = ws.cell(f, cabecera[col])
+            if (celda.value or "") != nuevo:
+                celda.value = nuevo
+                cambios += 1
+    if "Instrucciones" in wb.sheetnames:
+        del wb["Instrucciones"]
+    escribir_instrucciones(wb.create_sheet("Instrucciones"), revisor)
+    posteriores = [(ws.cell(f, cabecera[k]).value) for f in range(2, ws.max_row + 1) for k in ("etiqueta", "forense", "notas")]
+    assert previos == posteriores, "las etiquetas no deben cambiar"
+    wb.save(path)
+    return cambios
 
 
 def libro(datos, revisor):
@@ -65,12 +90,7 @@ def libro(datos, revisor):
     forense.add(f"K2:K{n}")
     ws.freeze_panes = "D2"
     ws.auto_filter.ref = f"A1:L{n}"
-    guia = wb.create_sheet("Instrucciones")
-    guia["A1"] = f"Etiquetado SECOP — revisor: {revisor.capitalize()}"
-    guia["A1"].font = Font(bold=True, size=13)
-    for i, t in enumerate(INSTRUCCIONES, 3):
-        guia.cell(i, 1, t).alignment = Alignment(wrap_text=True, vertical="top")
-    guia.column_dimensions["A"].width = 110
+    escribir_instrucciones(wb.create_sheet("Instrucciones"), revisor)
     return wb
 
 
@@ -81,8 +101,15 @@ def main(carpeta=None):
     destino = Path(carpeta) if carpeta else RAIZ / "docs" / "etiquetado"
     destino.mkdir(parents=True, exist_ok=True)
     for revisor in REVISORES:
-        libro(datos, revisor).save(destino / f"etiquetado_{revisor}.xlsx")
-    print(len(datos), "casos en", ", ".join(f"etiquetado_{r}.xlsx" for r in REVISORES))
+        path = destino / f"etiquetado_{revisor}.xlsx"
+        try:
+            if path.exists():
+                print(f"{path.name}: {actualizar_en_sitio(path, datos, revisor)} celdas de texto corregidas; etiquetas intactas")
+            else:
+                libro(datos, revisor).save(path)
+                print(f"{path.name}: creado")
+        except PermissionError:
+            print(f"{path.name}: abierto en Excel; ciérrelo y repita")
 
 
 if __name__ == "__main__":

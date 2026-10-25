@@ -10,26 +10,34 @@ from docx.shared import Cm, Pt, RGBColor
 
 from src.etl.anonimizar import anonimizar
 from src.etl.comun import RAIZ, cargar_config, ruta
+from src.evaluacion.reglas_etiquetado import SECCIONES
 
 EJEMPLOS = {
-    "funerario": ["22-13-13268646-12323242", "CO1.PCCNTR.8004130"],
-    "no_funerario": ["21-12-12425554-11507189", "CO1.PCCNTR.7800399"],
-    "mixto": ["CO1.PCCNTR.3260174", "CO1.PCCNTR.3579155"],
+    "funerario": ["22-13-13268646-12323242", "CO1.PCCNTR.5713117"],
+    "no_funerario": ["21-12-12425554-11507189", "21-12-11665962-10795571", "CO1.PCCNTR.7800399"],
+    "mixto": ["20-12-10759323-9885240", "CO1.PCCNTR.3579155"],
 }
 NOTAS = {
     "CO1.PCCNTR.7800399": "forense = 1",
-    "CO1.PCCNTR.3579155": "forense = 1 (inhumación de NN)",
+    "CO1.PCCNTR.3579155": "forense = 1 (necropsia + servicio funerario)",
 }
 CRITERIO = {
-    "funerario": "El contrato compra servicios o bienes funerarios: inhumación, exhumación, cremación, "
-                 "ataúdes, traslado de cuerpos con fin funerario, administración u operación de cementerios.",
-    "no_funerario": "No hay objeto funerario, o solo hay obras, mantenimiento físico, estudios o diseños "
-                    "(incluso si mencionan un cementerio), personal administrativo o de apoyo a una dependencia "
-                    "funeraria, o contratación forense sin componente funerario.",
-    "mixto": "Un mismo contrato mezcla un componente funerario claro con otro que no lo es "
-             "(aseo y ornato, necropsias).",
+    "funerario": "El contrato compra servicios o bienes funerarios: inhumación, exhumación, cremación, ataúdes, "
+                 "planes exequiales, traslado de cuerpos con fin funerario, administración u operación de cementerios.",
+    "no_funerario": "No se compra nada funerario: obras, mantenimiento físico, estudios o diseños (aunque mencionen "
+                    "un cementerio); aseo, cafetería, vigilancia, custodia; personal administrativo o de apoyo a una "
+                    "dependencia funeraria; contratación forense sin componente funerario.",
+    "mixto": "Un mismo contrato mezcla un componente funerario claro con otro que no lo es (p. ej. sepulturero "
+             "con albañilería y pintura; servicio funerario con necropsia).",
 }
 EJEMPLO_PERSONAL = "CO1.PCCNTR.6323489"
+EJEMPLO_CEMENTERIO = "CO1.PCCNTR.7377636"
+
+
+def recortar(texto, n):
+    if len(texto) <= n:
+        return texto
+    return texto[:n].rsplit(" ", 1)[0].rstrip(";,.") + "…"
 
 
 def sombrear(celda, color):
@@ -63,7 +71,7 @@ def main(carpeta=None):
     a = pd.concat([pd.read_parquet(interim / f"{n}_senales.parquet") for n in ("secop1", "secop2")],
                   ignore_index=True).set_index("llave")
     muestra = set(pd.read_parquet(ruta(config, "processed") / "muestra_secop_maestra.parquet").llave)
-    assert not muestra & ({k for v in EJEMPLOS.values() for k in v} | {EJEMPLO_PERSONAL}), \
+    assert not muestra & ({k for v in EJEMPLOS.values() for k in v} | {EJEMPLO_PERSONAL, EJEMPLO_CEMENTERIO}), \
         "ejemplo dentro de la muestra"
 
     doc = Document()
@@ -101,39 +109,24 @@ def main(carpeta=None):
             p = fila[2].paragraphs[0] if i == 0 else fila[2].add_paragraph()
             p.paragraph_format.space_after = Pt(2)
             texto = " ".join(anonimizar(a.loc[k, "objeto"]).split())
-            if len(texto) > 210:
-                texto = texto[:207] + "…"
-            r = p.add_run(f"«{texto}»")
+            r = p.add_run(f"«{recortar(texto, 210)}»")
             r.font.size = Pt(8)
             r.italic = True
             if k in NOTAS:
                 p.add_run(f"  → {NOTAS[k]}").font.size = Pt(8)
     for row in tabla.rows:
-        row.cells[0].width, row.cells[1].width, row.cells[2].width = Cm(2.4), Cm(6.0), Cm(9.9)
+        row.cells[0].width, row.cells[1].width, row.cells[2].width = Cm(2.4), Cm(6.3), Cm(9.6)
 
-    parrafo(doc, "", tamano=3, espacio=0)
-    parrafo(doc, "Marca forense y regla de coherencia", True, 10.5, 1)
-    vineta(doc, "forense = 1 si el contrato es de necropsias, autopsias, disección, medicina legal, identificación o "
-                "transporte de cadáveres con fin judicial. No es una cuarta clase: va en su propia columna (0 o 1).")
-    vineta(doc, "Regla de coherencia: si forense = 1, la etiqueta es no_funerario. Excepción: si hay un componente funerario "
-                "claro (p. ej. inhumación de cuerpos no identificados), la etiqueta es mixto.")
-    vineta(doc, "forense = 1 con funerario es un error y se devuelve para revisión. Lo forense se reporta aparte y queda "
-                "fuera del tamaño de mercado.")
-
-    parrafo(doc, "", tamano=3, espacio=0)
-    parrafo(doc, "Cementerios", True, 10.5, 1)
-    vineta(doc, "Operación o administración del cementerio (inhumación, exhumación, bóvedas, concesión) = funerario. "
-                "Ejemplo: «Administración y operación de los cementerios públicos del Distrito de Cartagena».")
-    vineta(doc, "Obras civiles, mantenimiento físico (luminarias, limpieza, vías), estudios y diseños = no_funerario, "
-                "aunque el texto diga «cementerio».")
-    vineta(doc, "Si el contrato mezcla ambas cosas, mixto. Si el texto no permite decidir, anótelo en notas.")
-
-    parrafo(doc, "", tamano=3, espacio=0)
-    parrafo(doc, "Personal administrativo o de apoyo", True, 10.5, 1)
-    ejemplo = " ".join(anonimizar(a.loc[EJEMPLO_PERSONAL, "objeto"]).split())
-    vineta(doc, "Contratar personal administrativo o de apoyo a una dependencia funeraria (supervisión, PQRS, "
-                "correspondencia, apoyo financiero o jurídico) = no_funerario: no compra servicios funerarios. "
-                f"Ejemplo: «{ejemplo[:190]}»")
+    ejemplos = {"Qué se compra, no dónde (D21)": EJEMPLO_PERSONAL, "Cementerios": EJEMPLO_CEMENTERIO}
+    for titulo, reglas in SECCIONES.items():
+        parrafo(doc, "", tamano=3, espacio=0)
+        parrafo(doc, titulo, True, 10.5, 1)
+        for regla in reglas:
+            vineta(doc, regla)
+        if titulo in ejemplos:
+            texto = " ".join(anonimizar(a.loc[ejemplos[titulo], "objeto"]).split())
+            p = parrafo(doc, f"Ejemplo real: «{recortar(texto, 190)}»", tamano=8, espacio=1)
+            p.runs[0].italic = True
 
     parrafo(doc, "", tamano=3, espacio=0)
     p = parrafo(doc, "Llene solo las celdas amarillas del Excel (lista desplegable en etiqueta y forense). No cambie el orden de "
