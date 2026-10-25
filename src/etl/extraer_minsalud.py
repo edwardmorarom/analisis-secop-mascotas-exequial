@@ -3,6 +3,7 @@ import itertools
 import re
 
 import camelot
+import numpy as np
 import pandas as pd
 import pdfplumber
 from rapidfuzz import fuzz, process
@@ -16,6 +17,9 @@ NUMERICAS_2019 = ["poblacion_dane", "poblacion_perros", "poblacion_gatos", "pobl
 ADITIVAS = ["poblacion_dane", "poblacion_perros", "poblacion_gatos", "poblacion_perros_gatos", "vacunados_dts",
             "vacunados_particulares", "perros_vacunados", "acumulado_vacunados"]
 TOLERANCIA_BLOQUE = 0.03
+# Instructivo 2019 (págs. 2–3): sin metodología propia, población = DANE 2018 / razón entera (perros 1–9, gatos 1–25).
+RAZON_MAXIMA = {"perro": 9, "gato": 25}
+TOLERANCIA_RAZON = 1
 
 # Distritos que el PDF lista como DTS aparte (fuera del total de su departamento) y su código DIVIPOLA.
 DISTRITOS = {"BARRANQUILLA": "08001", "BOGOTA": "11001", "BUENAVENTURA": "76109",
@@ -197,6 +201,40 @@ def cruzar_divipola(df, divipola, umbral=90, margen=5):
     return out
 
 
+def razon_entera(poblacion, animales, maxima, tolerancia=TOLERANCIA_RAZON):
+    """Razón entera R tal que round(poblacion / R) reproduce `animales` con tolerancia en animales."""
+    if pd.isna(poblacion) or pd.isna(animales):
+        return np.nan
+    r = np.arange(1, maxima + 1)
+    error = np.abs(np.floor(poblacion / r + 0.5) - animales)
+    return float(r[error.argmin()]) if error.min() <= tolerancia else np.nan
+
+
+def agregar_estimacion(df):
+    out = df.copy()
+    es_muni = out["tipo"].isin(["municipio", "distrito"])
+    for especie, columna in (("perro", "poblacion_perros"), ("gato", "poblacion_gatos")):
+        out[f"razon_hab_{especie}"] = np.where(es_muni, out["poblacion_dane"] / out[columna].replace(0, np.nan), np.nan)
+        out[f"razon_entera_{especie}"] = [
+            razon_entera(p, a, RAZON_MAXIMA[especie]) if m else np.nan
+            for p, a, m in zip(out["poblacion_dane"], out[columna], es_muni)]
+        out[f"metodo_estimacion_{especie}"] = np.where(
+            es_muni, np.where(out[f"razon_entera_{especie}"].notna(), "imputado", "posible_medido"), None)
+    perro, gato = out["metodo_estimacion_perro"], out["metodo_estimacion_gato"]
+    out["metodo_estimacion"] = np.select(
+        [~es_muni, (perro == "imputado") & (gato == "imputado"), (perro == "posible_medido") & (gato == "posible_medido")],
+        [None, "imputado", "posible_medido"], default="parcial")
+    out.loc[~es_muni, "metodo_estimacion"] = None
+    for nombre, columna in (("cobertura_100", "cobertura_perros_gatos"), ("cobertura_perros_100", "cobertura_perros")):
+        out[nombre] = np.where(es_muni & out[columna].notna(), (out[columna] == 100).astype(int), np.nan)
+    return out
+
+
+def quitar_duplicados(df):
+    claves = ["municipio_pdf"] + NUMERICAS_2019
+    return df.drop_duplicates(subset=claves, keep="first").reset_index(drop=True)
+
+
 def comparar_departamentos(df):
     filas = []
     for dep, g in df[df["tipo"].isin(["municipio", "departamento_total"])].groupby("bloque"):
@@ -224,8 +262,10 @@ def main():
     path = ruta(config, "raw") / "minsalud" / f"minsalud_vacunacion_{a.anio}.pdf"
     divipola = pd.read_csv(ruta(config, "raw") / "dane" / "dane_divipola.csv", dtype=str)
     df, bitacora = extraer_2019(path)
-    df = asignar_bloques(df, divipola)
-    df = cruzar_divipola(df, divipola)
+    filas_leidas = len(df)
+    df = asignar_bloques(quitar_duplicados(df), divipola)
+    duplicados = filas_leidas - len(df)
+    df = agregar_estimacion(cruzar_divipola(df, divipola))
     df["anio"] = a.anio
     df["anio_fuente"] = a.anio
     df["fuente"] = path.name
@@ -233,6 +273,7 @@ def main():
     interim.mkdir(parents=True, exist_ok=True)
     df.to_parquet(interim / f"minsalud_{a.anio}.parquet", index=False)
     comparar_departamentos(df).to_parquet(interim / f"minsalud_{a.anio}_departamentos.parquet", index=False)
+    print(f"duplicados eliminados (p. 34/35 y resto): {duplicados}")
     print(f"filas: {len(df)} | por tipo: {df['tipo'].value_counts().to_dict()} | respaldo camelot: {bitacora}")
 
 

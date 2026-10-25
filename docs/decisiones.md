@@ -239,65 +239,81 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ## H. Extracción de PDF (F2)
 
-### D29. Extraer el PDF de 2019 con pdfplumber y usar camelot solo donde pdfplumber falla
+### D29. Los indicadores de densidad de mascotas solo se interpretan en municipios `posible_medido`
+- **Decisión:** para cada municipio y distrito se calcula la razón de habitantes por animal (`razon_hab_perro` y `razon_hab_gato` = «Población DANE» del PDF / población de perros o de gatos) y se clasifica cómo se obtuvo la población de animales. Es `imputado` si es la población DANE 2018 dividida por una razón entera (perros 1–9, gatos 1–25), que es el procedimiento del instructivo para los municipios sin metodología propia; es `posible_medido` si no lo es. La clasificación es por especie (`metodo_estimacion_perro`, `metodo_estimacion_gato`) y `metodo_estimacion` la resume: `imputado` (ambas imputadas), `posible_medido` (ninguna imputada) o `parcial` (una sí y una no). Los indicadores de densidad (habitantes por perro o por gato, animales por cada 100.000 habitantes y derivados) solo se interpretan donde la especie correspondiente es `posible_medido`. `razon_entera_perro` y `razon_entera_gato` guardan la razón que reproduce el dato, para auditar.
+- **Regla de «razón entera»:** existe un entero R (1–9 en perros, 1–25 en gatos) tal que `round(DANE / R)` es igual a la población de animales, con tolerancia de ±1 animal.
+- **Marca de cobertura:** `cobertura_100 = 1` cuando la cobertura de perros y gatos impresa es exactamente 100; `cobertura_perros_100` hace lo mismo para la cobertura de perros.
+- **Por qué:** el instructivo (págs. 2–3) dice que, sin metodología propia, la población de perros 2019 es DANE 2018 sobre la razón perro:humano de 2018, topada en 9 y bajada un dígito en el tramo 9–7, y la de gatos es DANE 2018 sobre la razón gato:humano, topada en 25 y bajada un dígito en el tramo 25–11. Esa cifra refleja la población humana, no una medición de animales. Evidencia en 1.121 municipios y distritos: 597 reproducen la población de perros con una razón entera (232 con R = 9) y 784 la de gatos (408 con R = 25, el tope); en los demás la razón no es entera (hasta 43,3 habitantes por perro, y 93 municipios superan 9,05, algo que el procedimiento impide). Combinado: 513 `imputado`, 253 `posible_medido` y 355 `parcial`; en 271 municipios solo los gatos son imputados y en 84 solo los perros. Para perros, la cuenta pasa de 567 (tolerancia 0) a 597 (±1) y solo a 604 con ±2 (meseta); con ±1 el falso positivo estimado es 0,9 % en perros y 7,4 % en gatos (simulación con la población DANE perturbada hasta 15 %). Sobre la cobertura: 178 municipios tienen cobertura de perros y gatos exactamente 100 y 102 la de perros; el PDF explica que donde hubo focos de rabia se revacunó a más animales que la población estimada y la cobertura se ajustó a 100 (100 de los 178 tienen acumulado igual a la población y 81 tienen más vacunados por la DTS que población), de modo que un 100 puede ser un tope y no una medición. Otros 20 municipios imprimen una cobertura mayor de 100 y no se marcan (`cobertura_100 = 0`).
+- **Descartado:** tratar la población de animales como medida en todos los municipios; un único `metodo_estimacion` sin separar especies (oculta 355 municipios mixtos); exigir razón exacta con tolerancia 0 (deja como medidos unos 30 perros imputados por redondeo).
+- **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `agregar_estimacion` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente. Limitación: en gatos, con ±1, hasta uno de cada catorce municipios con población medida puede quedar como `imputado` por coincidencia numérica; el error es del lado prudente (se excluye un dato posiblemente medido, no se incluye uno imputado).
+
+### D30. Extraer el PDF de 2019 con pdfplumber y usar camelot solo donde pdfplumber falla
 - **Decisión:** las tablas de las páginas 4–35 se leen con pdfplumber. Una fila que pdfplumber no separa en columnas se recupera con camelot (`stream`, backend Ghostscript), según D25.
 - **Por qué:** pdfplumber detecta una tabla de 13 columnas por página y entrega 1.173 de las 1.174 filas sin celdas no numéricas. La fila «NACIONAL 2019» sale con todo el texto en la primera celda; camelot `stream` la recupera completa (13 columnas, 49.549.275 de población DANE) y camelot `lattice` no la devuelve.
 - **Descartado:** camelot para todo el PDF (innecesario); LLM (no hizo falta).
 - **Sustento:** D25; prueba de las dos variantes de camelot sobre la página 35; `respaldo camelot: página 35, 1 fila` en la salida del script.
 - **Estado:** vigente.
 
-### D30. El departamento de cada municipio se asigna por el total que cierra su bloque, no por el nombre
+### D31. El departamento de cada municipio se asigna por el total que cierra su bloque, no por el nombre
 - **Decisión:** el PDF lista los municipios de cada departamento seguidos de una fila de total. Una fila se acepta como total departamental si su nombre es un departamento de DIVIPOLA y la suma de la población DANE del bloque difiere de ella menos de 3 %. Todas las filas anteriores desde el total previo pertenecen a ese departamento.
 - **Por qué:** 32 de 32 departamentos quedan reconocidos; la diferencia de población del bloque es 0 en 31 departamentos y 120 personas (0,0018 %) en Antioquia. Hay nombres que son a la vez departamento y municipio (BOLÍVAR, CÓRDOBA, NARIÑO, CALDAS, ARAUCA), de modo que el nombre solo no sirve.
 - **Descartado:** asignar el departamento por nombre del municipio; usar la tabla de DIVIPOLA para asignarlo (los nombres del PDF no coinciden de forma fiable).
 - **Sustento:** `asignar_bloques` en `src/etl/extraer_minsalud.py`; 32 filas `departamento_total`.
 - **Estado:** vigente.
 
-### D31. Seis distritos van como DTS aparte, fuera del total de su departamento
+### D32. Seis distritos van como DTS aparte, fuera del total de su departamento
 - **Decisión:** Barranquilla, Bogotá, Buenaventura, Cali, Cartagena y Santa Marta se tratan como `tipo = distrito`. Se detectan como el subconjunto de filas de distrito que hace cuadrar la población del bloque, y su código DIVIPOLA sale de una tabla explícita (08001, 11001, 76109, 76001, 13001, 47001).
 - **Por qué:** estas filas aparecen mezcladas dentro de otros bloques y no suman en el total de su departamento: el bloque de Bolívar solo cierra si se excluyen Barranquilla y Bogotá; Caldas, si se excluye Buenaventura; Caquetá, si se excluye Cali; Casanare, si se excluye Cartagena; Santander, si se excluye Santa Marta. El PDF escribe «BARRABQUILLA»; se corrige con una tabla de equivalencias (el valor impreso se conserva en `municipio_pdf`).
 - **Descartado:** sumarlas al departamento (rompe 5 totales); unirlas por nombre difuso.
 - **Sustento:** prototipo de bloques; 6 filas `distrito`.
 - **Estado:** vigente.
 
-### D32. Las 20 localidades de Bogotá se guardan aparte y no cuentan como municipios
+### D33. Las 20 localidades de Bogotá se guardan aparte y no cuentan como municipios
 - **Decisión:** las filas sin población DANE (20, páginas 8–9, de Usaquén a Sumapaz) llevan `tipo = localidad` y `bloque = DISTRITO`. No se cruzan con DIVIPOLA.
 - **Por qué:** suman exactamente la fila «BOGOTÁ» en las siete columnas aditivas que traen datos (población de perros 1.084.214, de gatos 126.606, de perros y gatos 1.210.820, vacunados DTS 380.342, particulares 410.097, perros vacunados 621.281, acumulado 790.439). Una de ellas, SAN CRISTÓBAL, repite el nombre de un municipio de Bolívar.
 - **Descartado:** contarlas como municipios (inflaría el total en 1.084.214 perros y colisionaría con códigos de DIVIPOLA).
 - **Sustento:** comparación localidades frente a fila Bogotá.
 - **Estado:** vigente.
 
-### D33. Cruce con DIVIPOLA por nombre dentro del departamento, en cuatro pasos
+### D34. Cruce con DIVIPOLA por nombre dentro del departamento, en cuatro pasos
 - **Decisión:** (1) nombre normalizado igual, único dentro del departamento: 1.039 filas; (2) tabla de equivalencias explícita (departamento + nombre del PDF → código): 16 filas; (3) aproximado con `token_set_ratio ≥ 90` y margen ≥ 5 sobre el segundo candidato, solo entre códigos aún libres: 59 filas, revisadas una por una; (4) distritos por tabla: 6. Las filas sin cruce quedan con `cod_divipola` nulo, sin inventar código.
 - **Por qué:** cruzan 1.120 de 1.121 filas municipales y de distrito; 0 códigos repetidos. Sin cruce: Mapiripana (Guainía), que no aparece en `dane_divipola.csv`. DIVIPOLA sin fila en el PDF: Turbo (05837) y Nuevo Belén de Bajirá (27493).
-- **Descartado:** fuzzy global sin restringir al departamento; validar el cruce con la población DANE (ver D34).
+- **Descartado:** fuzzy global sin restringir al departamento; validar el cruce con la población DANE (ver D35).
 - **Sustento:** `cruzar_divipola`; la tabla `EQUIVALENCIAS_MUNICIPIO` está en el código.
 - **Estado:** vigente. Los 59 aproximados y los 16 de la tabla deben revisarse una vez más con muestra manual (condición de F2).
 
-### D34. La «Población DANE 2018» del PDF no se usa como llave ni para validar el cruce
+### D35. La «Población DANE 2018» del PDF no se usa como llave ni para validar el cruce
 - **Decisión:** se conserva `poblacion_dane` tal como se imprime, pero no se asume igual a las proyecciones DANE.
 - **Por qué:** de 1.056 filas con cruce (versión previa del cruce), solo 1 coincide con la serie 2018–2042 del DANE; frente a la serie 2005–2017 (año 2017, 1.039 cruces exactos) la razón mediana es 1,017 con rango 0,32–3,36. Es otra base, no la serie que tenemos. Ejemplo: Leticia 42.280 en el PDF y 48.182 en la serie 2018.
 - **Descartado:** corregir o reemplazar la cifra impresa.
 - **Sustento:** comparación contra `dane_proyecciones_municipales_2018_2042.xlsx` y `_2005_2017.xlsx`.
 - **Estado:** abierta. Afecta a D14: falta decidir qué denominador usa el panel para «habitantes por perro» (la cifra del PDF o la proyección DANE de la serie vigente).
 
-### D35. Los totales departamentales impresos se conservan y se comparan; no se corrigen los municipios
+### D36. Los totales departamentales impresos se conservan y se comparan; no se corrigen los municipios
 - **Decisión:** los totales del PDF van a `minsalud_2019_departamentos.parquet`, con suma de municipios, valor impreso y diferencia por columna. Los valores de los municipios quedan como se imprimen.
 - **Por qué:** 8 de 32 departamentos cierran exactamente en todas las columnas; 24 difieren. Población DANE: diferencia máxima 0,0018 % (Antioquia, −120). Perros y gatos: hasta 0,2 % (Vaupés). Las diferencias grandes están en perros vacunados y acumulado: Cundinamarca −7.860 y −11.535 (3,0 % del acumulado), Guainía −912 (16,7 % de sus perros vacunados), Antioquia acumulado −8.236, Quindío −573, Cesar −361. A nivel nacional, la suma de municipios y distritos queda por debajo de «NACIONAL 2019» en 120 de población, 8.885 perros vacunados y 21.318 en el acumulado.
 - **Descartado:** reescalar municipios para cerrar totales (inventaría datos).
 - **Sustento:** `comparar_departamentos`; es la validación contra los totales impresos que exige D25. Las diferencias son incidencias del propio PDF para el agente de F6, no errores de extracción: los municipios se leyeron tal como están impresos.
 - **Estado:** vigente.
 
-### D36. Celdas vacías son nulas y las coberturas se guardan como enteros impresos
+### D37. Celdas vacías son nulas y las coberturas se guardan como enteros impresos
 - **Decisión:** una celda vacía (p. ej. ciudadanos venezolanos o revacunados en foco en municipios sin dato) queda nula, no cero. Las coberturas se guardan como el entero impreso, sin recalcular.
 - **Por qué:** «0» y «sin dato» significan cosas distintas; la regla del CLAUDE.md es conservar el valor tal como viene.
 - **Descartado:** rellenar con 0; recalcular coberturas desde los conteos (se compara después, en F3).
 - **Sustento:** columnas `vacunados_venezolanos`, `revacunados_foco` y `cobertura_*` de `minsalud_2019.parquet`.
 - **Estado:** vigente.
 
-### D37. Solo 2019 está implementado; los demás años se revisan antes
+### D38. Solo 2019 está implementado; los demás años se revisan antes
 - **Decisión:** `--anio` rechaza cualquier año distinto de 2019 hasta revisar el formato de ese PDF.
 - **Por qué:** los formatos cambian entre años (CLAUDE.md) y el parser de 2019 depende de sus 13 columnas y de la estructura de bloques.
 - **Descartado:** un parser genérico sin revisar cada año.
 - **Sustento:** instrucción de empezar solo por 2019 y detenerse para revisión.
+- **Estado:** vigente.
+
+### D39. Las páginas 34 y 35 no repiten filas; se deja una guarda contra duplicados
+- **Decisión:** el extractor elimina filas idénticas en nombre y valores, sin importar la página, y reporta cuántas elimina.
+- **Por qué:** se esperaba que la página 35 repitiera filas de la 34. No es así: la 34 tiene 39 filas, la 35 tiene 8 (continúan Vaupés y Vichada y traen el total nacional) y 0 son idénticas; tampoco hay filas duplicadas en las 1.174 ni municipios con el mismo nombre dentro de un departamento. La guarda elimina 0 filas.
+- **Descartado:** eliminar duplicados por nombre solo (hay nombres repetidos legítimos, como SAN CRISTÓBAL en Bogotá y en Bolívar).
+- **Sustento:** `quitar_duplicados` en `src/etl/extraer_minsalud.py`.
 - **Estado:** vigente.
