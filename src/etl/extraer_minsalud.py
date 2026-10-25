@@ -11,15 +11,16 @@ from unidecode import unidecode
 
 from src.etl.comun import cargar_config, ruta
 
-NUMERICAS_2019 = ["poblacion_dane", "poblacion_perros", "poblacion_gatos", "poblacion_perros_gatos",
+NUMERICAS_2019 = ["pob_pdf", "poblacion_perros", "poblacion_gatos", "poblacion_perros_gatos",
                   "vacunados_dts", "vacunados_particulares", "perros_vacunados", "cobertura_perros",
                   "acumulado_vacunados", "cobertura_perros_gatos", "vacunados_venezolanos", "revacunados_foco"]
-ADITIVAS = ["poblacion_dane", "poblacion_perros", "poblacion_gatos", "poblacion_perros_gatos", "vacunados_dts",
+ADITIVAS = ["pob_pdf", "poblacion_perros", "poblacion_gatos", "poblacion_perros_gatos", "vacunados_dts",
             "vacunados_particulares", "perros_vacunados", "acumulado_vacunados"]
 TOLERANCIA_BLOQUE = 0.03
-# Instructivo 2019 (págs. 2–3): sin metodología propia, población = DANE 2018 / razón entera (perros 1–9, gatos 1–25).
+# Instructivo 2019 (págs. 2–3): sin metodología propia, población = pob_pdf / razón entera (perros 1–9, gatos 1–25).
 RAZON_MAXIMA = {"perro": 9, "gato": 25}
-TOLERANCIA_RAZON = 1
+TOLERANCIA_RAZON = 0.05
+LIMITES_DIF_POBLACION = (0.8, 1.25)
 
 # Distritos que el PDF lista como DTS aparte (fuera del total de su departamento) y su código DIVIPOLA.
 DISTRITOS = {"BARRANQUILLA": "08001", "BOGOTA": "11001", "BUENAVENTURA": "76109",
@@ -121,17 +122,17 @@ def asignar_bloques(df, divipola):
     df["bloque"] = None
     es_nacional = df["municipio_pdf"].str.upper().str.startswith("NACIONAL")
     df.loc[es_nacional, "tipo"] = "nacional"
-    df.loc[~es_nacional & df["poblacion_dane"].isna(), "tipo"] = "localidad"
+    df.loc[~es_nacional & df["pob_pdf"].isna(), "tipo"] = "localidad"
     buf = []
     for k in df.index[(df["tipo"] == "municipio")]:
         nombre = normalizar(df.at[k, "municipio_pdf"])
         if nombre in deps_busqueda and buf:
-            total = df.at[k, "poblacion_dane"]
+            total = df.at[k, "pob_pdf"]
             candidatos = [b for b in buf if clave_distrito(df.at[b, "municipio_pdf"])]
             mejor = None
             for m in range(len(candidatos) + 1):
                 for excluir in itertools.combinations(candidatos, m):
-                    s = df.loc[[b for b in buf if b not in excluir], "poblacion_dane"].sum()
+                    s = df.loc[[b for b in buf if b not in excluir], "pob_pdf"].sum()
                     e = abs(s - total) / max(total, 1)
                     if mejor is None or e < mejor[0]:
                         mejor = (e, excluir)
@@ -201,30 +202,36 @@ def cruzar_divipola(df, divipola, umbral=90, margen=5):
     return out
 
 
-def razon_entera(poblacion, animales, maxima, tolerancia=TOLERANCIA_RAZON):
-    """Razón entera R tal que round(poblacion / R) reproduce `animales` con tolerancia en animales."""
-    if pd.isna(poblacion) or pd.isna(animales):
-        return np.nan
-    r = np.arange(1, maxima + 1)
-    error = np.abs(np.floor(poblacion / r + 0.5) - animales)
-    return float(r[error.argmin()]) if error.min() <= tolerancia else np.nan
+def cargar_pob_dane(config, anio):
+    path = ruta(config, "raw") / "dane" / "dane_proyecciones_municipales_2018_2042.xlsx"
+    x = pd.read_excel(path, sheet_name="PobMunicipalxÁrea", header=7, dtype=str)
+    x = x[(x["AÑO"] == str(anio)) & (x["ÁREA GEOGRÁFICA"] == "Total")]
+    return x.set_index("MPIO")["TOTAL"].astype(float).rename("pob_dane")
 
 
-def agregar_estimacion(df):
+def casi_entera(razon, maximo):
+    cercano = np.rint(razon)
+    return (np.abs(razon - cercano) < TOLERANCIA_RAZON) & (cercano >= 1) & (cercano <= maximo)
+
+
+def agregar_estimacion(df, pob_dane):
     out = df.copy()
     es_muni = out["tipo"].isin(["municipio", "distrito"])
+    out["pob_dane"] = out["cod_divipola"].map(pob_dane)
+    out.loc[~es_muni, "pob_dane"] = np.nan
+    cociente = out["pob_pdf"] / out["pob_dane"]
+    bajo, alto = LIMITES_DIF_POBLACION
+    out["dif_poblacion"] = np.where(es_muni & cociente.notna(), ((cociente < bajo) | (cociente > alto)).astype(int), np.nan)
     for especie, columna in (("perro", "poblacion_perros"), ("gato", "poblacion_gatos")):
-        out[f"razon_hab_{especie}"] = np.where(es_muni, out["poblacion_dane"] / out[columna].replace(0, np.nan), np.nan)
-        out[f"razon_entera_{especie}"] = [
-            razon_entera(p, a, RAZON_MAXIMA[especie]) if m else np.nan
-            for p, a, m in zip(out["poblacion_dane"], out[columna], es_muni)]
-        out[f"metodo_estimacion_{especie}"] = np.where(
-            es_muni, np.where(out[f"razon_entera_{especie}"].notna(), "imputado", "posible_medido"), None)
-    perro, gato = out["metodo_estimacion_perro"], out["metodo_estimacion_gato"]
-    out["metodo_estimacion"] = np.select(
-        [~es_muni, (perro == "imputado") & (gato == "imputado"), (perro == "posible_medido") & (gato == "posible_medido")],
-        [None, "imputado", "posible_medido"], default="parcial")
-    out.loc[~es_muni, "metodo_estimacion"] = None
+        razon = np.where(es_muni, out["pob_pdf"] / out[columna].replace(0, np.nan), np.nan)
+        out[f"razon_hab_{especie}"] = razon
+        imputado = casi_entera(razon, RAZON_MAXIMA[especie])
+        out[f"razon_entera_{especie}"] = np.where(imputado, np.rint(razon), np.nan)
+        out[f"metodo_estimacion_{especie}"] = np.where(es_muni, np.where(imputado, "imputado", "posible_medido"), None)
+        reproduce = np.abs(np.floor(out["pob_pdf"] / out[f"razon_entera_{especie}"] + 0.5) - out[columna]) <= 1
+        out[f"reproducible_{especie}"] = np.where(imputado, reproduce.astype(int), np.nan)
+        out[f"hab_por_{especie}"] = np.where(es_muni, out["pob_dane"] / out[columna].replace(0, np.nan), np.nan)
+    out["metodo_estimacion"] = out["metodo_estimacion_perro"]
     for nombre, columna in (("cobertura_100", "cobertura_perros_gatos"), ("cobertura_perros_100", "cobertura_perros")):
         out[nombre] = np.where(es_muni & out[columna].notna(), (out[columna] == 100).astype(int), np.nan)
     return out
@@ -265,7 +272,7 @@ def main():
     filas_leidas = len(df)
     df = asignar_bloques(quitar_duplicados(df), divipola)
     duplicados = filas_leidas - len(df)
-    df = agregar_estimacion(cruzar_divipola(df, divipola))
+    df = agregar_estimacion(cruzar_divipola(df, divipola), cargar_pob_dane(config, a.anio))
     df["anio"] = a.anio
     df["anio_fuente"] = a.anio
     df["fuente"] = path.name
