@@ -157,6 +157,17 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 | F8 Análisis | indicadores, mapas, tipología | cada cifra rastreable |
 | F9 Entrega | documento Word, tablero, README | revisión del equipo |
 
+## Estado de las fases (2026-10-26)
+
+| Fase | Estado |
+|---|---|
+| F0 Preparación | repo, entorno y claves listos; Langfuse y Docker sin verificar en este registro |
+| F1 Adquisición | cerrada (D28); integrada en `main` |
+| F2 Extracción | cerrada (D28): MinSalud 2014–2024 (D44–D53); integrada en `main` |
+| F3 Armonización | cerrada en la rama `etl` (D64, D65: INS 2022–2025, panel de agresiones, `incidencias.csv`); las decisiones D65 y D66 en adelante están marcadas como propuesta; sin integrar en `main` |
+| F4 SECOP | en curso, rama `modelos`: clasificadores y validación externa hechos (D55–D63; TF-IDF elegido, DeepSeek no aprobado); mercado público en borrador (D66–D69), pendiente de revisión de Edward; sin integrar en `main` |
+| F5–F9 | pendientes |
+
 ## Análisis SECOP
 
 **Clasificadores:** regla léxica + UNSPSC (línea base); TF-IDF + regresión logística (principal); `intfloat/multilingual-e5-base` + regresión logística; DeepSeek con 6–8 ejemplos (preetiquetado). Muestra de ~400 candidatos + ~100 no recuperados. Precisión, sensibilidad y F1 de `funerario` con intervalos bootstrap; diagrama de calibración.
