@@ -55,11 +55,14 @@ def main():
     print(resumen.round(4).to_string())
     print(d["metodo_cruce"].value_counts().to_dict())
     escribir_tablas(config, d, salida, divipola)
+    _, pa, dep, n_excel = escribir_patrones(d, salida, divipola)
+    print("subtipos para validar:", n_excel)
+    from src.modelos import mercado_graficos, mercado_informe
+    mercado_graficos.estilo()
+    mercado_graficos.main()
+    mercado_informe.main()
     print("excel de cruces aproximados:", excel_cruces(d, divipola, RAIZ / "docs" / "revision_f4" / "cruces_secop.xlsx"))
 
-
-if __name__ == "__main__":
-    main()
 
 
 ESCENARIOS = {
@@ -126,3 +129,30 @@ def serie_anual_fuente(d):
     f = d[d["clase_final"] == "funerario"]
     return f.groupby(["anio", "fuente"]).agg(contratos=("valor", "size"), valor_corriente=("valor", "sum"),
                                               valor_constante_2025=("valor_constante_2025", "sum")).reset_index()
+
+
+def escribir_patrones(d, salida, divipola):
+    from src.modelos import mercado_patrones as mp
+    f = mp.preparar(d)
+    nombres_dep = divipola.drop_duplicates("Código Departamento").set_index("Código Departamento")["Nombre Departamento"].to_dict()
+    mp.agregado(f, ["fuente", "orden"]).to_csv(salida / "borrador_orden_entidad.csv", index=False, encoding="utf-8-sig")
+    mp.agregado(f[f["fuente"] == "secop2"], ["sector"]).to_csv(salida / "borrador_sector_secop2.csv", index=False, encoding="utf-8-sig")
+    mp.agregado(f, ["tipo_entidad"]).to_csv(salida / "borrador_tipo_entidad.csv", index=False, encoding="utf-8-sig")
+    mp.agregado(f, ["modalidad_grupo"]).to_csv(salida / "borrador_modalidad.csv", index=False, encoding="utf-8-sig")
+    mp.modalidad_directa(f).to_csv(salida / "borrador_modalidad_directa_anual.csv", index=False, encoding="utf-8-sig")
+    mes = mp.agregado(f, ["mes"])
+    mes["pct_valor_mes"] = mes["pct_valor"]
+    mes.to_csv(salida / "borrador_mes_firma.csv", index=False, encoding="utf-8-sig")
+    mp.agregado(f, ["subtipo"]).to_csv(salida / "borrador_subtipo.csv", index=False, encoding="utf-8-sig")
+    mp.agregado(f, ["anio", "subtipo"]).to_csv(salida / "borrador_subtipo_anual.csv", index=False, encoding="utf-8-sig")
+    pa = mp.proveedores_por_anio(f)
+    pa.to_csv(salida / "proveedores_hhi_cr4_anual.csv", index=False, encoding="utf-8-sig")
+    pd_ = mp.proveedores_por_departamento(f, nombres_dep)
+    pd_.to_csv(salida / "proveedores_hhi_departamento.csv", index=False, encoding="utf-8-sig")
+    mp.participacion_proveedores(f, 15).to_csv(salida / "proveedores_top_participacion.csv", index=False, encoding="utf-8-sig")
+    n_excel = mp.excel_subtipos(f, RAIZ / "docs" / "revision_f4" / "subtipos.xlsx")
+    return f, pa, pd_, n_excel
+
+
+if __name__ == "__main__":
+    main()
