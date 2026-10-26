@@ -56,12 +56,14 @@ def main():
     print(d["metodo_cruce"].value_counts().to_dict())
     escribir_tablas(config, d, salida, divipola)
     _, pa, dep, n_excel = escribir_patrones(d, salida, divipola)
-    print("subtipos para validar:", n_excel)
+    print("indicadores de componentes evaluados:", n_excel)
     from src.modelos import mercado_graficos, mercado_informe
     mercado_graficos.estilo()
     mercado_graficos.main()
     mercado_informe.main()
-    print("excel de cruces aproximados:", excel_cruces(d, divipola, RAIZ / "docs" / "revision_f4" / "cruces_secop.xlsx"))
+    destino_cruces = RAIZ / "docs" / "revision_f4" / "cruces_secop.xlsx"
+    if not destino_cruces.exists():
+        print("excel de cruces aproximados:", excel_cruces(d, divipola, destino_cruces))
 
 
 
@@ -143,15 +145,17 @@ def escribir_patrones(d, salida, divipola):
     mes = mp.agregado(f, ["mes"])
     mes["pct_valor_mes"] = mes["pct_valor"]
     mes.to_csv(salida / "borrador_mes_firma.csv", index=False, encoding="utf-8-sig")
-    mp.agregado(f, ["subtipo"]).to_csv(salida / "borrador_subtipo.csv", index=False, encoding="utf-8-sig")
-    mp.agregado(f, ["anio", "subtipo"]).to_csv(salida / "borrador_subtipo_anual.csv", index=False, encoding="utf-8-sig")
+    comp = mp.componentes_tabla(f)
+    comp.to_csv(salida / "componentes.csv", index=False, encoding="utf-8-sig")
+    mp.componentes_anual(f).to_csv(salida / "componentes_anual.csv", index=False, encoding="utf-8-sig")
+    acierto, _ = mp.acierto_indicadores(RAIZ / "docs" / "revision_f4" / "subtipos.xlsx")
+    acierto.to_csv(salida / "acierto_indicadores.csv", index=False, encoding="utf-8-sig")
     pa = mp.proveedores_por_anio(f)
     pa.to_csv(salida / "proveedores_hhi_cr4_anual.csv", index=False, encoding="utf-8-sig")
     pd_ = mp.proveedores_por_departamento(f, nombres_dep)
     pd_.to_csv(salida / "proveedores_hhi_departamento.csv", index=False, encoding="utf-8-sig")
     mp.participacion_proveedores(f, 15).to_csv(salida / "proveedores_top_participacion.csv", index=False, encoding="utf-8-sig")
-    n_excel = mp.excel_subtipos(f, RAIZ / "docs" / "revision_f4" / "subtipos.xlsx")
-    return f, pa, pd_, n_excel
+    return f, pa, pd_, len(acierto)
 
 
 if __name__ == "__main__":

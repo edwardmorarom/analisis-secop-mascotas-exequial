@@ -50,7 +50,7 @@ def main():
     modal = pd.read_csv(s / "borrador_modalidad.csv")
     directa = pd.read_csv(s / "borrador_modalidad_directa_anual.csv")
     mes = pd.read_csv(s / "borrador_mes_firma.csv")
-    sub = pd.read_csv(s / "borrador_subtipo.csv")
+    sub = pd.read_csv(s / "componentes.csv")
     hh = pd.read_csv(s / "proveedores_hhi_cr4_anual.csv")
     hd = pd.read_csv(s / "proveedores_hhi_departamento.csv")
     top = pd.read_csv(s / "proveedores_top_participacion.csv")
@@ -77,7 +77,10 @@ def main():
     d_dir["anio"] = d_dir["anio"].astype(int)
     d_mes = mes[["mes", "contratos", "pct_contratos", "pct_valor"]].copy()
     d_mes["mes"] = d_mes["mes"].astype(int)
-    d_sub = sub[["subtipo", "contratos", "pct_contratos", "pct_valor"]]
+    d_sub = sub[["componente", "contratos", "pct_contratos", "pct_valor"]].rename(columns={
+        "pct_contratos": "% de contratos que lo incluye", "pct_valor": "% del valor que lo incluye"})
+    ac = pd.read_csv(s / "acierto_indicadores.csv")
+    d_ac = ac[["indicador", "positivos_marcados_por_edward", "marcados_por_la_regla", "aciertos", "acierto", "precision", "sensibilidad"]]
     d_hh = hh.copy()
     d_hh["anio"] = d_hh["anio"].astype(int)
     d_hh["proveedores"] = d_hh["proveedores"].astype(int)
@@ -151,11 +154,15 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 {tabla(d_mes)}
 
-**Subtipo de servicio**, reglas sobre el objeto (`borrador_subtipo.csv`, `borrador_subtipo_anual.csv`; gráfico `4_subtipo.png`). Se dejaron 40 contratos para validar en `docs/revision_f4/subtipos.xlsx`:
+**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
 
 {tabla(d_sub)}
 
-**Decisión D68** (propuesta, borrador): agrupación de modalidades, reglas de tipo de entidad y de subtipo.
+**Acierto de cada indicador** contra los 40 contratos que Edward revisó (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable (los positivos que marcó son reales) pero la precisión es un mínimo: un componente presente que no era el marcado cuenta como falso positivo.
+
+{tabla(d_ac, {"acierto": "{:.2f}", "precision": "{:.2f}", "sensibilidad": "{:.2f}"})}
+
+**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad.
 
 ## 5. Proveedores (borrador)
 

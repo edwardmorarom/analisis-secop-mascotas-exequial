@@ -43,7 +43,8 @@ def normalizar_texto(t):
     return unidecode(str(t or "")).upper()
 
 
-def subtipo(texto, animales):
+def subtipo_unico_reemplazado(texto, animales):
+    """Versión anterior de D68 (un subtipo con prioridad), reemplazada por los indicadores de componentes; solo se conserva."""
     t = normalizar_texto(texto)
     f = {k: re.search(v, t) is not None for k, v in PALABRAS.items()}
     if animales or f["animales"]:
@@ -61,6 +62,54 @@ def subtipo(texto, animales):
     if f["cementerio"] and f["operacion"]:
         return "operacion_cementerio"
     return "otro"
+
+
+COMPONENTES = {
+    "incluye_inhumacion_cremacion": r"INHUMA|CREMACI|INCINERACI|EXHUMA|SEPULTURA|SEPELIO|SERVICIOS? (FUNERARIOS?|EXEQUIALES?)|APOYO EXEQUIAL|HONRAS FUNEBRES|ASISTENCIA FUNERARIA",
+    "incluye_traslado": r"TRASLADO|MANEJO DE (CADAVERES|CUERPOS)|TRANSPORTE DE (CADAVER|CUERPO|RESTOS|DIFUNTO)|RECOLECCION DE (CADAVER|CUERPO)",
+    "incluye_ataudes_bienes": r"COFRE|ATAUD|URNAS?|LAPIDA|MORTUORI|CAJAS? FUNERARIA|CARROZA|CENIZARIO",
+    "incluye_plan_exequial": r"POLIZA|AFILIACION|AUXILIO (FUNERARIO|EXEQUIAL)|PLAN (EXEQUIAL|FUNERARIO|DE PREVISION)|SEGURO (EXEQUIAL|FUNERARIO)|PREVISION EXEQUIAL",
+    "incluye_operacion_cementerio": r"(CEMENTERIO|BOVEDA|OSARIOS?|NICHO|CENIZARIO|SEPULTURERO).{0,120}(ADMINISTRACION|OPERACION|ARRIEND|ARRENDAMIENTO|CONCESION|MANTENIMIENTO|ADQUISICION)|(ADMINISTRACION|OPERACION|ARRIEND|ARRENDAMIENTO|CONCESION|MANTENIMIENTO|ADQUISICION).{0,120}(CEMENTERIO|BOVEDA|OSARIOS?|NICHO|CENIZARIO|SEPULTURERO)",
+    "incluye_disposicion_animales": r"ANIMALES? MUERTOS?|FAUNA|ANIMALES? DE COMPANIA|MASCOTA|CANINO|FELINO|ZOONOSIS|VETERINARI|ANIMALES? EN CONDICION|ANIMALES? (ABANDONADOS|APREHENDIDOS)",
+    "incluye_atencion_vulnerables_NN": r"NN|N\.N|NO IDENTIFICAD|SIN IDENTIFICAR|NO RECLAMAD|VULNERABL|VULNERABILIDAD|ESCASOS RECURSOS|BAJOS RECURSOS|POBRES?|POBREZA|SOLEMNIDAD|VICTIMAS?|ADULTOS? MAYORES?|INDIGENT|HABITANTE.{0,3} DE CALLE|SIN FAMILIA",
+}
+
+
+def indicadores(texto, animales=False):
+    t = normalizar_texto(texto)
+    out = {k: re.search(v, t) is not None for k, v in COMPONENTES.items()}
+    if animales:
+        out["incluye_disposicion_animales"] = True
+    if out["incluye_disposicion_animales"]:
+        out["incluye_atencion_vulnerables_NN"] = False
+    return out
+
+
+# Verdad por componente a partir del único subtipo que Edward marcó en 40 contratos.
+VERDAD = {
+    "inhumacion_NN_vulnerables": ("incluye_inhumacion_cremacion", "incluye_atencion_vulnerables_NN"),
+    "cremacion": ("incluye_inhumacion_cremacion",), "traslado": ("incluye_traslado",),
+    "cofres_y_bienes": ("incluye_ataudes_bienes",), "plan_o_poliza_exequial": ("incluye_plan_exequial",),
+    "operacion_cementerio": ("incluye_operacion_cementerio",), "disposicion_animales": ("incluye_disposicion_animales",), "otro": (),
+}
+# Con la definición nueva (plan solo con plan, póliza, auxilio funerario o afiliación) estas filas dejan de ser plan.
+CORRECCIONES = {10: "inhumacion_NN_vulnerables", 16: "inhumacion_NN_vulnerables", 31: "otro"}
+
+
+def acierto_indicadores(ruta_excel):
+    d = pd.read_excel(ruta_excel, dtype=str)
+    d["subtipo_corregido"] = [CORRECCIONES.get(int(n), s) for n, s in zip(d["n"], d["subtipo_correcto"])]
+    ind = pd.DataFrame([indicadores(o) for o in d["objeto"]])
+    filas = []
+    for nombre in COMPONENTES:
+        verdad = pd.Series([nombre in VERDAD[s] for s in d["subtipo_corregido"]])
+        pred = ind[nombre]
+        vp, fp, fn = int((verdad & pred).sum()), int((~verdad & pred).sum()), int((verdad & ~pred).sum())
+        filas.append({"indicador": nombre, "positivos_marcados_por_edward": int(verdad.sum()), "marcados_por_la_regla": int(pred.sum()),
+                      "aciertos": int((verdad == pred).sum()), "acierto": (verdad == pred).mean(),
+                      "precision": vp / (vp + fp) if vp + fp else np.nan, "sensibilidad": vp / (vp + fn) if vp + fn else np.nan,
+                      "falsos_positivos": fp, "falsos_negativos": fn})
+    return pd.DataFrame(filas), d.assign(**{k: ind[k].values for k in COMPONENTES})
 
 
 def modalidad_grupo(m):
@@ -83,7 +132,11 @@ def preparar(d):
     f = d[d["clase_final"] == "funerario"].copy()
     f["modalidad_grupo"] = f["modalidad"].map(modalidad_grupo)
     f["tipo_entidad"] = f["entidad"].map(tipo_entidad)
-    f["subtipo"] = [subtipo(o, bool(a)) for o, a in zip(f["objeto"], f["posible_disposicion_animales"])]
+    for k in COMPONENTES:
+        f[k] = False
+    ind = pd.DataFrame([indicadores(o, bool(a)) for o, a in zip(f["objeto"], f["posible_disposicion_animales"])], index=f.index)
+    for k in COMPONENTES:
+        f[k] = ind[k]
     return f
 
 
@@ -167,3 +220,26 @@ def excel_subtipos(f, destino, n=40, semilla=2026):
     destino.parent.mkdir(parents=True, exist_ok=True)
     wb.save(destino)
     return len(m)
+
+
+def componentes_tabla(f):
+    total_v = f["valor_constante_2025"].sum()
+    filas = []
+    for k in COMPONENTES:
+        x = f[f[k]]
+        filas.append({"componente": k, "contratos": len(x), "pct_contratos": len(x) / len(f) * 100,
+                      "valor_constante_2025": x["valor_constante_2025"].sum(), "pct_valor": x["valor_constante_2025"].sum() / total_v * 100})
+    sin = f[~f[list(COMPONENTES)].any(axis=1)]
+    filas.append({"componente": "ninguno_de_los_componentes", "contratos": len(sin), "pct_contratos": len(sin) / len(f) * 100,
+                  "valor_constante_2025": sin["valor_constante_2025"].sum(), "pct_valor": sin["valor_constante_2025"].sum() / total_v * 100})
+    return pd.DataFrame(filas)
+
+
+def componentes_anual(f):
+    filas = []
+    for anio, g in f.groupby("anio"):
+        for k in COMPONENTES:
+            x = g[g[k]]
+            filas.append({"anio": anio, "componente": k, "contratos": len(x), "pct_contratos": len(x) / len(g) * 100,
+                          "pct_valor": x["valor_constante_2025"].sum() / g["valor_constante_2025"].sum() * 100})
+    return pd.DataFrame(filas)

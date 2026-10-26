@@ -13,6 +13,10 @@ NOMBRES_FUENTE = {"secop1": "SECOP I", "secop2": "SECOP II"}
 NOMBRES_SUBTIPO = {"inhumacion_NN_vulnerables": "Inhumación de NN o vulnerables", "plan_o_poliza_exequial": "Plan o póliza exequial",
                    "traslado": "Traslado", "cremacion": "Cremación", "cofres_y_bienes": "Cofres y bienes",
                    "operacion_cementerio": "Operación de cementerio", "disposicion_animales": "Disposición de animales", "otro": "Otro"}
+NOMBRES_COMPONENTE = {"incluye_inhumacion_cremacion": "Inhumación o cremación (servicio directo)", "incluye_traslado": "Traslado",
+                      "incluye_ataudes_bienes": "Ataúdes y bienes", "incluye_plan_exequial": "Plan, póliza o auxilio funerario",
+                      "incluye_operacion_cementerio": "Operación de cementerio", "incluye_disposicion_animales": "Disposición de animales",
+                      "incluye_atencion_vulnerables_NN": "Atención a vulnerables o NN"}
 NOMBRES_MODALIDAD = {"contratacion_directa": "Contratación directa", "minima_cuantia": "Mínima cuantía", "seleccion_abreviada": "Selección abreviada",
                      "licitacion_concurso": "Licitación o concurso", "regimen_especial": "Régimen especial", "otra": "Otra"}
 
@@ -81,17 +85,20 @@ def modalidad(t):
     guardar(fig, "3_modalidad.png")
 
 
-def subtipo(t):
-    t = t.sort_values("pct_valor")
-    fig, ax = plt.subplots(figsize=(8, 4.5))
-    ax.barh([NOMBRES_SUBTIPO.get(s, s) for s in t["subtipo"]], t["pct_valor"], color=AZUL, height=0.55)
-    for y, (v, n) in enumerate(zip(t["pct_valor"], t["contratos"])):
-        ax.text(v + 0.5, y, f"{v:.1f} % ({n:,} contratos)".replace(",", "."), va="center", color=TEXTO_2, fontsize=9)
-    ax.set_xlim(0, t["pct_valor"].max() * 1.45)
-    ax.set_title("Subtipo de servicio por participación en el valor (borrador, reglas sobre el objeto)")
-    ax.set_xlabel("Porcentaje del valor en pesos constantes 2020-2025")
+def componentes(t):
+    t = t[t["componente"] != "ninguno_de_los_componentes"].sort_values("pct_valor")
+    nombres = [NOMBRES_COMPONENTE.get(c, c) for c in t["componente"]]
+    fig, ax = plt.subplots(figsize=(8.5, 4.8))
+    y = range(len(t))
+    ax.barh([i + 0.2 for i in y], t["pct_valor"], height=0.35, color=AZUL, label="% del valor", edgecolor=SUPERFICIE, linewidth=2)
+    ax.barh([i - 0.2 for i in y], t["pct_contratos"], height=0.35, color=NARANJA, label="% de los contratos", edgecolor=SUPERFICIE, linewidth=2)
+    ax.set_yticks(list(y))
+    ax.set_yticklabels(nombres)
+    ax.set_title("Contratos que incluyen cada componente (no excluyentes; borrador)")
+    ax.set_xlabel("Porcentaje del total 2020-2025; un contrato puede incluir varios componentes")
     rejilla(ax, "x")
-    guardar(fig, "4_subtipo.png")
+    ax.legend(frameon=False, loc="lower right")
+    guardar(fig, "4_componentes.png")
 
 
 def concentracion(anual, dep):
@@ -122,7 +129,7 @@ def main():
     serie_anual(pd.read_csv(s / "serie_anual_fuente.csv"))
     departamentos(pd.read_csv(s / "departamento_resumen.csv"))
     modalidad(pd.read_csv(s / "borrador_modalidad.csv"))
-    subtipo(pd.read_csv(s / "borrador_subtipo.csv"))
+    componentes(pd.read_csv(s / "componentes.csv"))
     concentracion(pd.read_csv(s / "proveedores_hhi_cr4_anual.csv"), pd.read_csv(s / "proveedores_hhi_departamento.csv"))
     print("gráficos en", CARPETA)
 

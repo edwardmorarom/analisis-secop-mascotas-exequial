@@ -146,20 +146,32 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 | 11 | 180 | 4,8 | 10,4 |
 | 12 | 209 | 5,6 | 12,4 |
 
-**Subtipo de servicio**, reglas sobre el objeto (`borrador_subtipo.csv`, `borrador_subtipo_anual.csv`; gráfico `4_subtipo.png`). Se dejaron 40 contratos para validar en `docs/revision_f4/subtipos.xlsx`:
+**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
 
-| subtipo | contratos | pct_contratos | pct_valor |
+| componente | contratos | % de contratos que lo incluye | % del valor que lo incluye |
 |---|---|---|---|
-| cofres_y_bienes | 129 | 3,5 | 1,3 |
-| cremacion | 153 | 4,1 | 5,0 |
-| disposicion_animales | 2 | 0,1 | 0,0 |
-| inhumacion_NN_vulnerables | 2.241 | 60,0 | 43,6 |
-| operacion_cementerio | 58 | 1,6 | 9,5 |
-| otro | 551 | 14,8 | 32,9 |
-| plan_o_poliza_exequial | 450 | 12,1 | 5,6 |
-| traslado | 148 | 4,0 | 1,9 |
+| incluye_inhumacion_cremacion | 2.326 | 62,3 | 69,8 |
+| incluye_traslado | 248 | 6,6 | 3,9 |
+| incluye_ataudes_bienes | 1.151 | 30,8 | 16,1 |
+| incluye_plan_exequial | 333 | 8,9 | 4,8 |
+| incluye_operacion_cementerio | 61 | 1,6 | 8,6 |
+| incluye_disposicion_animales | 2 | 0,1 | 0,0 |
+| incluye_atencion_vulnerables_NN | 2.876 | 77,1 | 55,0 |
+| ninguno_de_los_componentes | 152 | 4,1 | 6,6 |
 
-**Decisión D68** (propuesta, borrador): agrupación de modalidades, reglas de tipo de entidad y de subtipo.
+**Acierto de cada indicador** contra los 40 contratos que Edward revisó (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable (los positivos que marcó son reales) pero la precisión es un mínimo: un componente presente que no era el marcado cuenta como falso positivo.
+
+| indicador | positivos_marcados_por_edward | marcados_por_la_regla | aciertos | acierto | precision | sensibilidad |
+|---|---|---|---|---|---|---|
+| incluye_inhumacion_cremacion | 11 | 24 | 27 | 0.68 | 0.46 | 1.00 |
+| incluye_traslado | 5 | 9 | 36 | 0.90 | 0.56 | 1.00 |
+| incluye_ataudes_bienes | 8 | 13 | 35 | 0.88 | 0.62 | 1.00 |
+| incluye_plan_exequial | 5 | 6 | 39 | 0.97 | 0.83 | 1.00 |
+| incluye_operacion_cementerio | 4 | 3 | 39 | 0.97 | 1.00 | 0.75 |
+| incluye_disposicion_animales | 1 | 2 | 39 | 0.97 | 0.50 | 1.00 |
+| incluye_atencion_vulnerables_NN | 11 | 28 | 23 | 0.57 | 0.39 | 1.00 |
+
+**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad.
 
 ## 5. Proveedores (borrador)
 
