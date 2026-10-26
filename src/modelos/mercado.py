@@ -155,6 +155,20 @@ def escribir_patrones(d, salida, divipola):
     pd_ = mp.proveedores_por_departamento(f, nombres_dep)
     pd_.to_csv(salida / "proveedores_hhi_departamento.csv", index=False, encoding="utf-8-sig")
     mp.participacion_proveedores(f, 15).to_csv(salida / "proveedores_top_participacion.csv", index=False, encoding="utf-8-sig")
+    interim = ruta(cargar_config(), "interim")
+    nombres = pd.concat([
+        pd.read_parquet(interim / "secop1_senales.parquet", columns=["llave", "nom_razon_social_contratista"]).rename(
+            columns={"nom_razon_social_contratista": "nombre_proveedor"}).assign(fuente="secop1"),
+        pd.read_parquet(interim / "secop2_senales.parquet", columns=["llave", "proveedor_adjudicado"]).rename(
+            columns={"proveedor_adjudicado": "nombre_proveedor"}).assign(fuente="secop2")])
+    mp.top_contratos(f, 2025, nombres).to_csv(salida / "hhi_2025_top10_contratos.csv", index=False, encoding="utf-8-sig")
+    mp.hhi_sin_mayores(f, 2025).to_csv(salida / "hhi_2025_sin_mayores.csv", index=False, encoding="utf-8-sig")
+    comparacion = []
+    for nombre, mascara in (("TF-IDF", d["pred_tfidf"] == "funerario"), ("e5", d["pred_e5"] == "funerario"),
+                            ("ambos modelos", (d["pred_tfidf"] == "funerario") & (d["pred_e5"] == "funerario"))):
+        g = mp.proveedores_por_anio(mp.preparar(d.assign(clase_final=np.where(mascara, "funerario", "otro"))))
+        comparacion.append(g.assign(clasificacion=nombre))
+    pd.concat(comparacion).to_csv(salida / "proveedores_hhi_por_clasificacion.csv", index=False, encoding="utf-8-sig")
     return f, pa, pd_, len(acierto)
 
 

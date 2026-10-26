@@ -243,3 +243,19 @@ def componentes_anual(f):
             filas.append({"anio": anio, "componente": k, "contratos": len(x), "pct_contratos": len(x) / len(g) * 100,
                           "pct_valor": x["valor_constante_2025"].sum() / g["valor_constante_2025"].sum() * 100})
     return pd.DataFrame(filas)
+
+
+def top_contratos(f, anio, nombres_proveedor, n=10):
+    g = f[f["anio"] == anio].nlargest(n, "valor_constante_2025").merge(nombres_proveedor, on=["fuente", "llave"], how="left")
+    g["proveedor"] = np.where(g["proveedor_persona_natural"], "(persona natural: no se muestra)", g["nombre_proveedor"])
+    g["pct_valor_anio"] = g["valor_constante_2025"] / f.loc[f["anio"] == anio, "valor_constante_2025"].sum() * 100
+    return g[["fuente", "entidad", "valor", "valor_constante_2025", "pct_valor_anio", "proveedor", "modalidad", "p_tfidf_funerario", "p_e5_funerario"]]
+
+
+def hhi_sin_mayores(f, anio, ks=(0, 1, 2, 3, 5, 10)):
+    x = f[f["anio"] == anio].sort_values("valor_constante_2025", ascending=False)
+    filas = []
+    for k in ks:
+        r = hhi_cr4(x.iloc[k:])
+        filas.append({"sin_los_mayores": k, "contratos": len(x) - k, "valor_constante_2025": x.iloc[k:]["valor_constante_2025"].sum(), **r})
+    return pd.DataFrame(filas)

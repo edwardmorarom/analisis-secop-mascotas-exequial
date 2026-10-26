@@ -152,32 +152,36 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 | 11 | 221 | 4,4 | 9,4 |
 | 12 | 241 | 4,8 | 11,0 |
 
-**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
+**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Solo se reportan los componentes con 35 o más aciertos de 40 contra la revisión de Edward. Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
 
 | componente | contratos | % de contratos que lo incluye | % del valor que lo incluye |
 |---|---|---|---|
-| incluye_inhumacion_cremacion | 3.058 | 61,3 | 68,6 |
 | incluye_traslado | 305 | 6,1 | 4,0 |
 | incluye_ataudes_bienes | 1.675 | 33,6 | 18,8 |
 | incluye_plan_exequial | 413 | 8,3 | 4,8 |
 | incluye_operacion_cementerio | 61 | 1,2 | 7,6 |
 | incluye_disposicion_animales | 0 | 0,0 | 0,0 |
-| incluye_atencion_vulnerables_NN | 4.045 | 81,0 | 59,8 |
-| ninguno_de_los_componentes | 181 | 3,6 | 6,1 |
 
-**Acierto de cada indicador** contra los 40 contratos que Edward revisó (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable (los positivos que marcó son reales) pero la precisión es un mínimo: un componente presente que no era el marcado cuenta como falso positivo.
+**Acierto de los componentes reportados** contra los 40 contratos (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable pero la precisión es un mínimo.
 
-| indicador | positivos_marcados_por_edward | marcados_por_la_regla | aciertos | acierto | precision | sensibilidad |
-|---|---|---|---|---|---|---|
-| incluye_inhumacion_cremacion | 11 | 24 | 27 | 0.68 | 0.46 | 1.00 |
-| incluye_traslado | 5 | 9 | 36 | 0.90 | 0.56 | 1.00 |
-| incluye_ataudes_bienes | 8 | 13 | 35 | 0.88 | 0.62 | 1.00 |
-| incluye_plan_exequial | 5 | 6 | 39 | 0.97 | 0.83 | 1.00 |
-| incluye_operacion_cementerio | 3 | 3 | 40 | 1.00 | 1.00 | 1.00 |
-| incluye_disposicion_animales | 0 | 0 | 40 | 1.00 |  |  |
-| incluye_atencion_vulnerables_NN | 11 | 28 | 23 | 0.57 | 0.39 | 1.00 |
+| indicador | aciertos | acierto | precision | sensibilidad |
+|---|---|---|---|---|
+| incluye_traslado | 36 | 0.90 | 0.56 | 1.00 |
+| incluye_ataudes_bienes | 35 | 0.88 | 0.62 | 1.00 |
+| incluye_plan_exequial | 39 | 0.97 | 0.83 | 1.00 |
+| incluye_operacion_cementerio | 40 | 1.00 | 1.00 | 1.00 |
+| incluye_disposicion_animales | 40 | 1.00 |  |  |
 
-**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad.
+**Indicadores en revisión** (menos de 35 aciertos de 40; no se reportan sus porcentajes): `incluye_inhumacion_cremacion` y `incluye_atencion_vulnerables_NN`. Casi todos los contratos funerarios mencionan servicios directos y población vulnerable, y la verdad de referencia tiene un solo subtipo por contrato, de modo que esos indicadores no se pueden evaluar bien con estos 40 casos.
+
+| indicador | aciertos | acierto | precision | sensibilidad |
+|---|---|---|---|---|
+| incluye_inhumacion_cremacion | 27 | 0.68 | 0.46 | 1.00 |
+| incluye_atencion_vulnerables_NN | 23 | 0.57 | 0.39 | 1.00 |
+
+**Disposición de animales** (evaluada aparte): el estrato B de la muestra de 400 son los 23 contratos «posible disposición de animales» (todo el estrato: N = n = 23), y todos son `no_funerario`. Casi todos son gestión de residuos peligrosos de centros de zoonosis; solo uno (M078) incluye «animales muertos» de más de 50 kg. El indicador lo marca y no marca los otros 22; ningún contrato clasificado como `funerario` lo activa (D78).
+
+**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad; D78 fija cuáles se reportan.
 
 ## 5. Proveedores (borrador)
 
@@ -195,6 +199,48 @@ Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, 
 HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = 32): percentiles 10, 25, 50, 75 y 90 = 489, 763, 1,251, 1,674, 2,525; 4 de 32 superan 2.500. Los cinco proveedores de mayor valor suman el 21.9 % del valor total (`proveedores_top_participacion.csv`).
 
 **Decisión D69** (propuesta, borrador): identificador de proveedor y medidas de concentración.
+
+### Descomposición del HHI de 2025 (D77)
+
+Los 10 mayores contratos funerarios de 2025 (`hhi_2025_top10_contratos.csv`; el proveedor solo se muestra si es persona jurídica):
+
+| entidad | valor (mm corrientes) | % del valor de 2025 | proveedor | modalidad | prob. funerario TF-IDF | prob. funerario e5 |
+|---|---|---|---|---|---|---|
+| SECRETARÍA GENERAL DE LA ALCALDÍA MAYOR DE BOGOTÁ | 8.86 | 16.2 | ASOCIACIÓN DE HOGARES SI A LA VIDA | Contratación régimen especial (con ofertas) | 0.90 | 0.06 |
+| UNIDAD ADMINISTRATIVA ESPECIAL DE SERVICIOS PÚBLICOS. | 7.84 | 14.0 | (persona natural: no se muestra) | Concurso de méritos abierto | 1.00 | 0.21 |
+| DIRECCION DE BIENESTAR DE LA POLICIA NACIONAL | 6.45 | 11.5 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Licitación pública | 0.85 | 0.98 |
+| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.95 | 3.6 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
+| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.79 | 3.2 | LA ASCENSION S.A. | Selección Abreviada de Menor Cuantía | 0.99 | 1.00 |
+| ALCALDÍA DEL DISTRITO TURÍSTICO Y CULTURAL DE CARTAGENA DE INDIAS | 0.78 | 1.4 | NADAD Y CIA SAS | Selección Abreviada de Menor Cuantía | 0.90 | 1.00 |
+| ALCALDIA MUNICIPAL DE VALLEDUPAR | 0.55 | 1.0 | ULTRAVIDA PREVISION EXEQUIAL S.A.S. | Selección abreviada subasta inversa | 0.93 | 0.97 |
+| UNIDAD ADMINISTRATIVA ESPECIAL DE SERVICIOS PÚBLICOS. | 0.52 | 0.9 | INSTITUTO DISTRITAL PARA LA PROTECCIÓN DE LA NIÑEZ Y LA JUVENTUD - IDIPRON* | Contratación directa | 0.54 | 0.20 |
+| ALCALDIA DISTRITAL DE BUENAVENTURA-VALLE | 0.52 | 0.9 | (persona natural: no se muestra) | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
+| DISTRITO ESPECIAL DE CIENCIA TECNOLOGIA E INNOVACION DE MEDELLIN | 0.49 | 0.9 | FUNERARIA SAN VICENTE S.A. | Selección abreviada subasta inversa | 1.00 | 1.00 |
+
+HHI de 2025 quitando los mayores contratos (`hhi_2025_sin_mayores.csv`):
+
+| sin los N mayores contratos | contratos | valor constante (mm) | proveedores | HHI | CR4 |
+|---|---|---|---|---|---|
+| 0 | 692 | 55.4 | 440 | 769 | 50.1 |
+| 1 | 691 | 46.4 | 439 | 721 | 42.3 |
+| 2 | 690 | 38.7 | 438 | 638 | 33.0 |
+| 3 | 689 | 32.3 | 438 | 172 | 19.7 |
+| 5 | 687 | 28.5 | 437 | 90 | 11.7 |
+| 10 | 682 | 25.7 | 436 | 74 | 10.4 |
+
+HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.csv`):
+
+| clasificacion | anio | proveedores | HHI | CR4 |
+|---|---|---|---|---|
+| TF-IDF | 2023 | 471 | 267 | 26.5 |
+| TF-IDF | 2024 | 426 | 379 | 31.3 |
+| TF-IDF | 2025 | 440 | 769 | 50.1 |
+| e5 | 2023 | 478 | 269 | 27.6 |
+| e5 | 2024 | 421 | 393 | 33.5 |
+| e5 | 2025 | 427 | 672 | 33.9 |
+| ambos modelos | 2023 | 446 | 303 | 28.5 |
+| ambos modelos | 2024 | 400 | 416 | 33.0 |
+| ambos modelos | 2025 | 405 | 726 | 35.4 |
 
 ## Limitaciones
 

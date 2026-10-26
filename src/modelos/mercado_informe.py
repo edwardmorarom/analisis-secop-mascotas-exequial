@@ -77,10 +77,23 @@ def main():
     d_dir["anio"] = d_dir["anio"].astype(int)
     d_mes = mes[["mes", "contratos", "pct_contratos", "pct_valor"]].copy()
     d_mes["mes"] = d_mes["mes"].astype(int)
-    d_sub = sub[["componente", "contratos", "pct_contratos", "pct_valor"]].rename(columns={
-        "pct_contratos": "% de contratos que lo incluye", "pct_valor": "% del valor que lo incluye"})
     ac = pd.read_csv(s / "acierto_indicadores.csv")
-    d_ac = ac[["indicador", "positivos_marcados_por_edward", "marcados_por_la_regla", "aciertos", "acierto", "precision", "sensibilidad"]]
+    publicables = ac.loc[ac["aciertos"] >= 35, "indicador"].tolist()
+    d_sub = sub[sub["componente"].isin(publicables)][["componente", "contratos", "pct_contratos", "pct_valor"]].rename(columns={
+        "pct_contratos": "% de contratos que lo incluye", "pct_valor": "% del valor que lo incluye"})
+    d_ac = ac[ac["indicador"].isin(publicables)][["indicador", "aciertos", "acierto", "precision", "sensibilidad"]]
+    d_rev = ac[~ac["indicador"].isin(publicables)][["indicador", "aciertos", "acierto", "precision", "sensibilidad"]]
+    top10 = pd.read_csv(s / "hhi_2025_top10_contratos.csv")
+    top10 = top10.assign(valor_mm=top10["valor"] / 1e9, valor_constante_mm=top10["valor_constante_2025"] / 1e9)[
+        ["entidad", "valor_mm", "pct_valor_anio", "proveedor", "modalidad", "p_tfidf_funerario", "p_e5_funerario"]].rename(columns={
+            "valor_mm": "valor (mm corrientes)", "pct_valor_anio": "% del valor de 2025",
+            "p_tfidf_funerario": "prob. funerario TF-IDF", "p_e5_funerario": "prob. funerario e5"})
+    sinm = pd.read_csv(s / "hhi_2025_sin_mayores.csv")
+    sinm = sinm.assign(valor_mm=sinm["valor_constante_2025"] / 1e9)[["sin_los_mayores", "contratos", "valor_mm", "proveedores", "HHI", "CR4"]].rename(
+        columns={"sin_los_mayores": "sin los N mayores contratos", "valor_mm": "valor constante (mm)"})
+    porcl = pd.read_csv(s / "proveedores_hhi_por_clasificacion.csv")
+    porcl = porcl[porcl["anio"] >= 2023][["clasificacion", "anio", "proveedores", "HHI", "CR4"]]
+    porcl["anio"] = porcl["anio"].astype(int)
     d_hh = hh.copy()
     d_hh["anio"] = d_hh["anio"].astype(int)
     d_hh["proveedores"] = d_hh["proveedores"].astype(int)
@@ -154,15 +167,21 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 {tabla(d_mes)}
 
-**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
+**Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Solo se reportan los componentes con 35 o más aciertos de 40 contra la revisión de Edward. Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
 
 {tabla(d_sub)}
 
-**Acierto de cada indicador** contra los 40 contratos que Edward revisó (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable (los positivos que marcó son reales) pero la precisión es un mínimo: un componente presente que no era el marcado cuenta como falso positivo.
+**Acierto de los componentes reportados** contra los 40 contratos (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable pero la precisión es un mínimo.
 
 {tabla(d_ac, {"acierto": "{:.2f}", "precision": "{:.2f}", "sensibilidad": "{:.2f}"})}
 
-**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad.
+**Indicadores en revisión** (menos de 35 aciertos de 40; no se reportan sus porcentajes): `incluye_inhumacion_cremacion` y `incluye_atencion_vulnerables_NN`. Casi todos los contratos funerarios mencionan servicios directos y población vulnerable, y la verdad de referencia tiene un solo subtipo por contrato, de modo que esos indicadores no se pueden evaluar bien con estos 40 casos.
+
+{tabla(d_rev, {"acierto": "{:.2f}", "precision": "{:.2f}", "sensibilidad": "{:.2f}"})}
+
+**Disposición de animales** (evaluada aparte): el estrato B de la muestra de 400 son los 23 contratos «posible disposición de animales» (todo el estrato: N = n = 23), y todos son `no_funerario`. Casi todos son gestión de residuos peligrosos de centros de zoonosis; solo uno (M078) incluye «animales muertos» de más de 50 kg. El indicador lo marca y no marca los otros 22; ningún contrato clasificado como `funerario` lo activa (D78).
+
+**Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad; D78 fija cuáles se reportan.
 
 ## 5. Proveedores (borrador)
 
@@ -173,6 +192,20 @@ Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, 
 HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = {len(con5)}): percentiles 10, 25, 50, 75 y 90 = {', '.join(f'{v:,.0f}' for v in cuantiles)}; {int((con5['HHI'] > 2500).sum())} de {len(con5)} superan 2.500. Los cinco proveedores de mayor valor suman el {top.head(5)['participacion_valor_pct'].sum():.1f} % del valor total (`proveedores_top_participacion.csv`).
 
 **Decisión D69** (propuesta, borrador): identificador de proveedor y medidas de concentración.
+
+### Descomposición del HHI de 2025 (D77)
+
+Los 10 mayores contratos funerarios de 2025 (`hhi_2025_top10_contratos.csv`; el proveedor solo se muestra si es persona jurídica):
+
+{tabla(top10, {"valor (mm corrientes)": "{:.2f}", "% del valor de 2025": "{:.1f}", "prob. funerario TF-IDF": "{:.2f}", "prob. funerario e5": "{:.2f}"})}
+
+HHI de 2025 quitando los mayores contratos (`hhi_2025_sin_mayores.csv`):
+
+{tabla(sinm, {"HHI": "{:.0f}", "CR4": "{:.1f}", "valor constante (mm)": "{:.1f}"})}
+
+HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.csv`):
+
+{tabla(porcl, {"HHI": "{:.0f}", "CR4": "{:.1f}"})}
 
 ## Limitaciones
 
