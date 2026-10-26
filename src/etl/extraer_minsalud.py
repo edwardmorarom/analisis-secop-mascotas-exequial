@@ -40,6 +40,9 @@ EQUIVALENCIAS_MUNICIPIO = {
     ("05", "S A DE CUERQUIA"): "05647", ("05", "S P DE LOS MILAGROS"): "05664", ("05", "SAN PEDRO DE U"): "05665",
     ("85", "HATOCOROZAL"): "85125", ("27", "CARM DE ATRATO"): "27245", ("27", "CARMEN DEL DA"): "27150",
     ("97", "MILTU"): "97001",
+    ("25", "GAMARRA"): "25299", ("25", "SAN JOSE DE RIOSECO"): "25662", ("52", "CUASPUD CARSM"): "52224",
+    ("54", "ELCARMEN"): "54245", ("54", "DVEIRLLACARO"): "54871", ("76", "RIO FRIO"): "76616",
+    ("27", "BELEN DE BAJIA"): "27493",
 }
 ABREVIATURAS = {"PTO": "PUERTO", "STA": "SANTA", "STO": "SANTO", "SN": "SAN"}
 
@@ -444,12 +447,18 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--anio", type=int, required=True)
     a = p.parse_args()
-    if a.anio not in (2017, 2019, 2023, 2024):
-        raise SystemExit(f"Solo están implementados 2017, 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
+    if a.anio not in (2014, 2017, 2019, 2023, 2024):
+        raise SystemExit(f"Solo están implementados 2014, 2017, 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
     config = cargar_config()
     divipola = pd.read_csv(ruta(config, "raw") / "dane" / "dane_divipola.csv", dtype=str)
     interim = ruta(config, "interim")
     interim.mkdir(parents=True, exist_ok=True)
+    if a.anio == 2014:
+        from src.etl.extraer_minsalud_2014 import procesar
+        df, ignoradas = procesar(config, divipola, a.anio)
+        df.to_parquet(interim / "minsalud_2014.parquet", index=False)
+        print(f"filas: {len(df)} | por tipo: {df['tipo'].value_counts().to_dict()} | líneas ignoradas: {len(ignoradas)}")
+        return
     if a.anio == 2017:
         from src.etl.extraer_minsalud_2017 import procesar
         df, dep, ignoradas = procesar(config, divipola, a.anio)
