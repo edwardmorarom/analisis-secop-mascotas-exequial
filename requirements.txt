@@ -26,3 +26,4 @@ streamlit
 plotly
 python-docx
 pytest
+xgboost
