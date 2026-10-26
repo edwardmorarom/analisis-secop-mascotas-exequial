@@ -372,3 +372,24 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** probar un solo año de base; suponer que 2023 y 2024 conservan el método de 2019.
 - **Sustento:** `src/etl/detectar_imputacion.py`; D40, D41, D43.
 - **Estado:** vigente. Limitación: en 2023 y 2024 no hay forma de separar `imputado` de `posible_medido`, así que sus densidades no son comparables en interpretación con las de 2019.
+
+### D47. Indicador principal del panel: perros vacunados por 1.000 habitantes; la densidad solo con 2019
+- **Decisión:** todos los años extraídos entran al panel municipal (`data/processed/panel_minsalud_municipal.parquet`, llave `cod_divipola` + `anio`) con su `metodo_estimacion` (2019: `imputado` o `posible_medido`; 2023 y 2024: `no_detectable`). La medida principal de evolución es `vacunados_perros_x1000hab = perros vacunados / pob_dane × 1.000`, calculada para todos los años con la población DANE del año del informe. La densidad (`hab_por_perro`) se analiza solo con 2019 y `metodo_estimacion = posible_medido` (columna `densidad_analizable = 1`; 524 municipios).
+- **Por qué:** los perros vacunados son conteos del programa, no estimaciones; la población de animales de 2023 y 2024 no permite separar imputación de medición (D46) y la de 2019 imputada no mide animales (D43). Resultado actual: 1.120 unidades con indicador en 2019 (Mapiripana sin código) y 1.121 en 2023 y 2024; mediana de 120,8, 113,2 y 108,4 por 1.000 habitantes.
+- **Descartado:** usar la densidad de 2023 y 2024 como serie; usar la población de animales del PDF como denominador.
+- **Sustento:** `src/etl/panel_minsalud.py`; D41, D43, D46.
+- **Estado:** vigente. Limitación: el denominador es la población total DANE, no la de perros; compara municipios, no mide cobertura.
+
+### D48. La población de perros de 2024 es una proyección de la de 2023
+- **Decisión:** el cambio de la población de animales entre 2023 y 2024 no se interpreta como crecimiento. No se usa para variaciones interanuales de población de perros o gatos.
+- **Por qué:** la población de perros de 2024 es la de 2023 multiplicada por ~1,008 (mediana 1,008; rango intercuartílico 1,003–1,012; 45,9 % de los municipios a ±1 %; en gatos, 36,0 %), mientras que entre 2019 y 2023 no hay relación (5,2 % a ±1 %), ver D46.
+- **Descartado:** tratar la población de 2024 como una medición independiente.
+- **Sustento:** `src/etl/detectar_imputacion.py`.
+- **Estado:** vigente.
+
+### D49. Las inconsistencias del PDF se marcan, no se excluyen; Bogotá es una sola unidad
+- **Decisión:** el panel conserva todas las filas y agrega `marca_inconsistencia` con: `identidad_tabla_no_cierra` (fila de 2024 cuyas identidades fallan), `ajuste_cobertura_asterisco` (D45) y `total_departamental_no_cierra:<columna>` (la suma municipal difiere del total impreso del departamento en más de 0,5 %). La unidad municipal de Bogotá es la fila de la ciudad (11001, `tipo = distrito`); las 20 localidades quedan solo como detalle en `data/processed/minsalud_localidades_bogota.parquet` (60 filas: 20 por año). Bolívar 2023 se conserva con su marca.
+- **Por qué:** excluir perdería filas reales (D44). Marcas actuales: 2023, 45 municipios de Bolívar (+2.877 gatos sobre el total impreso) y 1 con asterisco; 2024, 341 con asterisco, uno de ellos (Bogotá) también con identidad rota; 2019, Antioquia y Quindío (acumulado), Cundinamarca (perros vacunados −7.860, 2,8 %) y Guainía (−912, 16,7 %).
+- **Descartado:** excluir las filas marcadas; contar las localidades como municipios (D33).
+- **Sustento:** `marcas_departamento` y `armonizar` en `src/etl/panel_minsalud.py`; D33, D36, D44, D45.
+- **Estado:** vigente.
