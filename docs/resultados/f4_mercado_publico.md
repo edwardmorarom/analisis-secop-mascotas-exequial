@@ -10,9 +10,9 @@ Tabla de origen: `tasa_cruce_ubicacion.csv`.
 
 | | contratos | funerarios (TF-IDF) |
 |---|---|---|
-| universo | 39,870 | 4,992 |
-| con municipio DIVIPOLA | 38,136 (95.7%) | 4,841 |
-| con departamento | 39,774 (99.8%) | 4,985 |
+| universo | 39,870 | 4,990 |
+| con municipio DIVIPOLA | 38,136 (95.7%) | 4,839 |
+| con departamento | 39,774 (99.8%) | 4,983 |
 
 Sin municipio quedan los contratos con la entidad registrada en «No Definido» y unos pocos nombres sin equivalente. Los cruces aproximados fueron revisados por Edward (20 de 20 correctos, D66). **Decisión D66** (vigente).
 
@@ -27,7 +27,7 @@ Tabla de origen: `serie_anual.csv`; gráfico `docs/resultados/graficos/1_serie_a
 | 2022 | 805 | 28,8 | 36,5 |
 | 2023 | 765 | 30,5 | 34,3 |
 | 2024 | 691 | 32,4 | 34,0 |
-| 2025 | 692 | 55,3 | 55,4 |
+| 2025 | 690 | 38,6 | 38,7 |
 
 Por fuente (`serie_anual_fuente.csv`):
 
@@ -44,16 +44,16 @@ Por fuente (`serie_anual_fuente.csv`):
 | 2024 | secop1 | 396 | 10,0 |
 | 2024 | secop2 | 295 | 24,0 |
 | 2025 | secop1 | 339 | 9,6 |
-| 2025 | secop2 | 353 | 45,8 |
+| 2025 | secop2 | 351 | 29,1 |
 
 Sensibilidad (suma 2020–2025; `serie_anual.csv`):
 
 | escenario | contratos | valor constante 2025 (mm) |
 |---|---|---|
-| e5_con_mixto | 5.056 | 399,6 |
+| e5_con_mixto | 5.057 | 408,6 |
 | e5_sin_mixto | 4.920 | 235,6 |
-| tfidf_con_mixto | 5.096 | 413,8 |
-| tfidf_sin_mixto | 4.992 | 262,9 |
+| tfidf_con_mixto | 5.095 | 406,1 |
+| tfidf_sin_mixto | 4.990 | 246,2 |
 
 **Decisión D67** (propuesta): pesos constantes de 2025 con el IPC mensual del mes de firma; valor inicial sin adiciones.
 
@@ -67,9 +67,9 @@ Tablas: `departamento_resumen.csv`, `departamento_anual.csv`, `municipio_resumen
 | VAUPÉS | 17 | 242,0 | 7,9 |
 | GUAVIARE | 36 | 202,5 | 7,1 |
 | VICHADA | 39 | 196,0 | 4,9 |
-| BOGOTÁ, D.C. | 153 | 186,9 | 0,3 |
 | AMAZONAS | 23 | 178,4 | 4,7 |
 | ARCHIPIÉLAGO DE SAN ANDRÉS, PROVIDENCIA Y SANTA CATALINA | 1 | 158,9 | 1,6 |
+| BOGOTÁ, D.C. | 151 | 151,8 | 0,3 |
 | ARAUCA | 47 | 118,9 | 2,8 |
 | SUCRE | 181 | 118,1 | 3,0 |
 | NARIÑO | 416 | 117,2 | 4,1 |
@@ -78,7 +78,7 @@ Diez municipios con más contratos funerarios:
 
 | municipio | departamento | contratos | valor constante 2025 (mm) |
 |---|---|---|---|
-| BOGOTÁ, D.C. | BOGOTÁ, D.C. | 126 | 45,7 |
+| BOGOTÁ, D.C. | BOGOTÁ, D.C. | 124 | 29,0 |
 | ARMENIA | QUINDÍO | 74 | 2,4 |
 | SANTIAGO DE CALI | VALLE DEL CAUCA | 67 | 5,7 |
 | BUCARAMANGA | SANTANDER | 42 | 5,5 |
@@ -99,24 +99,24 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 | tipo_entidad | contratos | pct_contratos | pct_valor |
 |---|---|---|---|
-| alcaldia_municipio | 4.429 | 88,7 | 59,9 |
+| alcaldia_municipio | 4.428 | 88,7 | 60,3 |
 | educacion_universidad | 12 | 0,2 | 0,1 |
-| gobernacion_departamento | 100 | 2,0 | 2,9 |
-| otra_entidad | 229 | 4,6 | 14,0 |
-| salud_hospital_ese | 89 | 1,8 | 3,3 |
-| seguridad_justicia | 12 | 0,2 | 10,9 |
-| servicios_publicos_empresa | 121 | 2,4 | 8,9 |
+| gobernacion_departamento | 100 | 2,0 | 3,1 |
+| otra_entidad | 229 | 4,6 | 15,0 |
+| salud_hospital_ese | 89 | 1,8 | 3,5 |
+| seguridad_justicia | 12 | 0,2 | 11,6 |
+| servicios_publicos_empresa | 120 | 2,4 | 6,4 |
 
 **Modalidad** (`borrador_modalidad.csv`; gráfico `3_modalidad.png`):
 
 | modalidad_grupo | contratos | pct_contratos | pct_valor |
 |---|---|---|---|
-| contratacion_directa | 521 | 10,4 | 11,1 |
-| licitacion_concurso | 9 | 0,2 | 14,2 |
-| minima_cuantia | 4.014 | 80,4 | 38,4 |
-| otra | 6 | 0,1 | 0,1 |
-| regimen_especial | 167 | 3,3 | 8,0 |
-| seleccion_abreviada | 275 | 5,5 | 28,2 |
+| contratacion_directa | 521 | 10,4 | 11,9 |
+| licitacion_concurso | 8 | 0,2 | 12,0 |
+| minima_cuantia | 4.014 | 80,4 | 41,0 |
+| otra | 6 | 0,1 | 0,2 |
+| regimen_especial | 166 | 3,3 | 4,9 |
+| seleccion_abreviada | 275 | 5,5 | 30,1 |
 
 **Participación de la contratación directa en el valor**, por año y fuente (`borrador_modalidad_directa_anual.csv`):
 
@@ -133,33 +133,33 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 | 2024 | secop1 | 396 | 3,5 | 3,5 |
 | 2024 | secop2 | 295 | 6,7 | 9,7 |
 | 2025 | secop1 | 339 | 3,0 | 3,2 |
-| 2025 | secop2 | 353 | 7,0 | 28,6 |
+| 2025 | secop2 | 351 | 11,1 | 14,1 |
 
 **Mes de firma** (`borrador_mes_firma.csv`):
 
 | mes | contratos | pct_contratos | pct_valor |
 |---|---|---|---|
-| 1 | 362 | 7,3 | 5,0 |
-| 2 | 727 | 14,6 | 11,8 |
-| 3 | 797 | 16,0 | 12,4 |
-| 4 | 627 | 12,6 | 11,6 |
-| 5 | 512 | 10,3 | 8,3 |
-| 6 | 398 | 8,0 | 6,5 |
-| 7 | 332 | 6,7 | 5,5 |
-| 8 | 267 | 5,3 | 7,9 |
-| 9 | 261 | 5,2 | 5,7 |
-| 10 | 247 | 4,9 | 4,9 |
-| 11 | 221 | 4,4 | 9,4 |
-| 12 | 241 | 4,8 | 11,0 |
+| 1 | 362 | 7,3 | 5,4 |
+| 2 | 726 | 14,5 | 8,9 |
+| 3 | 797 | 16,0 | 13,3 |
+| 4 | 627 | 12,6 | 12,4 |
+| 5 | 512 | 10,3 | 8,9 |
+| 6 | 398 | 8,0 | 6,9 |
+| 7 | 332 | 6,7 | 5,9 |
+| 8 | 267 | 5,4 | 8,4 |
+| 9 | 261 | 5,2 | 6,1 |
+| 10 | 247 | 4,9 | 5,2 |
+| 11 | 221 | 4,4 | 10,0 |
+| 12 | 240 | 4,8 | 8,6 |
 
 **Componentes del servicio** (indicadores no excluyentes sobre el objeto; `componentes.csv`, `componentes_anual.csv`; gráfico `4_componentes.png`). Solo se reportan los componentes con 35 o más aciertos de 40 contra la revisión de Edward. Un contrato puede incluir varios componentes, así que los porcentajes no suman 100. Plan exequial solo con plan, póliza, auxilio funerario o afiliación; «servicios exequiales» por sí solo es servicio directo:
 
 | componente | contratos | % de contratos que lo incluye | % del valor que lo incluye |
 |---|---|---|---|
-| incluye_traslado | 305 | 6,1 | 4,0 |
-| incluye_ataudes_bienes | 1.675 | 33,6 | 18,8 |
-| incluye_plan_exequial | 413 | 8,3 | 4,8 |
-| incluye_operacion_cementerio | 61 | 1,2 | 7,6 |
+| incluye_traslado | 305 | 6,1 | 4,3 |
+| incluye_ataudes_bienes | 1.675 | 33,6 | 20,1 |
+| incluye_plan_exequial | 413 | 8,3 | 5,1 |
+| incluye_operacion_cementerio | 60 | 1,2 | 4,9 |
 | incluye_disposicion_animales | 0 | 0,0 | 0,0 |
 
 **Acierto de los componentes reportados** contra los 40 contratos (`acierto_indicadores.csv`). **La medición es optimista: las reglas se ajustaron con esos mismos casos.** Además, Edward marcó un solo subtipo por contrato, así que la sensibilidad es confiable pero la precisión es un mínimo.
@@ -194,9 +194,9 @@ Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, 
 | 2022 | 476 | 294 | 25.3 |
 | 2023 | 471 | 267 | 26.5 |
 | 2024 | 426 | 379 | 31.3 |
-| 2025 | 440 | 769 | 50.1 |
+| 2025 | 438 | 638 | 33.0 |
 
-HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = 32): percentiles 10, 25, 50, 75 y 90 = 489, 763, 1,251, 1,674, 2,525; 4 de 32 superan 2.500. Los cinco proveedores de mayor valor suman el 21.9 % del valor total (`proveedores_top_participacion.csv`).
+HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = 32): percentiles 10, 25, 50, 75 y 90 = 489, 763, 1,302, 1,674, 2,525; 4 de 32 superan 2.500. Los cinco proveedores de mayor valor suman el 22.3 % del valor total (`proveedores_top_participacion.csv`).
 
 **Decisión D69** (propuesta, borrador): identificador de proveedor y medidas de concentración.
 
@@ -206,27 +206,27 @@ Los 10 mayores contratos funerarios de 2025 (`hhi_2025_top10_contratos.csv`; el 
 
 | entidad | valor (mm corrientes) | % del valor de 2025 | proveedor | modalidad | prob. funerario TF-IDF | prob. funerario e5 |
 |---|---|---|---|---|---|---|
-| SECRETARÍA GENERAL DE LA ALCALDÍA MAYOR DE BOGOTÁ | 8.86 | 16.2 | ASOCIACIÓN DE HOGARES SI A LA VIDA | Contratación régimen especial (con ofertas) | 0.90 | 0.06 |
-| UNIDAD ADMINISTRATIVA ESPECIAL DE SERVICIOS PÚBLICOS. | 7.84 | 14.0 | (persona natural: no se muestra) | Concurso de méritos abierto | 1.00 | 0.21 |
-| DIRECCION DE BIENESTAR DE LA POLICIA NACIONAL | 6.45 | 11.5 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Licitación pública | 0.85 | 0.98 |
-| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.95 | 3.6 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
-| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.79 | 3.2 | LA ASCENSION S.A. | Selección Abreviada de Menor Cuantía | 0.99 | 1.00 |
-| ALCALDÍA DEL DISTRITO TURÍSTICO Y CULTURAL DE CARTAGENA DE INDIAS | 0.78 | 1.4 | NADAD Y CIA SAS | Selección Abreviada de Menor Cuantía | 0.90 | 1.00 |
-| ALCALDIA MUNICIPAL DE VALLEDUPAR | 0.55 | 1.0 | ULTRAVIDA PREVISION EXEQUIAL S.A.S. | Selección abreviada subasta inversa | 0.93 | 0.97 |
-| UNIDAD ADMINISTRATIVA ESPECIAL DE SERVICIOS PÚBLICOS. | 0.52 | 0.9 | INSTITUTO DISTRITAL PARA LA PROTECCIÓN DE LA NIÑEZ Y LA JUVENTUD - IDIPRON* | Contratación directa | 0.54 | 0.20 |
-| ALCALDIA DISTRITAL DE BUENAVENTURA-VALLE | 0.52 | 0.9 | (persona natural: no se muestra) | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
-| DISTRITO ESPECIAL DE CIENCIA TECNOLOGIA E INNOVACION DE MEDELLIN | 0.49 | 0.9 | FUNERARIA SAN VICENTE S.A. | Selección abreviada subasta inversa | 1.00 | 1.00 |
+| DIRECCION DE BIENESTAR DE LA POLICIA NACIONAL | 6.45 | 16.5 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Licitación pública | 0.85 | 0.98 |
+| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.95 | 5.1 | COORDINADORA DE SERVICIOS DE PARQUE CEMENTERIO S.A.S. | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
+| CENTRAL ADMINISTRATIVA Y CONTABLE CENAC PERSONAL | 1.79 | 4.6 | LA ASCENSION S.A. | Selección Abreviada de Menor Cuantía | 0.99 | 1.00 |
+| ALCALDÍA DEL DISTRITO TURÍSTICO Y CULTURAL DE CARTAGENA DE INDIAS | 0.78 | 2.0 | NADAD Y CIA SAS | Selección Abreviada de Menor Cuantía | 0.90 | 1.00 |
+| ALCALDIA MUNICIPAL DE VALLEDUPAR | 0.55 | 1.4 | ULTRAVIDA PREVISION EXEQUIAL S.A.S. | Selección abreviada subasta inversa | 0.93 | 0.97 |
+| UNIDAD ADMINISTRATIVA ESPECIAL DE SERVICIOS PÚBLICOS. | 0.52 | 1.3 | INSTITUTO DISTRITAL PARA LA PROTECCIÓN DE LA NIÑEZ Y LA JUVENTUD - IDIPRON* | Contratación directa | 0.54 | 0.20 |
+| ALCALDIA DISTRITAL DE BUENAVENTURA-VALLE | 0.52 | 1.3 | (persona natural: no se muestra) | Selección Abreviada de Menor Cuantía | 1.00 | 1.00 |
+| DISTRITO ESPECIAL DE CIENCIA TECNOLOGIA E INNOVACION DE MEDELLIN | 0.49 | 1.3 | FUNERARIA SAN VICENTE S.A. | Selección abreviada subasta inversa | 1.00 | 1.00 |
+| MUNICIPIO DE ARMENIA QUINDIO | 0.37 | 1.0 | FUNDACION PARQUE CEMENTERIO JARDINES DE ARMENIA | Contratación régimen especial (con ofertas) | 0.99 | 1.00 |
+| MUNICIPIO DE BUCARAMANGA | 0.38 | 1.0 | (persona natural: no se muestra) | Selección abreviada subasta inversa | 0.99 | 0.98 |
 
 HHI de 2025 quitando los mayores contratos (`hhi_2025_sin_mayores.csv`):
 
 | sin los N mayores contratos | contratos | valor constante (mm) | proveedores | HHI | CR4 |
 |---|---|---|---|---|---|
-| 0 | 692 | 55.4 | 440 | 769 | 50.1 |
-| 1 | 691 | 46.4 | 439 | 721 | 42.3 |
-| 2 | 690 | 38.7 | 438 | 638 | 33.0 |
-| 3 | 689 | 32.3 | 438 | 172 | 19.7 |
-| 5 | 687 | 28.5 | 437 | 90 | 11.7 |
-| 10 | 682 | 25.7 | 436 | 74 | 10.4 |
+| 0 | 690 | 38.7 | 438 | 638 | 33.0 |
+| 1 | 689 | 32.3 | 438 | 172 | 19.7 |
+| 2 | 688 | 30.3 | 438 | 114 | 14.5 |
+| 3 | 687 | 28.5 | 437 | 90 | 11.7 |
+| 5 | 685 | 27.2 | 437 | 85 | 11.7 |
+| 10 | 680 | 24.9 | 436 | 71 | 9.9 |
 
 HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.csv`):
 
@@ -234,7 +234,7 @@ HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.
 |---|---|---|---|---|
 | TF-IDF | 2023 | 471 | 267 | 26.5 |
 | TF-IDF | 2024 | 426 | 379 | 31.3 |
-| TF-IDF | 2025 | 440 | 769 | 50.1 |
+| TF-IDF | 2025 | 438 | 638 | 33.0 |
 | e5 | 2023 | 478 | 269 | 27.6 |
 | e5 | 2024 | 421 | 393 | 33.5 |
 | e5 | 2025 | 427 | 672 | 33.9 |

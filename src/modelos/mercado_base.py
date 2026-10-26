@@ -78,10 +78,28 @@ def codigo_departamento(divipola):
     return {normalizar(n): c for n, c in divipola[["Nombre Departamento", "Código Departamento"]].drop_duplicates().itertuples(index=False)}
 
 
+def aplicar_etiquetas_humanas(clasif, procesado):
+    """Sustituye la clase del modelo por la etiqueta humana adicional (con su origen) y conserva la predicción original."""
+    archivo = procesado / "etiquetas_humanas_adicionales.csv"
+    clasif = clasif.assign(pred_tfidf_modelo=clasif["pred_tfidf"], pred_e5_modelo=clasif["pred_e5"],
+                           etiqueta_humana_adicional=None, origen_etiqueta_adicional=None)
+    if not archivo.exists():
+        return clasif
+    h = pd.read_csv(archivo, dtype=str)
+    indice = clasif.set_index(["fuente", "llave"]).index
+    for r in h.itertuples():
+        pos = np.flatnonzero((clasif["fuente"] == r.fuente) & (clasif["llave"] == r.llave))
+        assert len(pos) == 1, f"etiqueta humana adicional sin contrato único: {r.llave}"
+        i = clasif.index[pos[0]]
+        clasif.loc[i, ["pred_tfidf", "pred_e5", "etiqueta_humana_adicional", "origen_etiqueta_adicional"]] = [r.etiqueta, r.etiqueta, r.etiqueta, r.origen]
+    return clasif
+
+
 def construir_universo(config, columna_clase="pred_tfidf"):
     procesado = ruta(config, "processed")
     divipola = pd.read_csv(ruta(config, "raw") / "dane" / "dane_divipola.csv", dtype=str)
     clasif = pd.read_parquet(procesado / "clasificacion_universo.parquet")
+    clasif = aplicar_etiquetas_humanas(clasif, procesado)
     clasif["clase_final"] = clasif[columna_clase]
     atributos = universo_atributos(config)
     cruce = cruzar_ubicacion(atributos, divipola)
