@@ -19,7 +19,7 @@ ADITIVAS = ["pob_pdf", "poblacion_perros", "poblacion_gatos", "poblacion_perros_
 TOLERANCIA_BLOQUE = 0.03
 # Instructivo 2019 (págs. 2–3): sin metodología propia, población = pob_pdf / razón entera (perros 1–9, gatos 1–25).
 RAZON_MAXIMA = {"perro": 9, "gato": 25}
-TOLERANCIA_RAZON = 0.05
+TOLERANCIA_ANIMALES = 1
 LIMITES_DIF_POBLACION = (0.8, 1.25)
 
 # Distritos que el PDF lista como DTS aparte (fuera del total de su departamento) y su código DIVIPOLA.
@@ -209,9 +209,15 @@ def cargar_pob_dane(config, anio):
     return x.set_index("MPIO")["TOTAL"].astype(float).rename("pob_dane")
 
 
-def casi_entera(razon, maximo):
-    cercano = np.rint(razon)
-    return (np.abs(razon - cercano) < TOLERANCIA_RAZON) & (cercano >= 1) & (cercano <= maximo)
+def razon_reproducible(poblacion, animales, maximo):
+    """Razón entera R (1..maximo) con la que round(poblacion / R) reproduce `animales` con ±1 animal; NaN si ninguna."""
+    poblacion = np.asarray(poblacion, dtype=float)
+    animales = np.asarray(animales, dtype=float)
+    valido = ~(np.isnan(poblacion) | np.isnan(animales))
+    r = np.arange(1, maximo + 1)
+    error = np.abs(np.floor(np.nan_to_num(poblacion)[:, None] / r + 0.5) - np.nan_to_num(animales)[:, None])
+    razon = np.where(error.min(axis=1) <= TOLERANCIA_ANIMALES, r[error.argmin(axis=1)], np.nan)
+    return np.where(valido, razon, np.nan)
 
 
 def agregar_estimacion(df, pob_dane):
@@ -223,13 +229,12 @@ def agregar_estimacion(df, pob_dane):
     bajo, alto = LIMITES_DIF_POBLACION
     out["dif_poblacion"] = np.where(es_muni & cociente.notna(), ((cociente < bajo) | (cociente > alto)).astype(int), np.nan)
     for especie, columna in (("perro", "poblacion_perros"), ("gato", "poblacion_gatos")):
-        razon = np.where(es_muni, out["pob_pdf"] / out[columna].replace(0, np.nan), np.nan)
-        out[f"razon_hab_{especie}"] = razon
-        imputado = casi_entera(razon, RAZON_MAXIMA[especie])
-        out[f"razon_entera_{especie}"] = np.where(imputado, np.rint(razon), np.nan)
-        out[f"metodo_estimacion_{especie}"] = np.where(es_muni, np.where(imputado, "imputado", "posible_medido"), None)
-        reproduce = np.abs(np.floor(out["pob_pdf"] / out[f"razon_entera_{especie}"] + 0.5) - out[columna]) <= 1
-        out[f"reproducible_{especie}"] = np.where(imputado, reproduce.astype(int), np.nan)
+        out[f"razon_hab_{especie}"] = np.where(es_muni, out["pob_pdf"] / out[columna].replace(0, np.nan), np.nan)
+        razon = razon_reproducible(out["pob_pdf"], out[columna], RAZON_MAXIMA[especie])
+        out[f"razon_entera_{especie}"] = np.where(es_muni, razon, np.nan)
+        out[f"reproducible_{especie}"] = np.where(es_muni, (~np.isnan(razon)).astype(int), np.nan)
+        out[f"metodo_estimacion_{especie}"] = np.where(
+            es_muni, np.where(out[f"reproducible_{especie}"] == 1, "imputado", "posible_medido"), None)
         out[f"hab_por_{especie}"] = np.where(es_muni, out["pob_dane"] / out[columna].replace(0, np.nan), np.nan)
     out["metodo_estimacion"] = out["metodo_estimacion_perro"]
     for nombre, columna in (("cobertura_100", "cobertura_perros_gatos"), ("cobertura_perros_100", "cobertura_perros")):

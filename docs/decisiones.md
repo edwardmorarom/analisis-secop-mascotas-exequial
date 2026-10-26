@@ -324,7 +324,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Limitaciones:** la regla de 0,05 es más laxa que reproducir el dato: de los 632 perros `imputado`, 597 se reproducen exactamente (±1 animal) y 35 solo están cerca de un entero; por azar, un 10 % de los municipios medidos caería a menos de 0,05 de un entero (unos 41 esperados), de modo que esos 35 son probablemente coincidencias. En gatos, 761 de 770 se reproducen. Además, 11 municipios (perros) y 19 (gatos) quedan cerca de un entero por encima del tope y se tratan como `posible_medido`. `metodo_estimacion` sigue la regla de perros: 246 municipios imputan los gatos pero no los perros y 108 al revés, así que la densidad de gatos debe leerse con `metodo_estimacion_gato`.
 - **Descartado:** exigir que la razón se reproduzca exactamente (se conserva como `reproducible_*`); la categoría `parcial` de D29.
 - **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `agregar_estimacion` en `src/etl/extraer_minsalud.py`.
-- **Estado:** vigente. Reemplaza la regla de detección de D29.
+- **Estado:** reemplazada por D43 en el criterio de detección (regla de «menos de 0,05 de un entero»). Se mantienen la interpretación de la densidad solo en `posible_medido`, los topes por especie y `metodo_estimacion` según la regla de perros.
 
 ### D41. Población: `pob_pdf` solo detecta imputaciones; los indicadores usan `pob_dane`
 - **Decisión:** la cifra «Población DANE 2018» del PDF se conserva como `pob_pdf` (antes `poblacion_dane`) y solo se usa para detectar imputaciones. Los indicadores usan `pob_dane`, la proyección municipal del DANE 2018–2042 (actualización del 30 de julio de 2025) para el año del informe (2019). `dif_poblacion = 1` si `pob_pdf / pob_dane` está fuera de 0,8–1,25.
@@ -343,3 +343,11 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** conservar todos los estados (incluiría procesos sin contrato).
 - **Sustento:** `src/etl/descargar_secop1.py` (commit 9cdcdcf); conteo de estados de F1.
 - **Estado:** vigente.
+
+### D43. `imputado` es que la población de animales se reproduce con una razón entera (±1 animal)
+- **Decisión:** `metodo_estimacion_perro` y `metodo_estimacion_gato` son `imputado` si `reproducible_perro` o `reproducible_gato` vale 1, y `posible_medido` si vale 0. `reproducible_*` es 1 cuando existe un entero R (1–9 en perros, 1–25 en gatos) tal que `round(pob_pdf / R)` reproduce la población de animales con ±1 animal; `razon_entera_*` guarda ese R. Ahora se calcula para todos los municipios y distritos. `metodo_estimacion` sigue la regla de perros. La regla de «menos de 0,05 de un entero» de D40 queda reemplazada.
+- **Por qué:** la regla de 0,05 marcaba como `imputado` a 35 perros que no se reproducen con ±1 animal; por azar se esperaban unos 41 entre los medidos. Con la reproducibilidad hay 597 perros `imputado` y 524 `posible_medido` (1.121 municipios y distritos), y 784 gatos `imputado` y 337 `posible_medido`. En gatos, 23 municipios pasan de medidos a imputados (con pocos animales, el redondeo aleja la razón de un entero por más de 0,05) y 9 pasan de imputados a medidos. Razón entera de perros: 9 → 232, 8 → 105, 7 → 70, 6 → 103, 5 → 35, 4 → 22, 3 → 23, 2 → 6, 1 → 1. En gatos, 408 están en el tope de 25. Las combinaciones siguen siendo mixtas: 271 municipios imputan solo los gatos y 84 solo los perros, así que la densidad de gatos se lee con `metodo_estimacion_gato`.
+- **Limitación:** una razón entera puede reproducir el dato por coincidencia, sobre todo con pocos animales. La simulación de D29 (población DANE perturbada hasta 15 %) estimó un falso positivo de 0,9 % en perros y 7,4 % en gatos con esta tolerancia.
+- **Descartado:** la regla de 0,05 de D40; exigir reproducción exacta (deja como medidos unos 30 perros imputados por redondeo).
+- **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `razon_reproducible` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente. Reemplaza a D40 en el criterio de detección.
