@@ -53,7 +53,7 @@ def actualizar_en_sitio(path, datos, revisor):
     return cambios
 
 
-def libro(datos, revisor):
+def libro(datos, revisor, calibracion=CALIBRACION):
     wb = Workbook()
     ws = wb.active
     ws.title = "Etiquetado"
@@ -65,13 +65,13 @@ def libro(datos, revisor):
     amarillo = PatternFill("solid", fgColor="FFF2CC")
     azul = PatternFill("solid", fgColor="DDEBF7")
     for i, r in enumerate(datos.itertuples(index=False), 1):
-        ronda = "calibración" if i <= CALIBRACION else "principal"
+        ronda = "calibración" if i <= calibracion else "principal"
         ws.append([i, ronda, r.id_muestra, r.fuente, int(r.anio), r.nombre_entidad, r.objeto,
                    r.descripcion if isinstance(r.descripcion, str) else "", r.codigo if isinstance(r.codigo, str) else "",
                    None, None, None])
         fila = i + 1
         for col in (1, 2):
-            if i <= CALIBRACION:
+            if i <= calibracion:
                 ws.cell(fila, col).fill = azul
         for col in (10, 11, 12):
             ws.cell(fila, col).fill = amarillo
