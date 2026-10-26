@@ -446,3 +446,10 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** entrenar con los pesos N/n (el estrato D, con 50 casos de peso 528, dominaría el ajuste); elegir la variante por F1 (la diferencia está dentro del ruido).
 - **Sustento:** `src/modelos/tfidf_logistica.py`, `src/modelos/comparar.py`; D24, D55.
 - **Estado:** vigente. Limitación: el IC es sobre una sola partición de 5 pliegues; la sensibilidad no mide los funerarios que el filtro nunca recupera.
+
+### D57. Embeddings `multilingual-e5-base` con regresión logística
+- **Decisión:** cada texto (el mismo de D56) se convierte en un vector con `intfloat/multilingual-e5-base` (prefijo `query: `, máximo 256 tokens, vectores normalizados, sin ajuste fino) y se clasifica con la misma regresión logística de tres clases y la misma validación cruzada de D55. Los vectores de la muestra se guardan en `data/processed/embeddings_e5_muestra.npy`.
+- **Por qué:** `funerario`: precisión **0,939** (IC 0,899–0,972), sensibilidad **0,954** (IC 0,920–0,982), F1 **0,946** (IC 0,921–0,969), exactitud ponderada 0,982. Frente a TF-IDF (F1 0,931; IC 0,901–0,957) la diferencia es de 0,015 y los intervalos se solapan: no hay evidencia de que entender sinónimos mejore la clasificación con 400 casos, aunque la sensibilidad sube de 0,919 a 0,954 con la misma precisión. De los 15 `mixto`, 5 se predicen `mixto` y 3 `funerario`.
+- **Descartado:** ajuste fino del transformer (D24); texto sin el prefijo `query: ` (el modelo lo exige).
+- **Sustento:** `src/modelos/embeddings_logistica.py`; Wang et al. (2024), multilingual-e5; D24, D55.
+- **Estado:** vigente. Limitación: sin diferencia estadística clara frente a TF-IDF; la elección del modelo final se decide con la tabla completa, incluido DeepSeek.
