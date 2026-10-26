@@ -41,3 +41,30 @@ def instrucciones():
         lineas.append(titulo.upper())
         lineas += reglas
     return lineas + FINAL
+
+
+# Criterio completo con el que se etiquetó (D20 y D21 de docs/decisiones.md); lo usa la guía.
+D21 = [
+    "Se etiqueta según lo que se compra, no según el lugar donde se usa.",
+    "Servicios funerarios directos y bienes funerarios (ataúdes, cajas mortuorias, urnas, lápidas) → funerario.",
+    "Planes o pólizas de previsión exequial, incluidos los de bienestar para funcionarios → funerario.",
+    "Operación o arrendamiento de espacios del cementerio para inhumar → funerario.",
+    "Obras, construcción, mantenimiento físico, estudios y diseños, aunque sean en cementerios o edificios "
+    "funerarios → no_funerario.",
+    "Personal administrativo o de apoyo (supervisión, PQRS, correspondencia, aseo, cafetería, vigilancia, "
+    "custodia) de una dependencia funeraria o un cementerio → no_funerario.",
+    "Sepulturero junto con otras tareas no funerarias → mixto.",
+    "Que un contrato diga «NN» o «víctimas» no lo vuelve forense. Es forense si compra necropsia, toma de muestras, "
+    "certificación de defunción, identificación o búsqueda de personas.",
+    "Bolsas para cadáveres e insumos para manejar cuerpos en hospitales → manejo sanitario: no_funerario.",
+]
+D20 = [
+    "Tres clases: funerario, no_funerario, mixto. forense es una marca aparte (0 o 1), no una cuarta clase.",
+    "Si forense = 1, la etiqueta no puede ser funerario: es no_funerario o, si hay un componente funerario claro "
+    "(p. ej. inhumación de cuerpos no identificados), mixto. Lo forense se reporta aparte y queda fuera del tamaño "
+    "de mercado.",
+]
+PROPUESTAS_PENDIENTES = (
+    "Propuestas pendientes de la revisión de Harold: la regla 8 en lo relativo a búsqueda de personas y la "
+    "infraestructura de Medicina Legal con forense = 1."
+)

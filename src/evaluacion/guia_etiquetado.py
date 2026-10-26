@@ -10,7 +10,7 @@ from docx.shared import Cm, Pt, RGBColor
 
 from src.etl.anonimizar import anonimizar
 from src.etl.comun import RAIZ, cargar_config, ruta
-from src.evaluacion.reglas_etiquetado import SECCIONES
+from src.evaluacion.reglas_etiquetado import D20, D21, PROPUESTAS_PENDIENTES
 
 EJEMPLOS = {
     "funerario": ["22-13-13268646-12323242", "CO1.PCCNTR.5713117"],
@@ -82,7 +82,7 @@ def main(carpeta=None):
     doc.styles["Normal"].font.name = "Calibri"
     doc.styles["Normal"].font.size = Pt(9)
 
-    t = parrafo(doc, "Guía de etiquetado — contratos funerarios en SECOP", True, 14, 1)
+    t = parrafo(doc, "Criterio de etiquetado — contratos funerarios en SECOP", True, 14, 1)
     t.runs[0].font.color.rgb = RGBColor(0x1F, 0x1F, 0x1F)
     parrafo(doc, "Lea el objeto y la descripción del contrato (no el nombre del proveedor). Asigne una de tres clases y, "
                  "aparte, la marca forense. Etiquete cada caso por separado y sin consultar durante la calibración (filas 1–40).",
@@ -117,20 +117,28 @@ def main(carpeta=None):
     for row in tabla.rows:
         row.cells[0].width, row.cells[1].width, row.cells[2].width = Cm(2.4), Cm(6.3), Cm(9.6)
 
-    ejemplos = {"Qué se compra, no dónde (D21)": EJEMPLO_PERSONAL, "Cementerios": EJEMPLO_CEMENTERIO}
-    for titulo, reglas in SECCIONES.items():
-        parrafo(doc, "", tamano=3, espacio=0)
-        parrafo(doc, titulo, True, 10.5, 1)
-        for regla in reglas:
-            vineta(doc, regla)
-        if titulo in ejemplos:
-            texto = " ".join(anonimizar(a.loc[ejemplos[titulo], "objeto"]).split())
-            p = parrafo(doc, f"Ejemplo real: «{recortar(texto, 190)}»", tamano=8, espacio=1)
-            p.runs[0].italic = True
+    parrafo(doc, "", tamano=3, espacio=0)
+    parrafo(doc, "Reglas del libro de códigos (D21)", True, 10.5, 1)
+    ejemplos = {4: EJEMPLO_CEMENTERIO, 6: EJEMPLO_PERSONAL}
+    for i, regla in enumerate(D21, 1):
+        p = parrafo(doc, f"{i}. {regla}", tamano=9, espacio=1)
+        p.paragraph_format.left_indent = Cm(0.4)
+        if i in ejemplos:
+            texto = " ".join(anonimizar(a.loc[ejemplos[i], "objeto"]).split())
+            e = parrafo(doc, f"Ejemplo real: «{recortar(texto, 170)}»", tamano=8, espacio=1)
+            e.paragraph_format.left_indent = Cm(0.8)
+            e.runs[0].italic = True
 
     parrafo(doc, "", tamano=3, espacio=0)
-    p = parrafo(doc, "Llene solo las celdas amarillas del Excel (lista desplegable en etiqueta y forense). No cambie el orden de "
-                     "las filas. Los ejemplos son casos reales ya censurados; Harold decide los desacuerdos.", tamano=8)
+    parrafo(doc, "Clases y marca forense (D20)", True, 10.5, 1)
+    for regla in D20:
+        vineta(doc, regla)
+    pend = parrafo(doc, PROPUESTAS_PENDIENTES, tamano=8.5, espacio=1)
+    pend.runs[0].bold = True
+
+    parrafo(doc, "", tamano=3, espacio=0)
+    p = parrafo(doc, "Documento de referencia: recoge el criterio con el que se etiquetaron los 400 casos de la muestra; no se "
+                     "re-etiquetó. Los ejemplos son casos reales fuera de la muestra, ya censurados.", tamano=8)
     p.runs[0].italic = True
 
     destino = (Path(carpeta) if carpeta else RAIZ / "docs" / "etiquetado") / "guia_etiquetado.docx"

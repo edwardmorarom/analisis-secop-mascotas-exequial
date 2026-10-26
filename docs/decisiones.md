@@ -177,7 +177,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
   8. Que un contrato diga «NN» o «víctimas» no lo vuelve forense. Es forense si compra necropsia, toma de muestras, certificación de defunción, identificación o búsqueda de personas.
   9. Bolsas para cadáveres e insumos para manejar cuerpos en hospitales → manejo sanitario: `no_funerario`.
 - **Por qué:** cada regla salió de un caso real de la muestra en el que la guía era ambigua. Si no se fijan por escrito, dos revisores etiquetan distinto y el κ baja por falta de criterio, no por dificultad real.
-- **Estado:** vigente. La regla de búsqueda de personas (8) y la de infraestructura de Medicina Legal con `forense = 1` quedan como propuesta hasta la revisión de Harold.
+- **Estado:** vigente. La regla de búsqueda de personas (8) y la de infraestructura de Medicina Legal con `forense = 1` quedan como propuesta hasta la revisión de Harold. El etiquetado de los 400 casos terminó y no se re-etiqueta: `docs/etiquetado/guia_etiquetado.docx` se actualizó con D20 y D21 completas como documentación del criterio usado.
 
 ### D22. Muestra de 400, estratificada y con pesos
 - **Decisión:** 400 contratos en estratos (A1 60, A2 90, A3 60, B 23, C cementerio 45, C NECR 25, C CAD_VER 30, C mixtas y OSARIO 17, D 50), con el peso N/n de cada estrato, más 100 no recuperados por la consulta original.
