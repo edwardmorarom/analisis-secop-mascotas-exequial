@@ -92,7 +92,7 @@ def main():
 
 Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `{TABLAS}/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63); como sensibilidad, TF-IDF con `mixto`, e5 y e5 con `mixto`.
 
-> **Advertencia de cobertura (D70).** SECOP I se descargó solo para 2020–2022, pero en `f789-7hwg` hay 1.914, 1.841 y 1.647 contratos candidatos firmados en 2023, 2024 y 2025 (misma consulta y estados de D42). Por eso la caída de 2022 a 2023 y la subida del HHI pueden ser, en buena parte, un efecto de cobertura y no un cambio del mercado. Las series de 2023–2025 están incompletas hasta que se decida si se descarga ese tramo.
+> **Cobertura (D70, D73, D74).** SECOP I se extendió a 2023–2025 (5.080 contratos candidatos más, D73), así que la serie cubre SECOP I y SECOP II en los seis años. Limitación: ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025; el error de clasificación en ese bloque se medirá con los 30 contratos de `docs/revision_f4/secop1_nuevos.xlsx`.
 
 ## 1. Cruce de la ubicación de la entidad con DIVIPOLA (D66)
 
@@ -104,7 +104,7 @@ Tabla de origen: `tasa_cruce_ubicacion.csv`.
 | con municipio DIVIPOLA | {int(c('con_municipio_DIVIPOLA')['universo']):,} ({c('con_municipio_DIVIPOLA')['tasa_universo']:.1%}) | {int(c('con_municipio_DIVIPOLA')['funerario_tfidf']):,} |
 | con departamento | {int(c('con_departamento')['universo']):,} ({c('con_departamento')['tasa_universo']:.1%}) | {int(c('con_departamento')['funerario_tfidf']):,} |
 
-Sin municipio quedan 1.706 contratos con la entidad en «No Definido» y 24 de otros nombres. Los cruces aproximados (22 pares) están en `docs/revision_f4/cruces_secop.xlsx` para revisión. **Decisión D66** (propuesta).
+Sin municipio quedan los contratos con la entidad registrada en «No Definido» y unos pocos nombres sin equivalente. Los cruces aproximados fueron revisados por Edward (20 de 20 correctos, D66). **Decisión D66** (vigente).
 
 ## 2. Número y valor por año (D67)
 
@@ -112,7 +112,7 @@ Tabla de origen: `serie_anual.csv`; gráfico `docs/resultados/graficos/1_serie_a
 
 {tabla(anual)}
 
-Por fuente (`serie_anual_fuente.csv`): SECOP I cubre solo 2020–2022, así que la caída de 2022 a 2023 es un cambio de fuente.
+Por fuente (`serie_anual_fuente.csv`):
 
 {tabla(fuente)}
 
@@ -177,7 +177,8 @@ HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = {
 ## Limitaciones
 
 - Clasificación con TF-IDF: F1 ponderado de 0,93 en la validación cruzada de 400 casos y 0,65 (0,86 sin ponderar) en la validación externa de 60, donde un solo caso de peso 3.293 explica la diferencia (D63).
-- SECOP I cubre 2020–2022 y SECOP II 2020–2025: la serie nacional mezcla fuentes.
+- La serie mezcla SECOP I y SECOP II; un mismo proveedor puede figurar en ambos con identificadores distintos (D15).
+- Ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025 (D74).
 - La ubicación es la sede de la entidad, no el lugar de ejecución.
 """
     DESTINO.parent.mkdir(parents=True, exist_ok=True)

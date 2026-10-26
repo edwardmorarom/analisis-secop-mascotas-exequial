@@ -90,7 +90,7 @@ def construir_universo(config, columna_clase="pred_tfidf"):
     atributos = atributos.merge(cruce[["departamento_entidad", "municipio_entidad", "bloque", "cod_divipola", "metodo_cruce", "puntaje_cruce"]],
                                 on=["departamento_entidad", "municipio_entidad"], how="left")
     d = clasif.merge(atributos, on=["fuente", "llave"], how="left", validate="one_to_one")
-    assert len(d) == 34790 and d["fecha_firma"].notna().all()
+    assert len(d) == len(clasif) and d["fecha_firma"].notna().all()
     indice, base = cargar_ipc(config)
     ipc = [indice.get((f.year, f.month)) for f in d["fecha_firma"]]
     d["ipc_mes"] = ipc

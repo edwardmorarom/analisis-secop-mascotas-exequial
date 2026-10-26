@@ -29,6 +29,31 @@ def predecir(modelo, x):
     return prob[:, [list(modelo.classes_).index(c) for c in CLASES]]
 
 
+def embeddings_universo(procesado, u):
+    """Reutiliza los vectores ya calculados (por fuente y llave) y calcula solo los de contratos nuevos."""
+    npy, llaves = procesado / "embeddings_e5_universo.npy", procesado / "embeddings_e5_universo_llaves.parquet"
+    if npy.exists() and not llaves.exists():
+        anterior = pd.read_parquet(procesado / "clasificacion_universo.parquet", columns=["fuente", "llave"])
+        anterior.to_parquet(llaves, index=False)
+    clave = list(zip(u["fuente"], u["llave"]))
+    if npy.exists():
+        previas = pd.read_parquet(llaves)
+        vectores = np.load(npy)
+        indice = {k: i for i, k in enumerate(zip(previas["fuente"], previas["llave"]))}
+    else:
+        vectores, indice = np.zeros((0, 768)), {}
+    faltan = [i for i, k in enumerate(clave) if k not in indice]
+    nuevos = incrustar(u["texto"].iloc[faltan].tolist()) if faltan else np.zeros((0, vectores.shape[1]))
+    todos = np.vstack([vectores, nuevos])
+    for j, i in enumerate(faltan):
+        indice[clave[i]] = len(vectores) + j
+    x = todos[[indice[k] for k in clave]]
+    np.save(npy, todos)
+    pd.DataFrame(sorted(indice, key=indice.get), columns=["fuente", "llave"]).to_parquet(llaves, index=False)
+    print(f"embeddings: {len(clave) - len(faltan):,} reutilizados, {len(faltan):,} nuevos")
+    return x
+
+
 def main():
     config = cargar_config()
     procesado = ruta(config, "processed")
@@ -37,12 +62,7 @@ def main():
     assert not u.duplicated(["fuente", "llave"]).any()
     v = vectorizador()
     prob_tfidf = predecir(regresion_logistica().fit(v.fit_transform(muestra["texto"]), muestra["etiqueta"]), v.transform(u["texto"]))
-    destino = procesado / "embeddings_e5_universo.npy"
-    if destino.exists():
-        x = np.load(destino)
-    else:
-        x = incrustar(u["texto"].tolist())
-        np.save(destino, x)
+    x = embeddings_universo(procesado, u)
     x_muestra = np.load(procesado / "embeddings_e5_muestra.npy")
     prob_e5 = predecir(regresion_logistica().fit(x_muestra, muestra["etiqueta"]), x)
     out = u.drop(columns="texto").copy()
