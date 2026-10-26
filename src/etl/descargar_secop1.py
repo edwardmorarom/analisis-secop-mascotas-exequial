@@ -19,7 +19,14 @@ COLUMNAS = """uid, numero_de_proceso, numero_de_contrato, numero_de_constancia,
   plazo_de_ejec_del_contrato, cuantia_proceso, cuantia_contrato,
   valor_total_de_adiciones, valor_contrato_con_adiciones, destino_gasto,
   es_mipyme, ruta_proceso_en_secop_i, ultima_actualizacion"""
-PERIODO = "fecha_de_firma_del_contrato BETWEEN '2020-01-01T00:00:00' AND '2022-12-31T23:59:59'"
+ANIOS_INICIALES = (2020, 2022)
+
+
+def periodo(desde=ANIOS_INICIALES[0], hasta=ANIOS_INICIALES[1]):
+    return f"fecha_de_firma_del_contrato BETWEEN '{desde}-01-01T00:00:00' AND '{hasta}-12-31T23:59:59'"
+
+
+PERIODO = periodo()
 
 
 def condicion(config):
@@ -29,8 +36,8 @@ def condicion(config):
     return " OR ".join(lex + unspsc)
 
 
-def where_secop1(config, estados=None):
-    w = f"{PERIODO} AND ({condicion(config)})"
+def where_secop1(config, estados=None, desde=ANIOS_INICIALES[0], hasta=ANIOS_INICIALES[1]):
+    w = f"{periodo(desde, hasta)} AND ({condicion(config)})"
     if estados:
         lista = ",".join(f"'{e}'" for e in estados)
         w += f" AND estado_del_proceso IN ({lista})"
@@ -45,16 +52,18 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("accion", choices=["estados", "descargar"])
     p.add_argument("--estados", nargs="+", default=["Celebrado", "Liquidado", "Terminado sin Liquidar"])
+    p.add_argument("--desde", type=int, default=ANIOS_INICIALES[0])
+    p.add_argument("--hasta", type=int, default=ANIOS_INICIALES[1])
     a = p.parse_args()
     config = cargar_config()
     dom, pagina = config["secop"]["dominio"], config["secop"]["pagina"]
     if a.accion == "estados":
         r = consultar(dom, DATASET, {"$select": "estado_del_proceso, count(*) as n, count(distinct uid) as uids",
-                                     "$where": where_secop1(config), "$group": "estado_del_proceso"})
+                                     "$where": where_secop1(config, None, a.desde, a.hasta), "$group": "estado_del_proceso"})
         for f in r:
             print(f.get("estado_del_proceso"), f["n"], f["uids"])
         return
-    where = where_secop1(config, a.estados)
+    where = where_secop1(config, a.estados, a.desde, a.hasta)
     total = contar(dom, DATASET, where)
     vistos, filas, offset = set(), [], 0
     while offset < total:
@@ -70,7 +79,8 @@ def main():
                     f.pop("identificacion_del_contratista", None)
                 filas.append(f)
         print(f"{offset:,}/{total:,} filas, {len(filas):,} uid únicos", flush=True)
-    destino = ruta(config, "raw") / "secop" / "secop1_candidatos_2020_2022.jsonl"
+    destino = ruta(config, "raw") / "secop" / f"secop1_candidatos_{a.desde}_{a.hasta}.jsonl"
+    assert not destino.exists() or a.desde != ANIOS_INICIALES[0], "no se sobrescribe el crudo de referencia 2020-2022"
     with open(destino, "w", encoding="utf-8") as f:
         for fila in filas:
             f.write(json.dumps(fila, ensure_ascii=False) + "\n")

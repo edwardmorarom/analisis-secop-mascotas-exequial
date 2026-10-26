@@ -26,7 +26,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Por qué:** entre 2020 y 2022 las entidades migraron de SECOP I a SECOP II. En 2020, SECOP I tiene 6.313 candidatos (un contrato por `uid`, solo firmados) y SECOP II solo 1.123; con el filtro afinado (D17), 2.069 frente a 345. Sin SECOP I, 2020 quedaría subrepresentado más de cinco veces y la serie mostraría un crecimiento falso.
 - **Descartado:** solo SECOP II (sesgo de migración).
 - **Sustento:** conteos previos de F1 (commit 46aa476); Colombia Compra Eficiente, conjuntos `jbjy-vk9h` y `f789-7hwg`.
-- **Estado:** vigente.
+- **Estado:** vigente en lo de usar los dos sistemas; el supuesto de que la migración a SECOP II terminó en 2022 (SECOP I solo hasta 2022) queda **reemplazado por D73**: SECOP I sigue teniendo contratos en 2023–2025.
 
 ### D03. Descarga por API con paginación y token
 - **Decisión:** se descarga con la API SoQL de Socrata, paginando, con `SOCRATA_APP_TOKEN`.
@@ -568,3 +568,10 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** descargar ahora los 14 capítulos (sin confirmar antes la variable en el diccionario); usar el 40,2 % de hogares con mascota como proxy directo de perros (mezcla gatos y otros y no da la población); comparar con departamentos fuera de Bogotá–Cundinamarca (la EM no los cubre).
 - **Sustento:** catálogo `microdatos.dane.gov.co/index.php/catalog/743` y su boletín técnico (`Boletin_EM_2021.pdf`); D43, D46, D47.
 - **Estado:** propuesta, requiere confirmación de Edward para descargar el diccionario y los capítulos. Limitación: la comparación cubre unos 22 municipios de una sola región urbana, con años que no coinciden.
+
+### D73. SECOP I se extiende a 2023–2025 (reemplaza el supuesto de D02)
+- **Decisión:** se descargan los contratos candidatos de SECOP I (`f789-7hwg`) firmados entre el 1 de enero de 2023 y el 31 de diciembre de 2025, con el mismo procedimiento de 2020–2022: consulta de D16, estados de D42 (Celebrado, Liquidado y Terminado sin Liquidar), una fila por `uid` (D18), señales y estratos de D17, anonimización de D15 y seudónimos de personas naturales con la misma sal. El crudo queda en `data/raw/secop/secop1_candidatos_2023_2025.jsonl` (registrado en el manifiesto); el de 2020–2022 no se toca. `python -m src.etl.descargar_secop1 descargar --desde 2023 --hasta 2025` y `python -m src.etl.contratistas_secop1 --desde 2023 --hasta 2025` parametrizan el periodo, y las señales leen todos los crudos de SECOP I. El supuesto de D02 de que la migración a SECOP II terminó en 2022 queda reemplazado: la migración no terminó.
+- **Por qué (evidencia):** el conteo de D70 (2026-10-26) dio 1.914, 1.841 y 1.647 contratos candidatos de SECOP I en 2023, 2024 y 2025, frente a unos 5.200 al año en 2020–2022; esos años tienen además 337.246, 288.737 y 267.441 contratos firmados en SECOP I sin filtro. La descarga trajo 5.402 filas, igual a la suma de los conteos, y 5.080 `uid` únicos (1.794 en 2023, 1.737 en 2024 y 1.549 en 2025). Estratos de los nuevos: núcleo 1.324, pendientes 1.140 y sin señal 2.616; el 71 % de los contratistas son personas naturales (3.611 seudónimos, 1.865 distintos). Las 15.484 filas de 2020–2022 de `secop1_senales` y las 19.306 de SECOP II quedan idénticas. El universo pasa de 34.790 a 39.870 contratos.
+- **Descartado:** dejar SECOP I en 2020–2022 (la serie 2023–2025 quedaba incompleta); reentrenar los clasificadores con los contratos nuevos (se aplican los ya entrenados, D74).
+- **Sustento:** `src/etl/descargar_secop1.py`, `src/etl/contratistas_secop1.py`, `src/etl/senales_secop.py`; D02, D15, D16, D17, D18, D42, D70.
+- **Estado:** vigente. Limitación (D74): ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025.
