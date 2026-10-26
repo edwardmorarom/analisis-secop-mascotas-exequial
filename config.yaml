@@ -39,7 +39,7 @@ places:
 llm:
   proveedor: deepseek
   base_url: https://api.deepseek.com
-  modelo: deepseek-chat
+  modelo: deepseek-flash
   temperatura: 0
   ollama_url: http://localhost:11434/v1
 
