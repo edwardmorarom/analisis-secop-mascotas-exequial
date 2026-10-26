@@ -6,10 +6,11 @@ from src.etl.comun import cargar_config, ruta
 ANIOS = (2014, 2016, 2017, 2019, 2023, 2024)
 VACUNADOS_PERROS = ("vacunados_perros", "perros_vacunados")
 TOLERANCIA_TOTAL_DEPARTAMENTO = 0.005
+PERIODO_INCIERTO = (2017,)
 COLUMNAS = ["cod_divipola", "anio", "tipo", "municipio_pdf", "bloque", "pob_dane", "poblacion_perros", "poblacion_gatos",
             "vacunados_perros", "vacunados_perros_x1000hab", "vacunados_perros_gatos",
             "vacunados_perros_gatos_x1000hab", "hab_por_perro", "metodo_estimacion",
-            "densidad_analizable", "cobertura_100", "ajuste_cobertura", "marca_inconsistencia",
+            "densidad_analizable", "periodo_incierto", "cobertura_100", "ajuste_cobertura", "marca_inconsistencia",
             "fuente", "anio_fuente", "pagina"]
 
 
@@ -32,11 +33,12 @@ def armonizar(df, marcas):
     df = df.copy()
     vac = next((c for c in VACUNADOS_PERROS if c in df.columns), None)
     df["vacunados_perros"] = df[vac] if vac else np.nan
-    for c in ("ajuste_cobertura", "identidad_ok", "pagina"):
+    for c in ("ajuste_cobertura", "identidad_ok", "pagina", "fila_derivada"):
         if c not in df.columns:
             df[c] = np.nan
     if "vacunados_perros_gatos" not in df.columns:
-        df["vacunados_perros_gatos"] = np.nan
+        df["vacunados_perros_gatos"] = df["acumulado_vacunados"] if "acumulado_vacunados" in df.columns else np.nan
+    df["periodo_incierto"] = int(df["anio"].iloc[0] in PERIODO_INCIERTO)
     df["vacunados_perros_x1000hab"] = df["vacunados_perros"] / df["pob_dane"] * 1000
     df["vacunados_perros_gatos_x1000hab"] = df["vacunados_perros_gatos"] / df["pob_dane"] * 1000
     df["densidad_analizable"] = ((df["anio"] == 2019) & (df["metodo_estimacion"] == "posible_medido")).astype(int)
@@ -45,6 +47,8 @@ def armonizar(df, marcas):
         a = []
         if r.identidad_ok == 0:
             a.append("identidad_tabla_no_cierra")
+        if r.fila_derivada == 1:
+            a.append("fila_suma_de_localidades")
         if r.ajuste_cobertura == 1:
             a.append("ajuste_cobertura_asterisco")
         if r.tipo == "municipio" and r.bloque in marcas:

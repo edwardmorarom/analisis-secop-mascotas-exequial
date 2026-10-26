@@ -378,7 +378,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Por qué:** los perros vacunados son conteos del programa, no estimaciones; la población de animales de 2023 y 2024 no permite separar imputación de medición (D46) y la de 2019 imputada no mide animales (D43). Resultado actual: 1.120 unidades con indicador en 2019 (Mapiripana sin código) y 1.121 en 2023 y 2024; mediana de 120,8, 113,2 y 108,4 por 1.000 habitantes.
 - **Descartado:** usar la densidad de 2023 y 2024 como serie; usar la población de animales del PDF como denominador.
 - **Sustento:** `src/etl/panel_minsalud.py`; D41, D43, D46.
-- **Estado:** vigente. Limitación: el denominador es la población total DANE, no la de perros; compara municipios, no mide cobertura. El panel agrega `vacunados_perros_gatos_x1000hab` (2017, 2023 y 2024), porque 2017 solo informa vacunados de perros y gatos juntos (D50); el indicador de perros solo existe en 2019, 2023 y 2024.
+- **Estado:** vigente. Limitación: el denominador es la población total DANE, no la de perros; compara municipios, no mide cobertura. El panel agrega `vacunados_perros_gatos_x1000hab` para todos los años (2014, 2016, 2017, 2019, 2023 y 2024), porque 2016 y 2017 solo informan vacunados de perros y gatos juntos (D50, D52); en 2019 se usa el acumulado de perros y gatos vacunados (5.573.573 en municipios y distritos; 5.594.891 el total nacional impreso), cuya razón con la población total coincide con la cobertura impresa en los 1.121 casos (±1 punto). El indicador de perros existe en 2014, 2019, 2023 y 2024.
 
 ### D48. La población de perros de 2024 es una proyección de la de 2023
 - **Decisión:** el cambio de la población de animales entre 2023 y 2024 no se interpreta como crecimiento. No se usa para variaciones interanuales de población de perros o gatos.
@@ -414,3 +414,10 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Descartado:** asignar por la etiqueta del departamento (no está en la página); extraer con camelot (celda combinada); abandonar 2016.
 - **Sustento:** `src/etl/extraer_minsalud_2016.py`; D34, D44–D51.
 - **Estado:** vigente. Limitación: el departamento no es una lectura sino una inferencia validada por el cruce; si dos departamentos vecinos intercambiaran un municipio con el mismo nombre no se detectaría.
+
+### D53. 2017 entra al panel con `periodo_incierto = 1`
+- **Decisión:** las filas de 2017 llevan `periodo_incierto = 1` en el panel; los demás años, 0. Se usan con esa advertencia.
+- **Por qué:** el PDF de 2017 dice «perros y gatos vacunados en semestre» y «cobertura acumulada». Evidencia de que es una cifra anual: el total nacional de perros y gatos vacunados es 5.047.601, entre el de 2016 (4.321.895, «enero a diciembre») y el de 2019 (5.594.891), y no la mitad de ellos; la cobertura nacional impresa es 74 % frente a 67 % en 2016 y 2019; el archivo se actualizó el 15 de marzo de 2018, como el de 2016 (26 de marzo de 2017), que cierra el año anterior. La serie nacional completa de vacunados de perros y gatos es 4,32 millones (2016), 5,05 (2017), 5,59 (2019), 5,81 (2023) y 5,63 (2024). Sigue sin ser una confirmación del periodo.
+- **Descartado:** excluir 2017; tratarlo como semestral.
+- **Sustento:** `src/etl/panel_minsalud.py`; D50.
+- **Estado:** vigente.
