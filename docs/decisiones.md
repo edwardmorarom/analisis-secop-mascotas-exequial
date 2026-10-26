@@ -30,7 +30,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 
 ### D03. Descarga por API con paginación y token
 - **Decisión:** se descarga con la API SoQL de Socrata, paginando, con `SOCRATA_APP_TOKEN`.
-- **Por qué:** la exportación JSON del portal se trunca en 1.000 filas. Sin token, las consultas con muchos `LIKE` agotaban el tiempo de espera. Reproducibilidad: el 25 de octubre de 2026 (vista modificada a las 05:45 UTC) la API de `jbjy-vk9h` devuelve `count(*)` = 1.000, aunque el 22 de octubre entregó 19.306 candidatos; los demás conjuntos usados están completos (SECOP I 6.471.634 filas; INS y cámaras con sus conteos). La referencia son los crudos de F1 con su SHA-256 en el manifiesto.
+- **Por qué:** la exportación JSON del portal se trunca en 1.000 filas. Sin token, las consultas con muchos `LIKE` agotaban el tiempo de espera. Reproducibilidad: el 25 de octubre de 2026 (vista modificada a las 05:45 UTC) la API de `jbjy-vk9h` devuelve `count(*)` = 1.000, aunque el 22 de octubre entregó 19.306 candidatos; los demás conjuntos usados están completos (SECOP I 6.471.634 filas; INS y cámaras con sus conteos). El análisis usa el crudo del 22 de octubre (`data/raw/secop/secop2_candidatos_2020_2025.jsonl`, 38.759.174 bytes, SHA-256 `1b75a79ba5fc3c727d79a8dd704b438db7e351a23eebbe83e847ecc490859756`, verificado el 25 de octubre contra el manifiesto) y no se vuelve a descargar. El 28 de octubre se repite solo el conteo (`python -m src.etl.verificar_secop2_count`, que lo registra en `logs/secop2_count.jsonl`).
 - **Descartado:** exportar a mano desde datos.gov.co (no reproducible y truncado).
 - **Sustento:** documentación de la API de Socrata (SODA).
 - **Estado:** vigente.
