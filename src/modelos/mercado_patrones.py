@@ -259,3 +259,18 @@ def hhi_sin_mayores(f, anio, ks=(0, 1, 2, 3, 5, 10)):
         r = hhi_cr4(x.iloc[k:])
         filas.append({"sin_los_mayores": k, "contratos": len(x) - k, "valor_constante_2025": x.iloc[k:]["valor_constante_2025"].sum(), **r})
     return pd.DataFrame(filas)
+
+
+def hhi_departamento_anual(f, nombres_dep, minimo_proveedores=5):
+    filas = []
+    for (anio, cod), x in f[f["cod_dpto"].notna()].groupby(["anio", "cod_dpto"]):
+        filas.append({"anio": anio, "cod_dpto": cod, "departamento": nombres_dep.get(cod), **hhi_cr4(x), "contratos": len(x),
+                      "valor_constante_2025": x["valor_constante_2025"].sum()})
+    t = pd.DataFrame(filas)
+    resumen = []
+    for anio, g in t.groupby("anio"):
+        c = g[g["proveedores"] >= minimo_proveedores]
+        resumen.append({"anio": anio, "departamentos_con_5_o_mas_proveedores": len(c), "HHI_mediana": c["HHI"].median(),
+                        "HHI_p25": c["HHI"].quantile(0.25), "HHI_p75": c["HHI"].quantile(0.75),
+                        "departamentos_HHI_mayor_2500": int((c["HHI"] > 2500).sum())})
+    return t, pd.DataFrame(resumen)

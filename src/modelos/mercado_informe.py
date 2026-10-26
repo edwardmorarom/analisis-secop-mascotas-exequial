@@ -98,6 +98,10 @@ def main():
     d_hh["anio"] = d_hh["anio"].astype(int)
     d_hh["proveedores"] = d_hh["proveedores"].astype(int)
     con5 = hd[hd["proveedores"] >= 5]
+    hdep = pd.read_csv(s / "proveedores_hhi_departamento_resumen_anual.csv")
+    d_hdep = hdep.rename(columns={"anio": "año", "departamentos_con_5_o_mas_proveedores": "departamentos", "HHI_mediana": "HHI mediana",
+                                  "HHI_p25": "HHI p25", "HHI_p75": "HHI p75", "departamentos_HHI_mayor_2500": "con HHI > 2.500"})
+    d_hdep = d_hdep.rename(columns={"HHI mediana": "HHI_mediana", "HHI p25": "HHI_p25", "HHI p75": "HHI_p75"})
     cuantiles = con5["HHI"].quantile([0.1, 0.25, 0.5, 0.75, 0.9]).round(0)
 
     c = lambda k: cruce.loc[k]
@@ -183,15 +187,21 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 **Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad; D78 fija cuáles se reportan.
 
-## 5. Proveedores (borrador)
+## 5. Proveedores (D69, vigente con condiciones)
 
-Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, `proveedores_hhi_departamento.csv`, `proveedores_top_participacion.csv`; gráfico `5_concentracion_proveedores.png`). El identificador es el NIT (SECOP I, personas jurídicas) o el código de proveedor (SECOP II); las personas naturales van seudonimizadas (D15) y no se unen entre SECOP I y II, por lo que un mismo proveedor puede contarse dos veces en 2020–2022.
+**Medida principal: HHI por departamento** (el mercado es local; `proveedores_hhi_departamento.csv`, `proveedores_hhi_departamento_anual.csv`, `proveedores_hhi_departamento_resumen_anual.csv`). El HHI nacional va solo como contexto. Participación y concentración por valor constante; el identificador es el NIT (SECOP I, personas jurídicas) o el código de proveedor (SECOP II). **Limitación: las personas naturales van seudonimizadas (D15) y no se unen entre SECOP I y II, así que un mismo proveedor puede contarse dos veces y la concentración puede estar subestimada.**
+
+HHI por departamento y año (departamentos con 5 o más proveedores; mediana y cuartiles entre departamentos):
+
+{tabla(d_hdep, {"HHI_mediana": "{:.0f}", "HHI_p25": "{:.0f}", "HHI_p75": "{:.0f}"})}
+
+Pooled 2020–2025 (n = {len(con5)} departamentos con 5 o más proveedores): percentiles 10, 25, 50, 75 y 90 = {', '.join(f'{v:,.0f}' for v in cuantiles)}; {int((con5['HHI'] > 2500).sum())} de {len(con5)} superan 2.500. Los cinco proveedores de mayor valor suman el {top.head(5)['participacion_valor_pct'].sum():.1f} % del valor total (`proveedores_top_participacion.csv`).
+
+**Contexto: HHI y CR4 nacionales por año** (`proveedores_hhi_cr4_anual.csv`; gráfico `5_concentracion_proveedores.png`). El de 2025 se reporta después de corregir los dos contratos de D81; la sensibilidad sin los tres mayores contratos está más abajo:
 
 {tabla(d_hh, {"HHI": "{:.0f}", "CR4": "{:.1f}"})}
 
-HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = {len(con5)}): percentiles 10, 25, 50, 75 y 90 = {', '.join(f'{v:,.0f}' for v in cuantiles)}; {int((con5['HHI'] > 2500).sum())} de {len(con5)} superan 2.500. Los cinco proveedores de mayor valor suman el {top.head(5)['participacion_valor_pct'].sum():.1f} % del valor total (`proveedores_top_participacion.csv`).
-
-**Decisión D69** (propuesta, borrador): identificador de proveedor y medidas de concentración.
+**Decisión D69** (vigente con condiciones): medida principal por departamento, HHI nacional como contexto, HHI de 2025 después de las correcciones de D81 y con la sensibilidad sin los tres mayores.
 
 ### Descomposición del HHI de 2025 (D77)
 

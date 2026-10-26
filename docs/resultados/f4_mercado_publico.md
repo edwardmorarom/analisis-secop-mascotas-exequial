@@ -183,9 +183,24 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 **Decisión D68** (propuesta, borrador): indicadores de componentes, que reemplazan al subtipo único con prioridad; D78 fija cuáles se reportan.
 
-## 5. Proveedores (borrador)
+## 5. Proveedores (D69, vigente con condiciones)
 
-Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, `proveedores_hhi_departamento.csv`, `proveedores_top_participacion.csv`; gráfico `5_concentracion_proveedores.png`). El identificador es el NIT (SECOP I, personas jurídicas) o el código de proveedor (SECOP II); las personas naturales van seudonimizadas (D15) y no se unen entre SECOP I y II, por lo que un mismo proveedor puede contarse dos veces en 2020–2022.
+**Medida principal: HHI por departamento** (el mercado es local; `proveedores_hhi_departamento.csv`, `proveedores_hhi_departamento_anual.csv`, `proveedores_hhi_departamento_resumen_anual.csv`). El HHI nacional va solo como contexto. Participación y concentración por valor constante; el identificador es el NIT (SECOP I, personas jurídicas) o el código de proveedor (SECOP II). **Limitación: las personas naturales van seudonimizadas (D15) y no se unen entre SECOP I y II, así que un mismo proveedor puede contarse dos veces y la concentración puede estar subestimada.**
+
+HHI por departamento y año (departamentos con 5 o más proveedores; mediana y cuartiles entre departamentos):
+
+| año | departamentos | HHI_mediana | HHI_p25 | HHI_p75 | con HHI > 2.500 |
+|---|---|---|---|---|---|
+| 2020 | 28 | 1344 | 961 | 2155 | 4 |
+| 2021 | 27 | 1501 | 983 | 2381 | 7 |
+| 2022 | 27 | 1826 | 975 | 2195 | 4 |
+| 2023 | 27 | 1716 | 1086 | 2368 | 5 |
+| 2024 | 26 | 2034 | 960 | 2494 | 7 |
+| 2025 | 28 | 1832 | 1026 | 2837 | 8 |
+
+Pooled 2020–2025 (n = 32 departamentos con 5 o más proveedores): percentiles 10, 25, 50, 75 y 90 = 489, 763, 1,302, 1,674, 2,525; 4 de 32 superan 2.500. Los cinco proveedores de mayor valor suman el 22.3 % del valor total (`proveedores_top_participacion.csv`).
+
+**Contexto: HHI y CR4 nacionales por año** (`proveedores_hhi_cr4_anual.csv`; gráfico `5_concentracion_proveedores.png`). El de 2025 se reporta después de corregir los dos contratos de D81; la sensibilidad sin los tres mayores contratos está más abajo:
 
 | anio | proveedores | HHI | CR4 |
 |---|---|---|---|
@@ -196,9 +211,7 @@ Participación, HHI y CR4 por valor constante (`proveedores_hhi_cr4_anual.csv`, 
 | 2024 | 426 | 379 | 31.3 |
 | 2025 | 438 | 638 | 33.0 |
 
-HHI por departamento (2020–2025, departamentos con 5 o más proveedores, n = 32): percentiles 10, 25, 50, 75 y 90 = 489, 763, 1,302, 1,674, 2,525; 4 de 32 superan 2.500. Los cinco proveedores de mayor valor suman el 22.3 % del valor total (`proveedores_top_participacion.csv`).
-
-**Decisión D69** (propuesta, borrador): identificador de proveedor y medidas de concentración.
+**Decisión D69** (vigente con condiciones): medida principal por departamento, HHI nacional como contexto, HHI de 2025 después de las correcciones de D81 y con la sensibilidad sin los tres mayores.
 
 ### Descomposición del HHI de 2025 (D77)
 

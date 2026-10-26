@@ -161,6 +161,13 @@ def escribir_patrones(d, salida, divipola):
             columns={"nom_razon_social_contratista": "nombre_proveedor"}).assign(fuente="secop1"),
         pd.read_parquet(interim / "secop2_senales.parquet", columns=["llave", "proveedor_adjudicado"]).rename(
             columns={"proveedor_adjudicado": "nombre_proveedor"}).assign(fuente="secop2")])
+    por_dep_anio, resumen_dep_anio = mp.hhi_departamento_anual(f, nombres_dep)
+    por_dep_anio.to_csv(salida / "proveedores_hhi_departamento_anual.csv", index=False, encoding="utf-8-sig")
+    resumen_dep_anio.to_csv(salida / "proveedores_hhi_departamento_resumen_anual.csv", index=False, encoding="utf-8-sig")
+    g = f[f["anio"].between(2020, 2024)].nlargest(10, "valor_constante_2025").merge(nombres, on=["fuente", "llave"], how="left")
+    g["proveedor"] = np.where(g["proveedor_persona_natural"], "(persona natural: no se muestra)", g["nombre_proveedor"])
+    g[["anio", "fuente", "entidad", "valor", "valor_constante_2025", "proveedor", "modalidad", "p_tfidf_funerario", "p_e5_funerario",
+       "pred_tfidf_modelo", "pred_e5_modelo", "objeto"]].to_csv(salida / "top10_contratos_2020_2024.csv", index=False, encoding="utf-8-sig")
     mp.top_contratos(f, 2025, nombres).to_csv(salida / "hhi_2025_top10_contratos.csv", index=False, encoding="utf-8-sig")
     mp.hhi_sin_mayores(f, 2025).to_csv(salida / "hhi_2025_sin_mayores.csv", index=False, encoding="utf-8-sig")
     comparacion = []
