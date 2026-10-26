@@ -50,7 +50,7 @@ def serie_anual(t):
     for x, y in inferior.items():
         ax.text(x, y + 1, f"{y:.0f}", ha="center", color=TEXTO_2, fontsize=9)
     ax.set_title("Valor de los contratos funerarios por año (miles de millones de pesos de 2025)")
-    ax.set_xlabel("Año de firma. SECOP I solo cubre 2020-2022: la caída de 2023 es un cambio de fuente.")
+    ax.set_xlabel("Año de firma. SECOP I (2020-2025, D73) y SECOP II; clasificación con TF-IDF.")
     rejilla(ax)
     ax.legend(frameon=False, loc="upper right")
     guardar(fig, "1_serie_anual_pesos_constantes.png")
