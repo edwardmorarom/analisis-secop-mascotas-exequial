@@ -447,12 +447,19 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--anio", type=int, required=True)
     a = p.parse_args()
-    if a.anio not in (2014, 2017, 2019, 2023, 2024):
-        raise SystemExit(f"Solo están implementados 2014, 2017, 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
+    if a.anio not in (2014, 2016, 2017, 2019, 2023, 2024):
+        raise SystemExit(f"Solo están implementados 2014, 2016, 2017, 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
     config = cargar_config()
     divipola = pd.read_csv(ruta(config, "raw") / "dane" / "dane_divipola.csv", dtype=str)
     interim = ruta(config, "interim")
     interim.mkdir(parents=True, exist_ok=True)
+    if a.anio == 2016:
+        from src.etl.extraer_minsalud_2016 import procesar, totales_pais
+        df, pais, ignoradas = procesar(config, divipola, a.anio)
+        df.to_parquet(interim / "minsalud_2016.parquet", index=False)
+        print(f"filas: {len(df)} | por tipo: {df['tipo'].value_counts().to_dict()}")
+        print("municipal vs Total País (suma, impreso, diferencia):", totales_pais(df, pais))
+        return
     if a.anio == 2014:
         from src.etl.extraer_minsalud_2014 import procesar
         df, ignoradas = procesar(config, divipola, a.anio)
