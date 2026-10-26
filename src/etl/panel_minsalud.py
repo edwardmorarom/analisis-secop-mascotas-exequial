@@ -7,7 +7,8 @@ ANIOS = (2014, 2016, 2017, 2019, 2023, 2024)
 VACUNADOS_PERROS = ("vacunados_perros", "perros_vacunados")
 TOLERANCIA_TOTAL_DEPARTAMENTO = 0.005
 COLUMNAS = ["cod_divipola", "anio", "tipo", "municipio_pdf", "bloque", "pob_dane", "poblacion_perros", "poblacion_gatos",
-            "vacunados_perros", "vacunados_perros_x1000hab", "hab_por_perro", "metodo_estimacion",
+            "vacunados_perros", "vacunados_perros_x1000hab", "vacunados_perros_gatos",
+            "vacunados_perros_gatos_x1000hab", "hab_por_perro", "metodo_estimacion",
             "densidad_analizable", "cobertura_100", "ajuste_cobertura", "marca_inconsistencia",
             "fuente", "anio_fuente", "pagina"]
 
@@ -34,7 +35,10 @@ def armonizar(df, marcas):
     for c in ("ajuste_cobertura", "identidad_ok", "pagina"):
         if c not in df.columns:
             df[c] = np.nan
+    if "vacunados_perros_gatos" not in df.columns:
+        df["vacunados_perros_gatos"] = np.nan
     df["vacunados_perros_x1000hab"] = df["vacunados_perros"] / df["pob_dane"] * 1000
+    df["vacunados_perros_gatos_x1000hab"] = df["vacunados_perros_gatos"] / df["pob_dane"] * 1000
     df["densidad_analizable"] = ((df["anio"] == 2019) & (df["metodo_estimacion"] == "posible_medido")).astype(int)
     avisos = []
     for r in df.itertuples():

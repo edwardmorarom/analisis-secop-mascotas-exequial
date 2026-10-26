@@ -37,6 +37,9 @@ EQUIVALENCIAS_MUNICIPIO = {
     ("50", "VISTA HERMOSA"): "50711", ("52", "FCO PIZARRO"): "52520", ("52", "R PAYAN"): "52621",
     ("54", "VILLACARO"): "54871", ("86", "VILLA GARZON"): "86885", ("76", "DARIEN"): "76126",
     ("13", "MOMPOS"): "13468", ("47", "CHIBOLO"): "47170", ("70", "TOLU VIEJO"): "70823",
+    ("05", "S A DE CUERQUIA"): "05647", ("05", "S P DE LOS MILAGROS"): "05664", ("05", "SAN PEDRO DE U"): "05665",
+    ("85", "HATOCOROZAL"): "85125", ("27", "CARM DE ATRATO"): "27245", ("27", "CARMEN DEL DA"): "27150",
+    ("97", "MILTU"): "97001",
 }
 ABREVIATURAS = {"PTO": "PUERTO", "STA": "SANTA", "STO": "SANTO", "SN": "SAN"}
 
@@ -349,6 +352,11 @@ def cruzar_divipola(df, divipola, umbral=90, margen=5, columna_nombre="municipio
 
 
 def cargar_pob_dane(config, anio):
+    if anio <= 2017:
+        x = pd.read_excel(ruta(config, "raw") / "dane" / "dane_proyecciones_municipales_2005_2017.xlsx",
+                          sheet_name="NuevaMpal", header=11, dtype=str)
+        x = x[(x["AÑO"] == str(anio)) & (x["ÁREA GEOGRÁFICA"] == "Total")]
+        return x.set_index("MPIO")["Población"].astype(float).rename("pob_dane")
     path = ruta(config, "raw") / "dane" / "dane_proyecciones_municipales_2018_2042.xlsx"
     x = pd.read_excel(path, sheet_name="PobMunicipalxÁrea", header=7, dtype=str)
     x = x[(x["AÑO"] == str(anio)) & (x["ÁREA GEOGRÁFICA"] == "Total")]
@@ -436,12 +444,19 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("--anio", type=int, required=True)
     a = p.parse_args()
-    if a.anio not in (2019, 2023, 2024):
-        raise SystemExit(f"Solo están implementados 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
+    if a.anio not in (2017, 2019, 2023, 2024):
+        raise SystemExit(f"Solo están implementados 2017, 2019, 2023 y 2024; el formato de {a.anio} se revisa antes de extraerlo.")
     config = cargar_config()
     divipola = pd.read_csv(ruta(config, "raw") / "dane" / "dane_divipola.csv", dtype=str)
     interim = ruta(config, "interim")
     interim.mkdir(parents=True, exist_ok=True)
+    if a.anio == 2017:
+        from src.etl.extraer_minsalud_2017 import procesar
+        df, dep, ignoradas = procesar(config, divipola, a.anio)
+        df.to_parquet(interim / "minsalud_2017.parquet", index=False)
+        dep.to_parquet(interim / "minsalud_2017_departamentos.parquet", index=False)
+        print(f"filas: {len(df)} | por tipo: {df['tipo'].value_counts().to_dict()} | líneas ignoradas: {len(ignoradas)}")
+        return
     if a.anio != 2019:
         df, dep, bitacora, duplicados = procesar_anual(config, a.anio, divipola)
         df.to_parquet(interim / f"minsalud_{a.anio}.parquet", index=False)
