@@ -2,6 +2,8 @@
 
 Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `data/processed/resultados_secop/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63); como sensibilidad, TF-IDF con `mixto`, e5 y e5 con `mixto`.
 
+> **Advertencia de cobertura (D70).** SECOP I se descargó solo para 2020–2022, pero en `f789-7hwg` hay 1.914, 1.841 y 1.647 contratos candidatos firmados en 2023, 2024 y 2025 (misma consulta y estados de D42). Por eso la caída de 2022 a 2023 y la subida del HHI pueden ser, en buena parte, un efecto de cobertura y no un cambio del mercado. Las series de 2023–2025 están incompletas hasta que se decida si se descarga ese tramo.
+
 ## 1. Cruce de la ubicación de la entidad con DIVIPOLA (D66)
 
 Tabla de origen: `tasa_cruce_ubicacion.csv`.
