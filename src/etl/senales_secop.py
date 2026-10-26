@@ -6,6 +6,7 @@ from unidecode import unidecode
 
 from src.etl.anonimizar import PATRONES, anonimizar_con_conteo
 from src.etl.comun import cargar_config, ruta
+from src.etl.seudonimo import clave, seudonimo
 from src.etl.tildes import reparar_tildes
 
 PALABRAS = {
@@ -52,6 +53,27 @@ def censurar(df, conteo=None, ejemplos=None):
     return df.drop(columns=TEXTO_ORIGINAL, errors="ignore")
 
 
+def seudonimizar_proveedores(s1, s2, config):
+    """D15: nombres y documentos de personas naturales salen de interim; las jurídicas conservan nombre y NIT."""
+    llave = clave()
+    ruta_ids = ruta(config, "interim") / "secop1_contratistas.parquet"
+    if not ruta_ids.exists():
+        raise FileNotFoundError("Falta secop1_contratistas.parquet: ejecute python -m src.etl.contratistas_secop1")
+    ids = pd.read_parquet(ruta_ids)[["uid", "contratista_persona_natural", "contratista_id"]]
+    s1 = s1.merge(ids, on="uid", how="left", validate="one_to_one")
+    if s1["contratista_id"].isna().any() and s1["contratista_persona_natural"].isna().any():
+        raise ValueError("uid de SECOP I sin identificador de contratista")
+    natural = s1["contratista_persona_natural"].astype(bool)
+    s1.loc[natural, "nom_razon_social_contratista"] = s1.loc[natural, "contratista_id"]
+    s1.loc[natural, "identificacion_del_contratista"] = None
+    s2 = s2.copy()
+    s2["proveedor_persona_natural"] = s2["tipodocproveedor"].fillna("") != "NIT"
+    pn = s2["proveedor_persona_natural"]
+    s2.loc[pn, "codigo_proveedor"] = [seudonimo("secop2", c, llave) for c in s2.loc[pn, "codigo_proveedor"]]
+    s2.loc[pn, "proveedor_adjudicado"] = s2.loc[pn, "codigo_proveedor"]
+    return s1, s2
+
+
 def cargar(config, conteo=None, ejemplos=None):
     raw = ruta(config, "raw") / "secop"
     s2 = pd.read_json(raw / "secop2_candidatos_2020_2025.jsonl", lines=True, dtype=False)
@@ -64,9 +86,9 @@ def cargar(config, conteo=None, ejemplos=None):
                    descripcion=s1["objeto_del_contrato_a_la"],
                    codigo=s1["id_clase"].fillna(""),
                    anio=pd.to_datetime(s1["fecha_de_firma_del_contrato"]).dt.year)
-    s1 = censurar(s1.drop_duplicates("uid", keep="first"), conteo, ejemplos)
-    s2 = censurar(s2.drop_duplicates("id_contrato", keep="first"), conteo, ejemplos)
-    return s1, s2
+    s1, s2 = seudonimizar_proveedores(
+        s1.drop_duplicates("uid", keep="first"), s2.drop_duplicates("id_contrato", keep="first"), config)
+    return censurar(s1, conteo, ejemplos), censurar(s2, conteo, ejemplos)
 
 
 def senales_antes(df):
