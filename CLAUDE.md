@@ -18,14 +18,14 @@ Proyecto de consultoría USTA. Equipo: Edward Mora (código), Natalia Carrero y 
 - Google Trends: solo «cremación de mascotas» y «funeraria de mascotas». «Cementerio de mascotas» se excluye (contaminado por la película *Pet Sematary*). Trends se usa como variable descriptiva (interés detectable sí/no), no como mapa nacional: solo 9 y 11 departamentos tienen dato.
 - Meta: la Biblioteca de Anuncios no informa alcance ni público de anuncios comerciales en Colombia. La capa es «presencia en Facebook + anuncios activos» (lado de la oferta), levantada a mano por Harold.
 - Lado del consumidor: solo señales agregadas de visibilidad digital (búsquedas en Trends, seguidores, número de reseñas en Google, precios publicados). No miden compras; la mortalidad y el uso real de servicios siguen siendo vacío declarado.
-- **Pendiente:** incluir o no SECOP I 2020–2022 (recomendado: incluir).
+- SECOP I 2020–2022 **incluido** (conjunto `f789-7hwg`): solo procesos con contrato firmado y estado Celebrado, Liquidado o Terminado sin Liquidar; una fila por `uid`.
 
 ## Estructura
 
 ```
 config.yaml          rutas y parámetros
 requirements.txt
-.env                 DEEPSEEK_API_KEY, GOOGLE_MAPS_API_KEY, LANGFUSE_*  (no se sube)
+.env                 DEEPSEEK_API_KEY, GOOGLE_MAPS_API_KEY, SOCRATA_APP_TOKEN, SEUDONIMO_SALT, LANGFUSE_*  (no se sube)
 .gitignore           incluye data/ y .env
 data/                no se sube
   raw/               crudos tal como se descargan + manifiesto.csv (solo lectura)
@@ -76,6 +76,7 @@ Lo que llena Harold a mano: `data/raw/meta_ads/facebook_prestadores_20261021.xls
 - Cada valor del panel conserva `fuente`, `anio_fuente` y `pagina` cuando viene de un PDF.
 - LLM: temperatura 0; guardar instrucción, versión del modelo y respuesta de cada llamada.
 - Semillas fijas para muestreos (`seed: 2026`).
+- **Registro de decisiones.** Toda decisión de método (fuente, filtro, estructura de datos, modelo, parámetro, regla de etiquetado) se registra en `docs/decisiones.md` con **Decisión, Por qué** (con evidencia: cifras, archivo, commit), **Descartado, Sustento y Estado**, en el mismo commit que la implementa. Nunca se borra una decisión: se marca como reemplazada. Es el registro oficial; si este archivo y `decisiones.md` difieren, manda `decisiones.md`.
 - Código limpio y con pocos comentarios.
 - No leer archivos de datos completos en el contexto: usar muestras o resúmenes generados con código.
 - No guardar datos personales: ni representantes legales, supervisores, ordenadores, cuentas bancarias, documentos de personas, ni contactos de las cámaras de comercio.
@@ -91,7 +92,7 @@ Extraer con pdfplumber → camelot → LLM. Validar contra el total nacional imp
 - **2025:** Figura 1 (tabla, p. 10): serie nacional 2018–2025. Anexo 2 (p. 48): incidencia por departamento y distrito 2018–2025. Anexos 3–5 (pp. 49–78): casos, población e incidencia por municipio 2025. Total procedente de Colombia 2025: 199.028.
 - **2023:** solo para la especie agresora por departamento. Sus anexos municipales traen solo incidencia, con nombres partidos en dos líneas, abreviados («Sant. de Quilichao», «Carmen Apicalá») y las dos últimas páginas desarmadas.
 - Unir municipios por coincidencia aproximada **dentro del mismo departamento** contra DIVIPOLA, con tabla de equivalencias; reportar los que no coincidan. Distritos (Barranquilla, Cartagena, Santa Marta, Buenaventura, Bogotá) vienen aparte.
-- Antes de procesar PDF, verificar si el INS publica microdatos del evento 300 en el portal SIVIGILA.
+- Microdatos del evento 300 (verificado 2026-10-22): el portal SIVIGILA los entrega solo con formulario. En datos.gov.co hay **conteos agregados** (evento × municipio × semana) para 2017 (`84d4-vfax`), 2018 (`xd2n-cu8j`), 2019 (`qvnt-2igj`) y 2021 (`fhc4-jjti`), descargados en `data/raw/ins/ins_sivigila_evento300_AAAA.jsonl`. Se usan solo para **validar** los PDF en 2019 y 2021 (no hay 2020 ni 2022–2025); los códigos de municipio vienen sin departamento, unir con `cod_dpto` + `cod_mun`.
 
 ### SECOP II (API Socrata, conjunto `jbjy-vk9h`, verificado)
 Consulta de candidatos (paginar con `$limit`/`$offset`):
@@ -121,11 +122,13 @@ WHERE fecha_de_firma BETWEEN '2020-01-01T00:00:00' AND '2025-12-31T23:59:59'
 ```
 
 - Agregar la condición por códigos UNSPSC funerarios una vez identificados en el clasificador (no inventarlos).
+- **Filtro afinado (2026-10-22).** Los crudos conservan la consulta original (19.306 filas SECOP II; 15.484 uid SECOP I) y no se vuelven a descargar. En interim (`src/etl/senales_secop.py`) cada señal es una columna booleana: `OSARIO` con límite de palabra (excluye ROSARIO: 5.943 → 53 en SECOP II) y `ZOONOSIS` solo junto a animales muertos, cadáver, disposición final, incinera, recolección de animales o sepult (10.060 → 20); esas filas llevan `posible_disposicion_animales`. `CEMENTERIO`, `NECR` y `CAD_VER` quedan como señales pendientes de decisión (mezclan obras, necropsias y servicios funerarios).
+- SECOP I: columnas distintas (`detalle_del_objeto_a_contratar`, `objeto_del_contrato_a_la`, `id_clase`/`id_familia` sin prefijo `V1.`, `cuantia_contrato`). El crudo ya viene con una fila por `uid` (primera fila en orden de `uid`): se verificó que los 245 `uid` repetidos (420 filas sobrantes) no difieren en `cuantia_contrato`, `valor_contrato_con_adiciones` ni `fecha_de_firma_del_contrato` (`src/etl/verificar_uid_secop1.py`). Cruce con SECOP II por NIT + valor + fecha: sin coincidencias exactas; los 10 pares con fecha ±30 días (Yumbo, Unidad Ejecutora de Saneamiento del Valle, La Samaritana) **no se eliminan**: probablemente son contratos distintos de apoyo a la gestión con el mismo valor.
 - Muestra aparte de ~100 contratos aleatorios **que no cumplan** el filtro (no recuperados), estratificada por año.
 - Si se incluye SECOP I, misma lógica sobre su conjunto en datos.gov.co.
 
 ### Cámaras de Comercio (API Socrata: `gwqv-sqvs` Ibagué, `yufs-urdt` Arauca, `pevq-v2xz` Villavicencio)
-Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU, municipio, estado de la matrícula y fecha. Solo para validar la cobertura de Places.
+Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU, municipio, estado de la matrícula y fecha. Solo para validar la cobertura de Places. Villavicencio no trae NIT. En personas naturales el NIT (cédula) no se guarda, y la razón social queda solo en `data/raw`; en interim y processed se reemplaza por un seudónimo `PN-…` (HMAC con `SEUDONIMO_SALT`) y nunca se usa en salidas (`src/etl/procesar_camaras.py`).
 
 ### Google Places (Text Search New)
 - Solo campos Pro: nombre, dirección, ubicación, tipos. Nada de reseñas, calificación ni sitio web (tarifa Enterprise).
@@ -162,6 +165,16 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 - Valor por departamento y municipio y **por cada 100.000 habitantes** (DANE). Distinguir ubicación de la entidad y dirección de ejecución.
 - **Patrones de compra:** por tipo de entidad (`orden`, `sector`, `rama`), por tipo de servicio (subclasificación del objeto: inhumación de NN o población vulnerable, planes exequiales colectivos, traslado de cadáveres, cremación, disposición de animales), por modalidad (participación de la contratación directa en el valor) y por mes de firma.
 - Sensibilidad: totales con y sin contratos `mixto`.
+
+**Libro de códigos del etiquetado.** Tres clases (`funerario`, `no_funerario`, `mixto`) más la marca `forense` (columna aparte, no es cuarta clase). `CEMENTERIO`, `NECR` y `CAD_VER` sin otra señal no se clasifican por regla: quedan como candidatas en el estrato C y las decide la revisión humana con estos criterios:
+- Cementerio con **operación o administración** (inhumación, exhumación, bóvedas, concesión) = `funerario`.
+- Cementerio con obras civiles, mantenimiento físico, estudios y diseños = `no_funerario`.
+- `NECR` o `CAD_VER` sin `FUNERA` ni `INHUMA` = `forense`: se reporta aparte y **queda fuera del tamaño de mercado**.
+- Contratación de **personal administrativo o de apoyo a una dependencia funeraria** (supervisión, PQRS, correspondencia, apoyo financiero o jurídico) = `no_funerario`: no compra servicios funerarios.
+- **Regla de coherencia:** si `forense = 1`, la etiqueta debe ser `no_funerario`, salvo componente funerario claro (p. ej. inhumación de cuerpos no identificados), que va como `mixto`. `forense = 1` con `funerario` es un error de etiquetado y la validación (`src/evaluacion/kappa.py`) lo exporta como desacuerdo.
+- **Texto de objetos:** toda salida (pantalla, archivo, documento) que muestre texto de objetos o descripciones pasa antes por `src.etl.anonimizar.anonimizar`. `data/raw` conserva el original; interim y processed llevan el texto censurado.
+
+**Muestra de etiquetado (400, semilla 2026).** Estratos y asignación: A1 palabra y UNSPSC 60, A2 solo palabra 90, A3 solo UNSPSC 60, B posible disposición de animales 23, C cementerio 45, C NECR 25, C CAD_VER 30, C mixtas y OSARIO 17, D sin señal 50; proporcional por fuente y año. La tabla maestra `data/processed/muestra_secop_maestra.*` guarda `peso` = N/n del estrato (suma 34.790); las métricas se calculan **ponderadas**. El archivo de etiquetado (`muestra_secop_etiquetado.csv`) va sin estrato, sin señales ni peso, sin proveedores, y con datos de pacientes omitidos (`src/modelos/muestra_secop.py`).
 
 **Proveedores (objetivo específico 3):** participación por `codigo_proveedor`, HHI, CR4, locales frente a nacionales; K-means solo si es estable.
 

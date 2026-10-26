@@ -1,0 +1,434 @@
+# Registro de decisiones
+
+Cada decisión del proyecto queda aquí con su sustento. Formato:
+
+- **Decisión:** qué se hizo.
+- **Por qué:** la razón, con evidencia propia (cifras, archivos, commits) cuando existe.
+- **Descartado:** alternativas consideradas y por qué no.
+- **Sustento:** referencia bibliográfica, norma o documento técnico.
+- **Estado:** vigente, propuesta (pendiente de validar) o reemplazada (indicar por cuál).
+
+Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y se agrega una nueva.
+
+---
+
+## A. Alcance y fuentes
+
+### D01. Vista nacional, solo fuentes públicas
+- **Decisión:** el análisis cubre todo el país y usa solo datos públicos descargables.
+- **Por qué:** el proyecto dura dos semanas; un derecho de petición tarda hasta 15 días hábiles en responderse (Ley 1755 de 2015) y no garantiza respuesta a tiempo. Las fuentes públicas permiten que cualquiera reproduzca los resultados.
+- **Descartado:** derechos de petición a MinSalud, INS y alcaldías; redes sociales con datos personales.
+- **Sustento:** Ley 1755 de 2015; Ley 1581 de 2012.
+- **Estado:** vigente.
+
+### D02. SECOP II 2020–2025 más SECOP I 2020–2022
+- **Decisión:** se usan los dos sistemas de contratación pública.
+- **Por qué:** entre 2020 y 2022 las entidades migraron de SECOP I a SECOP II. En 2020, SECOP I tiene 6.313 candidatos (un contrato por `uid`, solo firmados) y SECOP II solo 1.123; con el filtro afinado (D17), 2.069 frente a 345. Sin SECOP I, 2020 quedaría subrepresentado más de cinco veces y la serie mostraría un crecimiento falso.
+- **Descartado:** solo SECOP II (sesgo de migración).
+- **Sustento:** conteos previos de F1 (commit 46aa476); Colombia Compra Eficiente, conjuntos `jbjy-vk9h` y `f789-7hwg`.
+- **Estado:** vigente.
+
+### D03. Descarga por API con paginación y token
+- **Decisión:** se descarga con la API SoQL de Socrata, paginando, con `SOCRATA_APP_TOKEN`.
+- **Por qué:** la exportación JSON del portal se trunca en 1.000 filas. Sin token, las consultas con muchos `LIKE` agotaban el tiempo de espera. Reproducibilidad: el 25 de octubre de 2026 (vista modificada a las 05:45 UTC) la API de `jbjy-vk9h` devuelve `count(*)` = 1.000, aunque el 22 de octubre entregó 19.306 candidatos; los demás conjuntos usados están completos (SECOP I 6.471.634 filas; INS y cámaras con sus conteos). El análisis usa el crudo del 22 de octubre (`data/raw/secop/secop2_candidatos_2020_2025.jsonl`, 38.759.174 bytes, SHA-256 `1b75a79ba5fc3c727d79a8dd704b438db7e351a23eebbe83e847ecc490859756`, verificado el 25 de octubre contra el manifiesto) y no se vuelve a descargar. El 28 de octubre se repite solo el conteo (`python -m src.etl.verificar_secop2_count`, que lo registra en `logs/secop2_count.jsonl`).
+- **Descartado:** exportar a mano desde datos.gov.co (no reproducible y truncado).
+- **Sustento:** documentación de la API de Socrata (SODA).
+- **Estado:** vigente.
+
+### D04. Datos de mascotas: vacunación antirrábica de MinSalud
+- **Decisión:** la población de perros y gatos por municipio sale de los informes de vacunación antirrábica de MinSalud (2014, 2016, 2017, 2019, 2023 y 2024 municipales; 2025 departamental).
+- **Por qué:** es la única serie histórica con cobertura municipal nacional. La Encuesta Multipropósito no tiene cobertura municipal nacional ni serie larga.
+- **Descartado:** Encuesta Multipropósito; censos municipales aislados.
+- **Sustento:** MinSalud (s. f.-a a g); piloto MSPS-OPS (2012) como referencia de método.
+- **Estado:** vigente.
+
+### D05. Agresiones del INS como contraste
+- **Decisión:** se usan los informes del evento 300 (agresiones por animales potencialmente transmisores de rabia) del INS en PDF, más los conjuntos agregados de datos.gov.co para 2017 (`84d4-vfax`), 2018 (`xd2n-cu8j`), 2019 (`qvnt-2igj`) y 2021 (`fhc4-jjti`).
+- **Por qué:** sirven para comprobar que las cifras de MinSalud son creíbles (agresiones por cada 1.000 perros). Los conjuntos de datos.gov.co validan los totales nacionales del propio PDF del INS: coinciden exactamente con la Figura 1 del informe 2025 (p. 10) en 2018 (136.746), 2019 (141.156) y 2021 (124.760). No validan los PDF de MinSalud, que traen vacunación y no agresiones. Los microdatos individuales exigen un formulario de solicitud (ver D01).
+- **Descartado:** microdatos de SIVIGILA.
+- **Sustento:** INS, informes del evento 300; reporte de F1.
+- **Estado:** vigente.
+
+### D06. Oferta funeraria de mascotas desde varias fuentes
+- **Decisión:** la oferta se mide con Google Places, Facebook (levantamiento manual de Harold) y cámaras de comercio con CIIU 9603 (Ibagué, Arauca y Villavicencio, las que publican datos abiertos).
+- **Por qué:** ninguna fuente sola cubre la oferta. Places mide presencia física, Facebook mide presencia digital y las cámaras miden la formalidad.
+- **Descartado:** RUES completo (sin acceso masivo gratuito).
+- **Sustento:** conjuntos de las cámaras en datos.gov.co; Places API (New).
+- **Estado:** vigente.
+
+### D07. Google Places: Text Search Pro, sin texto de reseñas
+- **Decisión:** se usa Text Search Pro, con una segunda pasada solo para `rating` y `userRatingCount` (tope de 200) y con la cuota diaria limitada.
+- **Por qué:** 5.000 llamadas gratuitas al mes alcanzan para el levantamiento nacional. El texto de las reseñas contiene datos personales y no hace falta para los indicadores.
+- **Descartado:** la versión Enterprise (costo); descargar reseñas.
+- **Sustento:** precios de Places API (New); Ley 1581 de 2012.
+- **Estado:** vigente.
+
+### D08. Google Trends limitado
+- **Decisión:** se consultan solo «cremación de mascotas» y «funeraria de mascotas», como variable descriptiva (interés detectable: sí o no).
+- **Por qué:** «cementerio de mascotas» está contaminado por la película *Pet Sematary*. Solo 9 y 11 departamentos tienen datos, así que no sirve como mapa nacional.
+- **Descartado:** pytrends (descontinuado); usar Trends como indicador continuo.
+- **Sustento:** consultas exploratorias en Google Trends.
+- **Estado:** vigente.
+
+### D09. Meta: presencia y anuncios activos
+- **Decisión:** de Facebook solo se registra presencia, seguidores y anuncios activos con fecha de inicio, desde el lado de la oferta.
+- **Por qué:** la Biblioteca de Anuncios de Meta no informa alcance ni público de los anuncios comerciales en Colombia, solo de los políticos.
+- **Descartado:** medir audiencia o demanda desde Meta.
+- **Sustento:** documentación de la Biblioteca de Anuncios de Meta.
+- **Estado:** vigente.
+
+### D10. No se estima el mercado potencial en pesos
+- **Decisión:** no se calcula «perros × tasa de mortalidad × precio».
+- **Por qué:** no hay tasas de mortalidad de mascotas para Colombia. Usar tablas de otro país (Reino Unido) introduciría un supuesto que no se puede validar. Los precios publicados solo describen la oferta.
+- **Descartado:** tablas de vida de perros del Reino Unido.
+- **Sustento:** revisión del estado del arte (sección de mascotas).
+- **Estado:** vigente.
+
+---
+
+## B. Estructura y tratamiento de datos
+
+### D11. Tres capas: raw, interim y processed
+- **Decisión:** `data/raw` guarda lo descargado tal cual y nunca se modifica. `data/interim` guarda lo limpiado. `data/processed` guarda las tablas finales de análisis.
+- **Por qué:** si un error aparece después, siempre se puede reconstruir desde el crudo. El manifiesto SHA-256 prueba que el crudo no cambió.
+- **Descartado:** limpiar sobre los archivos originales.
+- **Sustento:** prácticas de reproducibilidad (estructura tipo Cookiecutter Data Science).
+- **Estado:** vigente.
+
+### D12. Formatos: JSONL, Parquet y Excel
+- **Decisión:** el crudo de las API va en JSONL; interim y processed, en Parquet; Excel o CSV solo para lo que lee o llena una persona.
+- **Por qué:** JSONL conserva la respuesta de la API sin perder campos. Parquet guarda los tipos de dato (no pierde ceros iniciales ni fechas) y comprime. Excel con listas desplegables evita errores de tipeo y de tildes en el etiquetado.
+- **Descartado:** CSV para todo (pierde tipos y daña las tildes al abrirlo en Excel).
+- **Sustento:** documentación de Apache Parquet.
+- **Estado:** vigente.
+
+### D13. DIVIPOLA como llave, en texto
+- **Decisión:** todos los cruces por municipio usan el código DIVIPOLA de 5 dígitos como texto.
+- **Por qué:** los nombres de municipios se repiten y se escriben distinto entre fuentes. Como número, el código pierde el cero inicial (05001 pasa a 5001) y el cruce falla.
+- **Descartado:** cruzar por nombre.
+- **Sustento:** DANE, DIVIPOLA.
+- **Estado:** vigente.
+
+### D14. Pesos constantes y valores por habitante
+- **Decisión:** los valores se expresan en pesos constantes con el IPC del DANE (serie de empalme) y por cada 100.000 habitantes con las proyecciones post-COVID del DANE.
+- **Por qué:** sin deflactar, el crecimiento por inflación se confunde con crecimiento real. Sin dividir por población, los municipios grandes siempre aparecen arriba.
+- **Descartado:** pesos corrientes únicamente; proyecciones anteriores al censo de 2018.
+- **Sustento:** DANE, IPC y proyecciones de población.
+- **Estado:** vigente.
+
+### D15. Protección de datos personales
+- **Decisión:** se eliminan los nombres, documentos, teléfonos, correos e historias clínicas que aparecen en texto libre (`src/etl/anonimizar.py`). Las personas naturales (proveedores, contratistas, comerciantes de las cámaras) se reemplazan por un seudónimo HMAC con sal. Las personas jurídicas conservan nombre y NIT.
+- **Por qué:** Ley 1581 de 2012. Se encontraron 30 filas con datos personales, entre ellas nombres de pacientes con diagnóstico. El seudónimo es el mismo en todas las fuentes, para poder contar a un proveedor una sola vez en la concentración del mercado sin exponer su nombre. Las empresas necesitan su NIT para calcular HHI y CR4.
+- **Descartado:** borrar a los proveedores personas naturales (distorsiona la concentración); seudónimo sin sal (se puede revertir con un diccionario).
+- **Sustento:** Ley 1581 de 2012; reporte de anonimización (commit 05d1137).
+- **Estado:** vigente e implementada en `data/interim` (`src/etl/seudonimo.py`, `src/etl/contratistas_secop1.py`, `src/etl/senales_secop.py`). Persona natural en SECOP I = tipo de identificación distinto de «Nit de Persona Jurídica» (11.804 de 15.484 contratos, 5.707 seudónimos distintos), con el número de documento como identificador (se usa solo en memoria para calcular el seudónimo y no se guarda). Persona natural en SECOP II = `tipodocproveedor` distinto de «NIT» (16.232 de 19.306 contratos, 7.328 seudónimos), con `codigo_proveedor` como identificador. El nombre y el documento se reemplazan por el seudónimo (HMAC-SHA256 con `SEUDONIMO_SALT`, 12 caracteres); las personas jurídicas conservan nombre y NIT (3.680 contratos en SECOP I y 3.074 en SECOP II). `data/raw` conserva el original (D11). Cámaras de comercio: 59 personas naturales con razón social seudonimizada, NIT omitido en 21 de Ibagué y 17 de Arauca, y Villavicencio sin NIT. **Limitaciones:** (1) los seudónimos de personas naturales no se unen entre SECOP I y SECOP II (documento en una fuente y `codigo_proveedor` en la otra) ni con las cámaras, así que la concentración (HHI, CR4) de personas naturales se calcula por fuente y puede contar dos veces a una misma persona; (2) en SECOP II un proveedor con «NIT» puede ser una persona natural y conserva su nombre; (3) el documento se normaliza a dígitos, de modo que la cédula y el NIT de una misma persona natural pueden producir seudónimos distintos en SECOP I; (4) 107 nombres de SECOP I aparecen como persona natural en unos contratos y como persona jurídica en otros (empresas unipersonales), y en estos últimos el nombre se conserva por ser persona jurídica.
+
+---
+
+## C. Delimitación de contratos SECOP
+
+### D16. Candidatos por palabras clave y UNSPSC
+- **Decisión:** un contrato es candidato si su texto contiene una palabra clave funeraria o tiene códigos UNSPSC 851715 (servicios funerarios), 4813 (ataúdes, urnas, lápidas) o 422621.
+- **Por qué:** el código UNSPSC por sí solo es incompleto (aporta 173 contratos de 19.307 en SECOP II), porque las entidades lo diligencian mal o de forma genérica. El texto captura casi todo.
+- **Descartado:** filtrar solo por UNSPSC.
+- **Sustento:** clasificador UNSPSC de Colombia Compra Eficiente; conteos de F1.
+- **Estado:** vigente.
+
+### D17. Ajuste del filtro: OSARIO y ZOONOSIS
+- **Decisión:** OSARIO se busca con límite de palabra. ZOONOSIS solo cuenta si va junto a términos de disposición de animales muertos.
+- **Por qué:** OSARIO coincidía con «ROSARIO» (5.943 filas, que bajan a 53 con el ajuste). ZOONOSIS traía contratos de salud pública (10.060 filas, que bajan a 20). Juntas eran el 82,6 % de las filas candidatas de SECOP II (15.941 de 19.306 tienen solo una de esas dos señales). Las 23 filas que quedan con ZOONOSIS junto a disposición o con «animales muertos» (21 de SECOP II y 2 de SECOP I) se marcan como posible disposición de animales para la parte de mascotas.
+- **Descartado:** quitar ZOONOSIS por completo (se perdería la disposición pública de animales).
+- **Sustento:** commit 3f016a7; revisión de 10 objetos al azar.
+- **Estado:** vigente.
+
+### D18. Deduplicación de SECOP I por uid
+- **Decisión:** se conserva una fila por `uid`.
+- **Por qué:** SECOP I repite contratos por rubro presupuestal. Se verificaron los 245 uid repetidos y ninguno difiere en valor ni en fecha de firma.
+- **Descartado:** volver a descargar con un criterio explícito (innecesario, según la verificación).
+- **Sustento:** commit 587ce35.
+- **Estado:** vigente.
+
+### D19. No se eliminan los cruces SECOP I y II por fecha cercana
+- **Decisión:** los 10 pares con mismo NIT y valor y fecha a menos de 30 días se conservan.
+- **Por qué:** no hay coincidencias exactas por NIT, valor y fecha (0), y los 10 pares con fecha cercana son 3 casos. Los de Yumbo (8 pares) y de la Unidad Ejecutora de Saneamiento del Valle son, probablemente, contratos de apoyo a la gestión que se firman con varias personas por el mismo valor. El de La Samaritana tiene el mismo objeto en ambos sistemas con 7 días de diferencia y podría ser el mismo contrato registrado dos veces. Una regla automática borraría contratos reales. Además, ninguno es funerario.
+- **Descartado:** regla de NIT + valor + ±30 días.
+- **Sustento:** revisión manual de los pares (Yumbo, Unidad Ejecutora de Saneamiento del Valle, La Samaritana).
+- **Estado:** vigente.
+
+---
+
+## D. Etiquetado
+
+### D20. Tres clases y una marca forense
+- **Decisión:** cada contrato se etiqueta como `funerario`, `no_funerario` o `mixto`, y por separado lleva `forense` (0 o 1). Si `forense = 1`, la etiqueta no puede ser `funerario`.
+- **Por qué:** `mixto` permite reportar el mercado con y sin contratos mezclados (análisis de sensibilidad). Forense va como marca y no como cuarta clase para no fragmentar las clases y mantener estable el κ. Además, el gasto forense se reporta aparte y no se suma al mercado funerario.
+- **Descartado:** clasificación binaria; forense como cuarta clase.
+- **Estado:** vigente.
+
+### D21. Reglas del libro de códigos
+- **Decisión:**
+  1. Se etiqueta según **lo que se compra**, no según el lugar donde se usa.
+  2. Servicios funerarios directos y bienes funerarios (ataúdes, cajas mortuorias, urnas, lápidas) → `funerario`.
+  3. Planes o pólizas de previsión exequial, incluidos los de bienestar para funcionarios → `funerario`. El subtipo se separa después por reglas, no a mano.
+  4. Operación o arrendamiento de espacios del cementerio para inhumar → `funerario`.
+  5. Obras, construcción, mantenimiento físico, estudios y diseños, aunque sean en cementerios o edificios funerarios → `no_funerario`.
+  6. Personal administrativo o de apoyo (supervisión, PQRS, correspondencia, aseo, cafetería, vigilancia, custodia) de una dependencia funeraria o un cementerio → `no_funerario`.
+  7. Sepulturero junto con otras tareas no funerarias → `mixto`.
+  8. Que un contrato diga «NN» o «víctimas» no lo vuelve forense. Es forense si compra necropsia, toma de muestras, certificación de defunción, identificación o búsqueda de personas.
+  9. Bolsas para cadáveres e insumos para manejar cuerpos en hospitales → manejo sanitario: `no_funerario`.
+  10. Póliza de vida grupo con auxilio funerario → `no_funerario`: es una indemnización, no un servicio funerario (distinta del plan exequial de la regla 3).
+  11. Custodia y conservación de cuerpos NN o no reclamados → `funerario`. Es distinta de la custodia del cementerio como lugar (regla 6), que es `no_funerario`.
+  12. Infraestructura de salas de necropsia o de Medicina Legal → `forense = 1`. Una morgue sin necropsia → `forense = 0`.
+  13. Todo trabajo de búsqueda, identificación o información sobre personas desaparecidas, fosas o SIRDEC → `forense = 1` (es la regla final para el Registro de Fosas y SIRDEC; la etiqueta sigue siendo `no_funerario` si solo es trabajo de datos). Con ella, M112 pasa de 0 a 1 en `etiquetas_finales.parquet`; las otras seis filas de fosas, SIRDEC y desaparecidos ya tenían 1.
+- **Por qué:** cada regla salió de un caso real de la muestra en el que la guía era ambigua. Si no se fijan por escrito, dos revisores etiquetan distinto y el κ baja por falta de criterio, no por dificultad real.
+- **Estado:** vigente. Las reglas 8, 10–13 quedaron cerradas con la revisión final de Edward (D54); la regla 13 completa la 8 en lo relativo a búsqueda de personas. El etiquetado de los 400 casos terminó y no se re-etiqueta: `docs/etiquetado/guia_etiquetado.docx` se actualizó con D20 y D21 completas como documentación del criterio usado.
+
+### D22. Muestra de 400, estratificada y con pesos
+- **Decisión:** 400 contratos en estratos (A1 60, A2 90, A3 60, B 23, C cementerio 45, C NECR 25, C CAD_VER 30, C mixtas y OSARIO 17, D 50), con el peso N/n de cada estrato, más 100 no recuperados por la consulta original.
+- **Por qué:** una muestra aleatoria simple sería casi toda ruido. Los estratos aseguran casos de cada tipo de señal. Los pesos corrigen que los estratos estén sobrerrepresentados; sin ellos, la precisión estimada saldría inflada. El estrato D y los no recuperados miden lo que el filtro deja escapar (sensibilidad).
+- **Descartado:** muestra aleatoria simple; muestra sin pesos.
+- **Sustento:** Cochran (1977), muestreo estratificado.
+- **Estado:** vigente.
+
+### D23. Etiquetado doble y ciego, con calibración
+- **Decisión:** dos revisores etiquetan por separado, sin ver estrato, señales ni peso. Las primeras 40 filas son de calibración. El acuerdo se mide con κ de Cohen (umbral de 0,70) y Harold desempata sin saber quién marcó qué.
+- **Por qué:** el κ demuestra que la definición es reproducible y no depende de una sola persona. La calibración detecta temprano las reglas que faltan. El desempate ciego evita sesgos hacia un revisor. La referencia de validación es humana, nunca un LLM, para no evaluar al modelo contra sí mismo.
+- **Sustento:** Cohen (1960).
+- **Estado:** vigente. El desempate de Harold no fue ciego (D54). Para sostener el ciego, los libros de etiquetado y sus derivados (desacuerdos, κ) no se versionan hasta que el equipo lo indique (`.gitignore`); ninguna versión ya commiteada tiene etiquetas (verificado en los commits a92f09d y 3d40ac5). El archivo de desacuerdos de Harold muestra las etiquetas como A y B al azar; la clave queda fuera de `docs/`, en `data/processed/`.
+
+---
+
+## E. Modelos
+
+### D24. Clasificadores comparados
+- **Decisión:** se comparan cuatro métodos con las mismas etiquetas: (1) reglas por palabras clave y UNSPSC como línea base; (2) TF-IDF + regresión logística como modelo principal; (3) embeddings `multilingual-e5-base` + regresión logística; (4) DeepSeek con 6 a 8 ejemplos. Se evalúan con validación cruzada y se reportan precisión, sensibilidad y F1 ponderados por estrato, con intervalos bootstrap.
+- **Por qué:** con 400 casos, un modelo simple e interpretable rinde bien y sus coeficientes muestran qué palabras deciden la clase. Los embeddings prueban si entender sinónimos mejora el resultado. El LLM prueba si un modelo sin entrenamiento iguala a los entrenados. La línea base dice si los modelos agregan algo.
+- **Descartado:** ajuste fino de un transformer (400 casos son pocos y sería costoso para dos semanas).
+- **Sustento:** estado del arte, sección de mercado público.
+- **Estado:** vigente.
+
+### D25. Extracción de PDF en cascada
+- **Decisión:** pdfplumber, luego camelot con Ghostscript y, como último recurso, un LLM.
+- **Por qué:** se ordena de más a menos determinista y de menor a mayor costo. Cada resultado se valida contra los totales impresos en el PDF.
+- **Descartado:** LLM directo (no determinista, con costo y riesgo de inventar cifras).
+- **Estado:** vigente.
+
+---
+
+## F. Agente y evaluación
+
+### D26. Agente con LangGraph, Langfuse y DeepSeek
+- **Decisión:** el grafo tiene un orquestador, un nodo de extracción, una validación en código, un nodo de incidencias y una revisión humana con `interrupt` antes de cargar. Las trazas van a Langfuse local y el modelo es DeepSeek.
+- **Por qué:** un grafo explícito obliga a pasar por la validación (el agente no puede saltársela). La revisión humana evita cargar datos erróneos. Langfuse registra cada paso para evaluar. DeepSeek tiene un costo bajo por token.
+- **Descartado:** un agente libre sin grafo; arquitectura multiagente más compleja.
+- **Sustento:** Yao et al. (2023); documentación de LangGraph y Langfuse.
+- **Estado:** vigente.
+
+### D27. Evaluación con fallas sembradas
+- **Decisión:** se insertan errores conocidos en una copia del panel (20 duplicados, 15 dígitos cambiados, 10 municipios borrados, 10 coberturas forzadas al 100 %, 5 saltos falsos) y se mide cuántos detecta el agente, con intervalos de Wilson. Además: verificación de anclaje, consistencia entre 3 corridas y revisión humana con regla del tres.
+- **Por qué:** con errores reales no se sabe cuántos hay, así que no se puede medir la sensibilidad. Con errores sembrados, sí.
+- **Sustento:** Wilson (1927); Hanley y Lippman-Hand (1983); Wang et al. (2023).
+- **Estado:** vigente.
+
+---
+
+## G. Organización
+
+### D28. Repositorio, ramas y commits
+- **Decisión:** un solo repositorio privado con ramas `etl`, `modelos` y `agentes`. Commits en el formato `tipo(alcance): resumen`, con Qué, Por qué, Fuentes, Validación y Fase. Nunca se versionan `data/` ni `.env`.
+- **Por qué:** cada cambio queda rastreable hasta su fuente y su validación. Los datos son pesados o tienen datos personales; el `.env` tiene claves.
+- **Estado:** vigente.
+
+---
+
+## H. Extracción de PDF (F2)
+
+### D29. Los indicadores de densidad de mascotas solo se interpretan en municipios `posible_medido`
+- **Decisión:** para cada municipio y distrito se calcula la razón de habitantes por animal (`razon_hab_perro` y `razon_hab_gato` = «Población DANE» del PDF / población de perros o de gatos) y se clasifica cómo se obtuvo la población de animales. Es `imputado` si es la población DANE 2018 dividida por una razón entera (perros 1–9, gatos 1–25), que es el procedimiento del instructivo para los municipios sin metodología propia; es `posible_medido` si no lo es. La clasificación es por especie (`metodo_estimacion_perro`, `metodo_estimacion_gato`) y `metodo_estimacion` la resume: `imputado` (ambas imputadas), `posible_medido` (ninguna imputada) o `parcial` (una sí y una no). Los indicadores de densidad (habitantes por perro o por gato, animales por cada 100.000 habitantes y derivados) solo se interpretan donde la especie correspondiente es `posible_medido`. `razon_entera_perro` y `razon_entera_gato` guardan la razón que reproduce el dato, para auditar.
+- **Regla de «razón entera»:** existe un entero R (1–9 en perros, 1–25 en gatos) tal que `round(DANE / R)` es igual a la población de animales, con tolerancia de ±1 animal.
+- **Marca de cobertura:** `cobertura_100 = 1` cuando la cobertura de perros y gatos impresa es exactamente 100; `cobertura_perros_100` hace lo mismo para la cobertura de perros.
+- **Por qué:** el instructivo (págs. 2–3) dice que, sin metodología propia, la población de perros 2019 es DANE 2018 sobre la razón perro:humano de 2018, topada en 9 y bajada un dígito en el tramo 9–7, y la de gatos es DANE 2018 sobre la razón gato:humano, topada en 25 y bajada un dígito en el tramo 25–11. Esa cifra refleja la población humana, no una medición de animales. Evidencia en 1.121 municipios y distritos: 597 reproducen la población de perros con una razón entera (232 con R = 9) y 784 la de gatos (408 con R = 25, el tope); en los demás la razón no es entera (hasta 43,3 habitantes por perro, y 93 municipios superan 9,05, algo que el procedimiento impide). Combinado: 513 `imputado`, 253 `posible_medido` y 355 `parcial`; en 271 municipios solo los gatos son imputados y en 84 solo los perros. Para perros, la cuenta pasa de 567 (tolerancia 0) a 597 (±1) y solo a 604 con ±2 (meseta); con ±1 el falso positivo estimado es 0,9 % en perros y 7,4 % en gatos (simulación con la población DANE perturbada hasta 15 %). Sobre la cobertura: 178 municipios tienen cobertura de perros y gatos exactamente 100 y 102 la de perros; el PDF explica que donde hubo focos de rabia se revacunó a más animales que la población estimada y la cobertura se ajustó a 100 (100 de los 178 tienen acumulado igual a la población y 81 tienen más vacunados por la DTS que población), de modo que un 100 puede ser un tope y no una medición. Otros 20 municipios imprimen una cobertura mayor de 100 y no se marcan (`cobertura_100 = 0`).
+- **Descartado:** tratar la población de animales como medida en todos los municipios; un único `metodo_estimacion` sin separar especies (oculta 355 municipios mixtos); exigir razón exacta con tolerancia 0 (deja como medidos unos 30 perros imputados por redondeo).
+- **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `agregar_estimacion` en `src/etl/extraer_minsalud.py`.
+- **Estado:** reemplazada por D40 en la regla de detección (se elimina la categoría `parcial` y la tolerancia de ±1 animal pasa a la columna `reproducible_*`). Se mantienen `cobertura_100` y `cobertura_perros_100`. Limitación original: en gatos, con ±1, hasta uno de cada catorce municipios con población medida podía quedar como `imputado` por coincidencia numérica.
+
+### D30. Extraer el PDF de 2019 con pdfplumber y usar camelot solo donde pdfplumber falla
+- **Decisión:** las tablas de las páginas 4–35 se leen con pdfplumber. Una fila que pdfplumber no separa en columnas se recupera con camelot (`stream`, backend Ghostscript), según D25.
+- **Por qué:** pdfplumber detecta una tabla de 13 columnas por página y entrega 1.173 de las 1.174 filas sin celdas no numéricas. La fila «NACIONAL 2019» sale con todo el texto en la primera celda; camelot `stream` la recupera completa (13 columnas, 49.549.275 de población DANE) y camelot `lattice` no la devuelve.
+- **Descartado:** camelot para todo el PDF (innecesario); LLM (no hizo falta).
+- **Sustento:** D25; prueba de las dos variantes de camelot sobre la página 35; `respaldo camelot: página 35, 1 fila` en la salida del script.
+- **Estado:** vigente.
+
+### D31. El departamento de cada municipio se asigna por el total que cierra su bloque, no por el nombre
+- **Decisión:** el PDF lista los municipios de cada departamento seguidos de una fila de total. Una fila se acepta como total departamental si su nombre es un departamento de DIVIPOLA y la suma de la población DANE del bloque difiere de ella menos de 3 %. Todas las filas anteriores desde el total previo pertenecen a ese departamento.
+- **Por qué:** 32 de 32 departamentos quedan reconocidos; la diferencia de población del bloque es 0 en 31 departamentos y 120 personas (0,0018 %) en Antioquia. Hay nombres que son a la vez departamento y municipio (BOLÍVAR, CÓRDOBA, NARIÑO, CALDAS, ARAUCA), de modo que el nombre solo no sirve.
+- **Descartado:** asignar el departamento por nombre del municipio; usar la tabla de DIVIPOLA para asignarlo (los nombres del PDF no coinciden de forma fiable).
+- **Sustento:** `asignar_bloques` en `src/etl/extraer_minsalud.py`; 32 filas `departamento_total`.
+- **Estado:** vigente.
+
+### D32. Seis distritos van como DTS aparte, fuera del total de su departamento
+- **Decisión:** Barranquilla, Bogotá, Buenaventura, Cali, Cartagena y Santa Marta se tratan como `tipo = distrito`. Se detectan como el subconjunto de filas de distrito que hace cuadrar la población del bloque, y su código DIVIPOLA sale de una tabla explícita (08001, 11001, 76109, 76001, 13001, 47001).
+- **Por qué:** estas filas aparecen mezcladas dentro de otros bloques y no suman en el total de su departamento: el bloque de Bolívar solo cierra si se excluyen Barranquilla y Bogotá; Caldas, si se excluye Buenaventura; Caquetá, si se excluye Cali; Casanare, si se excluye Cartagena; Santander, si se excluye Santa Marta. El PDF escribe «BARRABQUILLA»; se corrige con una tabla de equivalencias (el valor impreso se conserva en `municipio_pdf`).
+- **Descartado:** sumarlas al departamento (rompe 5 totales); unirlas por nombre difuso.
+- **Sustento:** prototipo de bloques; 6 filas `distrito`.
+- **Estado:** vigente.
+
+### D33. Las 20 localidades de Bogotá se guardan aparte y no cuentan como municipios
+- **Decisión:** las filas sin población DANE (20, páginas 8–9, de Usaquén a Sumapaz) llevan `tipo = localidad` y `bloque = DISTRITO`. No se cruzan con DIVIPOLA.
+- **Por qué:** suman exactamente la fila «BOGOTÁ» en las siete columnas aditivas que traen datos (población de perros 1.084.214, de gatos 126.606, de perros y gatos 1.210.820, vacunados DTS 380.342, particulares 410.097, perros vacunados 621.281, acumulado 790.439). Una de ellas, SAN CRISTÓBAL, repite el nombre de un municipio de Bolívar.
+- **Descartado:** contarlas como municipios (inflaría el total en 1.084.214 perros y colisionaría con códigos de DIVIPOLA).
+- **Sustento:** comparación localidades frente a fila Bogotá.
+- **Estado:** vigente.
+
+### D34. Cruce con DIVIPOLA por nombre dentro del departamento, en cuatro pasos
+- **Decisión:** (1) nombre normalizado igual, único dentro del departamento: 1.039 filas; (2) tabla de equivalencias explícita (departamento + nombre del PDF → código): 16 filas; (3) aproximado con `token_set_ratio ≥ 90` y margen ≥ 5 sobre el segundo candidato, solo entre códigos aún libres: 59 filas, revisadas una por una; (4) distritos por tabla: 6. Las filas sin cruce quedan con `cod_divipola` nulo, sin inventar código.
+- **Por qué:** cruzan 1.120 de 1.121 filas municipales y de distrito; 0 códigos repetidos. Sin cruce: Mapiripana (Guainía), que no aparece en `dane_divipola.csv`. DIVIPOLA sin fila en el PDF: Turbo (05837) y Nuevo Belén de Bajirá (27493).
+- **Descartado:** fuzzy global sin restringir al departamento; validar el cruce con la población DANE (ver D35).
+- **Sustento:** `cruzar_divipola`; la tabla `EQUIVALENCIAS_MUNICIPIO` está en el código.
+- **Estado:** vigente. Revisión manual (Edward, 2026-10-25): de los 59 cruces aproximados se revisaron 20, elegidos al azar con semilla 2026 (`src/etl/revisar_cruces.py`), y los 20 son correctos. Con 0 errores en 20, el límite superior del error de los aproximados es 1 − 0,05^(1/20) = 13,9 % con 95 % de confianza. Los 39 restantes no se revisaron a mano. Los 16 de la tabla de equivalencias son reglas explícitas y no entraron en la muestra.
+
+### D35. La «Población DANE 2018» del PDF no se usa como llave ni para validar el cruce
+- **Decisión:** se conserva la cifra del PDF tal como se imprime (hoy `pob_pdf`, ver D41), pero no se asume igual a las proyecciones DANE.
+- **Por qué:** de 1.056 filas con cruce (versión previa del cruce), solo 1 coincide con la serie 2018–2042 del DANE; frente a la serie 2005–2017 (año 2017, 1.039 cruces exactos) la razón mediana es 1,017 con rango 0,32–3,36. Es otra base, no la serie que tenemos. Ejemplo: Leticia 42.280 en el PDF y 48.182 en la serie 2018.
+- **Descartado:** corregir o reemplazar la cifra impresa.
+- **Sustento:** comparación contra `dane_proyecciones_municipales_2018_2042.xlsx` y `_2005_2017.xlsx`.
+- **Estado:** resuelta por D41 (el denominador de los indicadores es `pob_dane`; la cifra del PDF se conserva como `pob_pdf`).
+
+### D36. Los totales departamentales impresos se conservan y se comparan; no se corrigen los municipios
+- **Decisión:** los totales del PDF van a `minsalud_2019_departamentos.parquet`, con suma de municipios, valor impreso y diferencia por columna. Los valores de los municipios quedan como se imprimen.
+- **Por qué:** 8 de 32 departamentos cierran exactamente en todas las columnas; 24 difieren. Población DANE: diferencia máxima 0,0018 % (Antioquia, −120). Perros y gatos: hasta 0,2 % (Vaupés). Las diferencias grandes están en perros vacunados y acumulado: Cundinamarca −7.860 y −11.535 (3,0 % del acumulado), Guainía −912 (16,7 % de sus perros vacunados), Antioquia acumulado −8.236, Quindío −573, Cesar −361. A nivel nacional, la suma de municipios y distritos queda por debajo de «NACIONAL 2019» en 120 de población, 8.885 perros vacunados y 21.318 en el acumulado.
+- **Descartado:** reescalar municipios para cerrar totales (inventaría datos).
+- **Sustento:** `comparar_departamentos`; es la validación contra los totales impresos que exige D25. Las diferencias son incidencias del propio PDF para el agente de F6, no errores de extracción: los municipios se leyeron tal como están impresos.
+- **Estado:** vigente.
+
+### D37. Celdas vacías son nulas y las coberturas se guardan como enteros impresos
+- **Decisión:** una celda vacía (p. ej. ciudadanos venezolanos o revacunados en foco en municipios sin dato) queda nula, no cero. Las coberturas se guardan como el entero impreso, sin recalcular.
+- **Por qué:** «0» y «sin dato» significan cosas distintas; la regla del CLAUDE.md es conservar el valor tal como viene.
+- **Descartado:** rellenar con 0; recalcular coberturas desde los conteos (se compara después, en F3).
+- **Sustento:** columnas `vacunados_venezolanos`, `revacunados_foco` y `cobertura_*` de `minsalud_2019.parquet`.
+- **Estado:** vigente.
+
+### D38. Solo 2019 está implementado; los demás años se revisan antes
+- **Decisión:** `--anio` rechaza cualquier año distinto de 2019 hasta revisar el formato de ese PDF.
+- **Por qué:** los formatos cambian entre años (CLAUDE.md) y el parser de 2019 depende de sus 13 columnas y de la estructura de bloques.
+- **Descartado:** un parser genérico sin revisar cada año.
+- **Sustento:** instrucción de empezar solo por 2019 y detenerse para revisión.
+- **Estado:** reemplazada por D44 (se implementaron 2023 y 2024). Los demás años (2014, 2016, 2017) siguen sin extraerse hasta revisar su formato.
+
+### D39. Las páginas 34 y 35 no repiten filas; se deja una guarda contra duplicados
+- **Decisión:** el extractor elimina filas idénticas en nombre y valores, sin importar la página, y reporta cuántas elimina.
+- **Por qué:** se esperaba que la página 35 repitiera filas de la 34. No es así: la 34 tiene 39 filas, la 35 tiene 8 (continúan Vaupés y Vichada y traen el total nacional) y 0 son idénticas; tampoco hay filas duplicadas en las 1.174 ni municipios con el mismo nombre dentro de un departamento. La guarda elimina 0 filas.
+- **Descartado:** eliminar duplicados por nombre solo (hay nombres repetidos legítimos, como SAN CRISTÓBAL en Bogotá y en Bolívar).
+- **Sustento:** `quitar_duplicados` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente.
+
+### D40. Los indicadores de densidad de mascotas solo se interpretan en municipios `posible_medido`
+- **Decisión:** `metodo_estimacion` es `imputado` si `razon_hab_perro` (`pob_pdf` / población de perros) está a menos de 0,05 de un entero entre 1 y 9, y `posible_medido` si no. El mismo criterio con enteros de 1 a 25 se aplica a los gatos en `metodo_estimacion_gato`. Los indicadores de densidad (habitantes por perro o por gato, animales por cada 100.000 habitantes y derivados) solo se interpretan en municipios `posible_medido`, y se calculan con `pob_dane` (D41), no con `pob_pdf`. `razon_hab_perro` y `razon_hab_gato` usan `pob_pdf` y sirven solo para detectar la imputación. `razon_entera_*` guarda el entero detectado y `reproducible_*` indica si `round(pob_pdf / R)` reproduce la población de animales con ±1 animal.
+- **Por qué:** el instructivo del PDF (págs. 2–3) dice que, sin metodología propia, la población de perros es la población DANE 2018 dividida por una razón entera topada en 9 (con un dígito menos entre 1:9 y 1:7), y la de gatos, dividida por una razón entera topada en 25 (con un dígito menos entre 1:25 y 1:11). Esa cifra reproduce la población humana, no mide animales. En 1.121 municipios y distritos: 632 quedan `imputado` y 489 `posible_medido`. Distribución de la razón entera de perros: 9 → 236, 8 → 107, 7 → 72, 6 → 110, 5 → 39, 4 → 32, 3 → 29, 2 → 6, 1 → 1. En gatos, 396 están en el tope de 25 y el resto se reparte entre 5 y 24.
+- **Limitaciones:** la regla de 0,05 es más laxa que reproducir el dato: de los 632 perros `imputado`, 597 se reproducen exactamente (±1 animal) y 35 solo están cerca de un entero; por azar, un 10 % de los municipios medidos caería a menos de 0,05 de un entero (unos 41 esperados), de modo que esos 35 son probablemente coincidencias. En gatos, 761 de 770 se reproducen. Además, 11 municipios (perros) y 19 (gatos) quedan cerca de un entero por encima del tope y se tratan como `posible_medido`. `metodo_estimacion` sigue la regla de perros: 246 municipios imputan los gatos pero no los perros y 108 al revés, así que la densidad de gatos debe leerse con `metodo_estimacion_gato`.
+- **Descartado:** exigir que la razón se reproduzca exactamente (se conserva como `reproducible_*`); la categoría `parcial` de D29.
+- **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `agregar_estimacion` en `src/etl/extraer_minsalud.py`.
+- **Estado:** reemplazada por D43 en el criterio de detección (regla de «menos de 0,05 de un entero»). Se mantienen la interpretación de la densidad solo en `posible_medido`, los topes por especie y `metodo_estimacion` según la regla de perros.
+
+### D41. Población: `pob_pdf` solo detecta imputaciones; los indicadores usan `pob_dane`
+- **Decisión:** la cifra «Población DANE 2018» del PDF se conserva como `pob_pdf` (antes `poblacion_dane`) y solo se usa para detectar imputaciones. Los indicadores usan `pob_dane`, la proyección municipal del DANE 2018–2042 (actualización del 30 de julio de 2025) para el año del informe (2019). `dif_poblacion = 1` si `pob_pdf / pob_dane` está fuera de 0,8–1,25.
+- **Por qué:** D35 mostró que la cifra del PDF no reproduce las series DANE disponibles. Con la proyección vigente, 344 de 1.120 municipios y distritos (30,7 %) quedan fuera del rango (153 por debajo de 0,8 y 191 por encima de 1,25); el cociente tiene mediana 1,00, percentiles 5 y 95 de 0,67 y 1,59, y extremos de 0,29 y 3,22. Mapiripana no tiene `pob_dane` porque no tiene código DIVIPOLA. La imputación del PDF se hizo sobre su propia cifra, por eso hay que conservarla.
+- **Descartado:** usar `pob_pdf` como denominador (casi un tercio difiere más de 20–25 %); reemplazar `pob_pdf` por `pob_dane` (se perdería la detección de imputaciones).
+- **Sustento:** D14; DANE (2025), proyecciones municipales 2018–2042; `cargar_pob_dane` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente. Cierra D35.
+
+---
+
+## I. Decisiones registradas después de implementarse
+
+### D42. SECOP I: solo procesos con contrato firmado y ejecutado
+- **Decisión:** de SECOP I se conservan los procesos con `fecha_de_firma_del_contrato` no vacía y estado Celebrado, Liquidado o Terminado sin Liquidar. Se excluyen Convocado y Adjudicado.
+- **Por qué:** con el filtro de contenido de F1, los estados son Celebrado (11.006 filas), Liquidado (4.631), Terminado sin Liquidar (267), Adjudicado (2) y Convocado (3). Los dos últimos no tienen contrato ejecutado. Quedan 15.904 filas y 15.484 `uid` (D18).
+- **Descartado:** conservar todos los estados (incluiría procesos sin contrato).
+- **Sustento:** `src/etl/descargar_secop1.py` (commit 9cdcdcf); conteo de estados de F1.
+- **Estado:** vigente.
+
+### D43. `imputado` es que la población de animales se reproduce con una razón entera (±1 animal)
+- **Decisión:** `metodo_estimacion_perro` y `metodo_estimacion_gato` son `imputado` si `reproducible_perro` o `reproducible_gato` vale 1, y `posible_medido` si vale 0. `reproducible_*` es 1 cuando existe un entero R (1–9 en perros, 1–25 en gatos) tal que `round(pob_pdf / R)` reproduce la población de animales con ±1 animal; `razon_entera_*` guarda ese R. Ahora se calcula para todos los municipios y distritos. `metodo_estimacion` sigue la regla de perros. La regla de «menos de 0,05 de un entero» de D40 queda reemplazada.
+- **Por qué:** la regla de 0,05 marcaba como `imputado` a 35 perros que no se reproducen con ±1 animal; por azar se esperaban unos 41 entre los medidos. Con la reproducibilidad hay 597 perros `imputado` y 524 `posible_medido` (1.121 municipios y distritos), y 784 gatos `imputado` y 337 `posible_medido`. En gatos, 23 municipios pasan de medidos a imputados (con pocos animales, el redondeo aleja la razón de un entero por más de 0,05) y 9 pasan de imputados a medidos. Razón entera de perros: 9 → 232, 8 → 105, 7 → 70, 6 → 103, 5 → 35, 4 → 22, 3 → 23, 2 → 6, 1 → 1. En gatos, 408 están en el tope de 25. Las combinaciones siguen siendo mixtas: 271 municipios imputan solo los gatos y 84 solo los perros, así que la densidad de gatos se lee con `metodo_estimacion_gato`.
+- **Limitación:** una razón entera puede reproducir el dato por coincidencia, sobre todo con pocos animales. La simulación de D29 (población DANE perturbada hasta 15 %) estimó un falso positivo de 0,9 % en perros y 7,4 % en gatos con esta tolerancia.
+- **Descartado:** la regla de 0,05 de D40; exigir reproducción exacta (deja como medidos unos 30 perros imputados por redondeo).
+- **Sustento:** MinSalud (2019), instructivo de los informes bimestrales de vacunación antirrábica, págs. 2–3; `razon_reproducible` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente. Reemplaza a D40 en el criterio de detección.
+
+### D44. Formato anual de 2023 y 2024 y extracción en tres capas
+- **Decisión:** los PDF de 2023 (16 páginas) y 2024 (18) traen una tabla de 14 columnas por página (municipio y 13 cifras) con el formato propio: miles con punto, porcentajes con coma y signo %, y «(ANM)» en las áreas no municipalizadas. Se leen con pdfplumber y cada fila se valida por formato y por las identidades de la tabla (población de perros + gatos = total, con ±1 de redondeo; vacunados DTS + particulares = total, exacto). Si falla el formato o la identidad, la fila se lee de nuevo con camelot (`stream` y luego `lattice`) y se prefiere la lectura que cumple las identidades; si ninguna las cumple, se conserva la de pdfplumber con `identidad_ok = 0`. Un control de completitud con la capa de texto agrega las filas que la tabla omitió. Los totales departamentales se detectan como en D31, con la población de perros y gatos como control (no hay columna DANE); las 20 localidades de Bogotá se identifican por suma contra la fila BOGOTÁ, y «SANTIAGO DE CALI» se trata como el distrito de Cali.
+- **Por qué:** 2023 sale con 1.174 filas (1.115 municipios, 6 distritos, 20 localidades, 32 totales departamentales y 1 nacional): 1.173 por pdfplumber y 1 por camelot (TAME, p. 2), todas con `identidad_ok = 1`. 2024 sale con la misma composición: 1.077 por pdfplumber, 96 por camelot (filas con celdas fusionadas por texto desalineado, sobre todo en las filas con asterisco, que camelot `stream` separó bien) y 1 por texto: SANTUARIO (Risaralda, p. 14), que está en la página pero la tabla de pdfplumber la omitía. Hay 21 filas de 2024 con `identidad_ok = 0` (19 localidades de Bogotá, Bogotá y el total nacional): pdfplumber y camelot leen lo mismo, así que la inconsistencia es del PDF (gatos vacunados DTS + particulares ≠ total de gatos). La capa de texto da 1.174 filas en cada año, igual que lo extraído. Cruce con DIVIPOLA en ambos años: 1.121 de 1.121 (exacto 1.108, distritos 6, tabla de equivalencias 4, aproximado 3), sin códigos repetidos; solo Nuevo Belén de Bajirá queda sin fila. Totales: las diez columnas de vacunación suman exacto en todos los departamentos y a nivel nacional, en ambos años; la población difiere por redondeo (hasta 7 animales por departamento en 2024). Cierran exactos 14 departamentos de 32 en 2023 y 4 en 2024. Excepción en 2023: Bolívar suma 2.877 gatos más que su total impreso (4,8 %), diferencia que se arrastra al nacional (+2.880 gatos).
+- **Descartado:** exigir que la población sume exacto (el PDF redondea: 54 filas de 2023 difieren en 1); descartar las filas con identidad rota (se perderían 21 filas reales de 2024); reutilizar el extractor de 2019 (otras columnas, otro formato numérico y localidades sin columna DANE).
+- **Sustento:** D25; `extraer_anual`, `completar_desde_texto` y `procesar_anual` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente.
+
+### D45. El asterisco de 2024 se guarda como `ajuste_cobertura = 1`
+- **Decisión:** el asterisco del nombre se guarda como `ajuste_cobertura = 1` y se quita del nombre para el cruce con DIVIPOLA. `cobertura_100 = 1` cuando la cobertura de perros y gatos impresa es exactamente 100,0.
+- **Por qué:** la nota del PDF de 2024 dice que, en los municipios con asterisco y cobertura mayor de 100 %, la estimación de población se ajustó al 100 %. Hay 341 municipios y distritos con asterisco (379 filas con los totales): 332 tienen la cobertura de perros o la de gatos exactamente en 100 (111 en ambas), 9 no tienen ninguna en 100, y entre los 780 sin asterisco solo 4 tienen alguna en 100. No hay coberturas mayores de 100. Por eso un 100 de 2024 puede ser un tope y no una medición, y en esos municipios la población de animales no es la estimada. En 2023 hay 1 asterisco, 92 municipios con cobertura de perros y gatos en 100 y ninguna cobertura mayor de 100.
+- **Descartado:** ignorar el asterisco (mezclaría topes con mediciones).
+- **Sustento:** nota al pie del PDF de 2024 (p. 18); `procesar_anual` en `src/etl/extraer_minsalud.py`.
+- **Estado:** vigente.
+
+### D46. La imputación de la población de animales no es detectable en 2023 ni en 2024
+- **Decisión:** en 2023 y 2024, `metodo_estimacion = no_detectable` para todos los municipios y distritos. Los indicadores de densidad (`hab_por_perro`, `hab_por_gato`) usan `pob_dane` del año del informe (D41) y llevan esa advertencia; D40 y D43 no se pueden aplicar a estos años.
+- **Por qué:** estos PDF no traen columna de población DANE ni instructivo, así que se probó con la proyección DANE 2018–2042 de 2018, 2019, 2022 y del año del informe: porcentaje de municipios cuya población de perros se reproduce como DANE / R, con R entero de 1 a 9 y ±1 animal. Control positivo, 2019 con la cifra impresa del PDF: 53,3 % (20,7 % exactamente en R = 9); con cualquier base DANE de 2019: 1,2–1,3 %. Informe 2023: 1,5 % (DANE 2018), 1,1 % (2019), 0,4 % (2022), 1,0 % (2023). Informe 2024: 0,8 %, 0,9 %, 1,0 % y 1,1 %. El pico en R = 9 es de 0–0,2 % en todos los casos. En gatos el porcentaje es 4,8–6,8 %, igual al azar (7,4 % estimado en D29). Como observación, la población de perros de 2024 es la de 2023 multiplicada por unos 1,008 (mediana 1,008, rango intercuartílico 1,003–1,012; 45,9 % de los municipios a ±1 %; en gatos, 36,0 %), mientras que entre 2019 y 2023 no hay relación (5,2 % a ±1 %). Puede ser otro mecanismo de proyección, no identificado.
+- **Descartado:** probar un solo año de base; suponer que 2023 y 2024 conservan el método de 2019.
+- **Sustento:** `src/etl/detectar_imputacion.py`; D40, D41, D43.
+- **Estado:** vigente. Limitación: en 2023 y 2024 no hay forma de separar `imputado` de `posible_medido`, así que sus densidades no son comparables en interpretación con las de 2019.
+
+### D47. Indicador principal del panel: perros vacunados por 1.000 habitantes; la densidad solo con 2019
+- **Decisión:** todos los años extraídos entran al panel municipal (`data/processed/panel_minsalud_municipal.parquet`, llave `cod_divipola` + `anio`) con su `metodo_estimacion` (2019: `imputado` o `posible_medido`; 2023 y 2024: `no_detectable`). La medida principal de evolución es `vacunados_perros_x1000hab = perros vacunados / pob_dane × 1.000`, calculada para todos los años con la población DANE del año del informe. La densidad (`hab_por_perro`) se analiza solo con 2019 y `metodo_estimacion = posible_medido` (columna `densidad_analizable = 1`; 524 municipios).
+- **Por qué:** los perros vacunados son conteos del programa, no estimaciones; la población de animales de 2023 y 2024 no permite separar imputación de medición (D46) y la de 2019 imputada no mide animales (D43). Resultado actual: 1.120 unidades con indicador en 2019 (Mapiripana sin código) y 1.121 en 2023 y 2024; mediana de 120,8, 113,2 y 108,4 por 1.000 habitantes.
+- **Descartado:** usar la densidad de 2023 y 2024 como serie; usar la población de animales del PDF como denominador.
+- **Sustento:** `src/etl/panel_minsalud.py`; D41, D43, D46.
+- **Estado:** vigente. Limitación: el denominador es la población total DANE, no la de perros; compara municipios, no mide cobertura. El panel agrega `vacunados_perros_gatos_x1000hab` para todos los años (2014, 2016, 2017, 2019, 2023 y 2024), porque 2016 y 2017 solo informan vacunados de perros y gatos juntos (D50, D52); en 2019 se usa el acumulado de perros y gatos vacunados (5.573.573 en municipios y distritos; 5.594.891 el total nacional impreso), cuya razón con la población total coincide con la cobertura impresa en los 1.121 casos (±1 punto). El indicador de perros existe en 2014, 2019, 2023 y 2024.
+
+### D48. La población de perros de 2024 es una proyección de la de 2023
+- **Decisión:** el cambio de la población de animales entre 2023 y 2024 no se interpreta como crecimiento. No se usa para variaciones interanuales de población de perros o gatos.
+- **Por qué:** la población de perros de 2024 es la de 2023 multiplicada por ~1,008 (mediana 1,008; rango intercuartílico 1,003–1,012; 45,9 % de los municipios a ±1 %; en gatos, 36,0 %), mientras que entre 2019 y 2023 no hay relación (5,2 % a ±1 %), ver D46.
+- **Descartado:** tratar la población de 2024 como una medición independiente.
+- **Sustento:** `src/etl/detectar_imputacion.py`.
+- **Estado:** vigente.
+
+### D49. Las inconsistencias del PDF se marcan, no se excluyen; Bogotá es una sola unidad
+- **Decisión:** el panel conserva todas las filas y agrega `marca_inconsistencia` con: `identidad_tabla_no_cierra` (fila de 2024 cuyas identidades fallan), `ajuste_cobertura_asterisco` (D45) y `total_departamental_no_cierra:<columna>` (la suma municipal difiere del total impreso del departamento en más de 0,5 %). La unidad municipal de Bogotá es la fila de la ciudad (11001, `tipo = distrito`); las 20 localidades quedan solo como detalle en `data/processed/minsalud_localidades_bogota.parquet` (60 filas: 20 por año). Bolívar 2023 se conserva con su marca.
+- **Por qué:** excluir perdería filas reales (D44). Marcas actuales: 2023, 45 municipios de Bolívar (+2.877 gatos sobre el total impreso) y 1 con asterisco; 2024, 341 con asterisco, uno de ellos (Bogotá) también con identidad rota; 2019, Antioquia y Quindío (acumulado), Cundinamarca (perros vacunados −7.860, 2,8 %) y Guainía (−912, 16,7 %).
+- **Descartado:** excluir las filas marcadas; contar las localidades como municipios (D33).
+- **Sustento:** `marcas_departamento` y `armonizar` en `src/etl/panel_minsalud.py`; D33, D36, D44, D45.
+- **Estado:** vigente.
+
+### D50. Extracción de 2017: formato de cinco cifras por línea, vacunados de perros y gatos juntos
+- **Decisión:** el PDF de 2017 (24 páginas) trae por municipio solo cinco cifras: población de perros, de gatos, total, perros y gatos vacunados y cobertura acumulada (porcentaje entero). No hay columna de población DANE, ni vacunados de perros por separado, ni nombre de departamento por fila: el departamento aparece en la fila «Total <departamento>» que cierra cada bloque. Se leen las líneas con la capa de texto de pdfplumber (cada línea es nombre + 4 o 5 números; coma decimal o punto de miles) y el departamento de cada municipio se asigna por la fila de total que lo sigue. Barranquilla, Bogotá (con sus 20 localidades, por suma), Cartagena, Santa Marta y Buenaventura son filas de distrito fuera de los bloques; Cali queda dentro del bloque Valle del Cauca y se marca como distrito. Cuatro filas de Cesar (Agustín Codazzi, La Jagua de Ibirico, La Paz, Manaure) traen solo cuatro números: el último es el número de vacunados (suman 55 contra 56 del total de Cesar) y su cobertura queda nula. `metodo_estimacion = no_detectable`. Para el panel, 2017 aporta `vacunados_perros_gatos_x1000hab` y no `vacunados_perros_x1000hab`.
+- **Por qué:** se leen 1.173 filas: 1.114 municipios, 6 distritos, 20 localidades, 32 totales departamentales y 1 nacional, sin líneas descartadas. Cruce con DIVIPOLA: 1.119 de 1.120 filas municipales y de distrito (exacto 1.031, aproximado 61, tabla de equivalencias 21 —siete nuevas, resueltas por eliminación dentro del departamento: San Andrés de Cuerquia, San Pedro de los Milagros, San Pedro de Urabá, Hato Corozal, El Carmen de Atrato, Carmen del Darién, Mitú—, distritos 6). Sin cruce: «INIRIDA RURAL» (Guainía), que parece una división de Inírida que DIVIPOLA no tiene. DIVIPOLA sin fila: La Victoria y Puerto Alegría (Amazonas) y Nuevo Belén de Bajirá. De 15 cruces aproximados al azar (semilla 2026), los 15 son correctos. Totales: los vacunados cierran exacto en los 32 departamentos salvo Cesar (−1); los perros difieren hasta 6 por redondeo; los gatos suman 7.275 más que el total impreso de Antioquia (4,2 %) y 251 más en Amazonas; el total nacional impreso (perros 5.206.617, gatos 1.630.828, perros y gatos 6.844.687, vacunados 5.047.601) coincide con la suma municipal en perros (+26) y vacunados (−1), y en gatos queda 7.549 por debajo. La columna «total» no es la suma de perros y gatos en 30 filas (`identidad_ok = 0`; Caldas suma 33.465 más que su total impreso en esa columna). Seis municipios traen población de gatos con decimales. Imputación: no hay población DANE impresa, así que no aplica D43; con DANE de 2017, 2018, 2019 y 2022 solo el 0,4–1,0 % de los municipios reproduce su población de perros como DANE / R (R entero), igual al azar (D46). Hay 5 municipios o distritos y 22 filas de total con asterisco en el nombre (cobertura de los 5 municipios: 62 a 102) cuyo significado el PDF no explica; se guarda como `asterisco` y no se interpreta. La cobertura supera 100 en 2 municipios (máximo 102): este año no se topa a 100.
+- **Descartado:** reutilizar el extractor anual de 2023 y 2024 (otras columnas, sin porcentajes con símbolo %); inferir `vacunados_perros` repartiendo entre perros y gatos; descartar las 30 filas con identidad rota.
+- **Sustento:** `src/etl/extraer_minsalud_2017.py`; `cargar_pob_dane` ahora lee también las proyecciones 2005–2017; D43, D46.
+- **Estado:** vigente. Limitación: el PDF dice «vacunados en el semestre» y «cobertura acumulada»; el periodo exacto de los vacunados no está claro, así que no es comparable sin reserva con los años siguientes.
+
+### D51. Extracción de 2014: tabla con departamento por fila y asteriscos de ajuste y de focos de rabia
+- **Decisión:** el PDF de 2014 (33 páginas) trae por fila departamento, municipio y nueve cifras: censo de perros, de gatos, total, perros vacunados, gatos vacunados, cobertura de perros, de gatos, total vacunados y cobertura total (porcentajes con coma decimal y `#¡DIV/0!` donde la población es 0). Se leen con las líneas de texto de pdfplumber y las coordenadas de los caracteres: el departamento ocupa la columna izquierda (x < 58) y el municipio hasta x = 208. Dos casos se resuelven aparte: en Norte de Santander el nombre del departamento se desborda sobre la columna del municipio (se separa por la altura del texto) y en las 38 filas de Tolima el texto de la población de gatos está dañado (`1 .422`), así que se deriva como total − perros y se marca con `poblacion_gatos_derivada = 1`. San Andrés y Providencia tienen el nombre de las dos filas mezclado con el del departamento: se asignan por orden y tamaño (Providencia es la menor). Un asterisco en el nombre es `ajuste_cobertura = 1` y dos asteriscos son `foco_rabia = 1` (focos de rabia y revacunación), según la nota de la p. 32. `metodo_estimacion = no_detectable`. No hay filas de total departamental ni nacional, ni localidades de Bogotá.
+- **Por qué:** se leen 1.123 filas: 1.117 municipios y 6 distritos (Barranquilla, Bogotá, Buenaventura, Cali, Cartagena y Santa Marta). Cruce con DIVIPOLA: 1.122 de 1.123, y los 1.122 códigos de DIVIPOLA quedan usados (exacto 1.070, aproximado 34, tabla de equivalencias 12 —siete nuevas por eliminación dentro del departamento: Gama, San Juan de Rioseco, Cuaspud Carlosama, El Carmen de Norte de Santander, Villa Caro, Riofrío y Belén de Bajirá, que en 2014 es Nuevo Belén de Bajirá—, distritos 6); sin cruce «Inidira rural» (Guainía), la misma división de Inírida que 2017. De 15 cruces aproximados al azar (semilla 2026), los 15 son correctos. Calidad interna: las 1.123 filas cumplen perros + gatos = total y vacunados de perros + gatos = total vacunados; 8 filas tienen población 0 (cobertura nula). No hay totales impresos para cuadrar, así que no hay comparación departamental ni nacional. La tabla de la p. 33 (286, 74, 89 y 673 municipios por banda de cobertura) no se reproduce con ninguna de las tres coberturas (cobertura total: 295, 88, 107 y 633; perros: 304, 92, 96 y 631): se registra sin explicación. Asteriscos: 218 filas con un asterisco, de las cuales 215 tienen la cobertura de perros o la de gatos exactamente en 100 (hay 25 filas sin asterisco con alguna en 100); 17 filas con dos asteriscos (focos de rabia). Las coberturas no se topan: 53 municipios superan 100 en perros, 159 en gatos y 19 en el total. Imputación: sin población DANE impresa no aplica D43; con DANE de 2014, 2018, 2019 y 2022 solo el 0,4–1,3 % de los municipios reproduce su población de perros como DANE / R (azar, D46).
+- **Descartado:** el extractor de 2017 (otro orden de columnas); extraer las tablas con camelot (columnas desplazadas por celdas combinadas); borrar las 38 filas de Tolima.
+- **Sustento:** `src/etl/extraer_minsalud_2014.py`; D44–D46, D50.
+- **Estado:** vigente. Limitación: la población de gatos de Tolima es derivada, y la tabla de bandas del PDF no se reproduce.
+
+### D52. Extracción de 2016: departamento asignado por orden y conteo, con validación del cruce
+- **Decisión:** el PDF de 2016 (34 páginas) trae por municipio seis cifras (población de perros, de gatos, total, perros y gatos vacunados, cobertura acumulada y «stock de vacuna») y no tiene el departamento por fila: su nombre está en una celda combinada tan alta que el texto cae fuera de la página. El departamento se asigna por orden: los bloques salen en orden alfabético (Amazonas, Antioquia, Arauca, Atlántico, Barranquilla, Bogotá, Bolívar, Boyacá, Buenaventura, …, Vichada; 37 bloques con cinco distritos que van solos) y una programación dinámica corta la lista de filas en esos bloques contiguos maximizando los nombres que coinciden con los municipios del departamento asignado en DIVIPOLA (exacto, razón ≥ 90 o nombre contenido, más la tabla de equivalencias). El criterio de abandono fijado antes era: más del 1 % de nombres sin cruce dentro de su departamento, o «Total País» que no cuadre. Las 20 localidades de Bogotá van seguidas y no hay fila de la ciudad: se construye sumándolas (`fila_derivada = 1`). El «Nr» del stock se lee como nulo. `metodo_estimacion = no_detectable`.
+- **Por qué:** se leen 1.132 filas (sin «Total País»): 1.106 municipios, 6 distritos, 20 localidades y la fila de Bogotá derivada. Los tamaños de bloque coinciden con los de 2014 (Antioquia 125, Boyacá 123, Cundinamarca 116, Santander 87, Nariño 64, Norte de Santander 40, Chocó 30, Córdoba 30, Guainía 9, …; Amazonas 2, solo Leticia y Puerto Nariño). Cruce con DIVIPOLA dentro del departamento asignado: 1.112 de 1.113 filas municipales y de distrito, es decir 1 sin cruce (0,09 %, «Inírida rural», la misma división de 2014 y 2017), bajo el 1 % de abandono (exacto 1.009, aproximado 78, tabla de equivalencias 19, distritos 6). Solo 12 nombres no coinciden en la etapa de segmentación (1,1 %: abreviaturas como «S.Rosa de Osos» o «Yondo (Casabe)»), pero todos cruzan después. De 15 cruces aproximados al azar (semilla 2026), los 15 son correctos. «Total País» impreso: la suma municipal da exacto los perros y gatos vacunados (4.321.895) y difiere por redondeo en la población (perros +13, gatos +6, total +19). DIVIPOLA sin fila: Nuevo Belén de Bajirá y los nueve municipios no municipalizados de Amazonas (el PDF no los trae). Calidad interna: 29 filas con perros + gatos distinto del total; 498 sin stock; la cobertura impresa coincide con vacunados / población total en las 1.112 filas (±1 punto); 1 municipio supera 100. Algunos nombres pierden su primera letra («l Carmen de Chucuri») porque la columna de nombres se corta en x = 100; no afecta al cruce. Imputación: sin población DANE impresa no aplica D43; con DANE 2016, 2018, 2019 y 2022, 0,8–1,2 % de perros reproducibles (azar, D46).
+- **Descartado:** asignar por la etiqueta del departamento (no está en la página); extraer con camelot (celda combinada); abandonar 2016.
+- **Sustento:** `src/etl/extraer_minsalud_2016.py`; D34, D44–D51.
+- **Estado:** vigente. Limitación: el departamento no es una lectura sino una inferencia validada por el cruce; si dos departamentos vecinos intercambiaran un municipio con el mismo nombre no se detectaría.
+
+### D53. 2017 entra al panel con `periodo_incierto = 1`
+- **Decisión:** las filas de 2017 llevan `periodo_incierto = 1` en el panel; los demás años, 0. Se usan con esa advertencia.
+- **Por qué:** el PDF de 2017 dice «perros y gatos vacunados en semestre» y «cobertura acumulada». Evidencia de que es una cifra anual: el total nacional de perros y gatos vacunados es 5.047.601, entre el de 2016 (4.321.895, «enero a diciembre») y el de 2019 (5.594.891), y no la mitad de ellos; la cobertura nacional impresa es 74 % frente a 67 % en 2016 y 2019; el archivo se actualizó el 15 de marzo de 2018, como el de 2016 (26 de marzo de 2017), que cierra el año anterior. La serie nacional completa de vacunados de perros y gatos es 4,32 millones (2016), 5,05 (2017), 5,59 (2019), 5,81 (2023) y 5,63 (2024). Sigue sin ser una confirmación del periodo.
+- **Descartado:** excluir 2017; tratarlo como semestral.
+- **Sustento:** `src/etl/panel_minsalud.py`; D50.
+- **Estado:** vigente.
+
+### D54. Resultado del etiquetado: κ, desempate de Harold y etiquetas finales
+- **Decisión:** la etiqueta final de cada contrato es la de la revisión de Edward si el caso está en la hoja «Revisar» (38 casos) y, si no, la propuesta de Harold con D21 aplicada. Se guardan en `data/processed/etiquetas_finales.parquet` (400 filas: etiqueta, forense, origen, etiquetas de Edward y Natalia, subestrato y peso). El umbral de κ (0,70) no se cambia. El κ de `forense` no se reporta.
+- **Por qué:** κ de etiqueta entre Edward y Natalia (n = 400): **0,683 global**, que **no cumple el umbral de 0,70 fijado antes**; es «sustancial» según Landis y Koch (1977, 0,61–0,80). La calibración (40 filas) dio 0,812 y la ronda principal (360) 0,668, porque las reglas de D21 se definieron durante el etiquetado y no llegaron a la guía de Natalia. Los 68 desacuerdos de etiqueta (83,0 % de acuerdo) se concentran en la frontera con `no_funerario`: en 42 Edward puso `funerario` o `mixto` y Natalia `no_funerario`, y en 57 hay desacuerdo en cualquier sentido entre esa frontera. Por estrato: A 0,548, B 0,000, C 0,232 (D es una sola clase, sin κ); los κ de 0,000 de A1, B y C cad_ver vienen de prevalencia extrema (casi todos los casos en una clase). El κ de `forense` no se calcula: Natalia marcó `forense = 1` en los 150 contratos que etiquetó `funerario` (error sistemático de comprensión; Edward lo hizo en 2 de 158). Es una limitación del etiquetado. El desempate de Harold **no fue ciego** (veía qué marcó cada revisor) y cubrió las **400 filas** (`decision_harold`: 143 funerario, 240 no_funerario, 17 mixto; su `forense` se dedujo del texto, y en 59 filas sin dato se completó con 0 salvo en «Revisar»). Edward revisó **38 casos** aplicando D21: confirmó las 38 propuestas (0 cambios sobre ellas; 2 etiquetas distintas de la decisión de Harold, además de los cambios de `forense`). Verificaciones: las propuestas coinciden con `decision_harold` en las 362 filas fuera de «Revisar» (etiqueta y `forense`; 45 filas sin `forense` de Harold quedan en 0); las 38 filas de «Revisar» tienen `revisado = sí`; ningún `funerario` con `forense = 1`. Tabla final etiqueta × forense: funerario 143 / 0; mixto 13 / 2; no_funerario 195 / 47 (total 351 con forense 0 y 49 con forense 1).
+- **Descartado:** bajar el umbral a 0,60 después de ver el resultado; re-etiquetar a Natalia; calcular un κ de `forense` con una marca inválida; usar las fórmulas del libro de revisión (se leyeron los valores).
+- **Sustento:** `src/evaluacion/kappa.py`, `src/evaluacion/etiquetas_finales.py`; Landis y Koch (1977); D21, D23.
+- **Estado:** vigente. Limitaciones: el κ global no alcanza el umbral; el desempate no fue ciego; el `forense` de Natalia no es utilizable. Los libros de etiquetado siguen sin versionarse.
