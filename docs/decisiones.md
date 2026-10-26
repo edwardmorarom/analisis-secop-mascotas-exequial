@@ -281,7 +281,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Por qué:** cruzan 1.120 de 1.121 filas municipales y de distrito; 0 códigos repetidos. Sin cruce: Mapiripana (Guainía), que no aparece en `dane_divipola.csv`. DIVIPOLA sin fila en el PDF: Turbo (05837) y Nuevo Belén de Bajirá (27493).
 - **Descartado:** fuzzy global sin restringir al departamento; validar el cruce con la población DANE (ver D35).
 - **Sustento:** `cruzar_divipola`; la tabla `EQUIVALENCIAS_MUNICIPIO` está en el código.
-- **Estado:** vigente. Los 59 aproximados y los 16 de la tabla deben revisarse una vez más con muestra manual (condición de F2).
+- **Estado:** vigente. Revisión manual (Edward, 2026-10-25): de los 59 cruces aproximados se revisaron 20, elegidos al azar con semilla 2026 (`src/etl/revisar_cruces.py`), y los 20 son correctos. Con 0 errores en 20, el límite superior del error de los aproximados es 1 − 0,05^(1/20) = 13,9 % con 95 % de confianza. Los 39 restantes no se revisaron a mano. Los 16 de la tabla de equivalencias son reglas explícitas y no entraron en la muestra.
 
 ### D35. La «Población DANE 2018» del PDF no se usa como llave ni para validar el cruce
 - **Decisión:** se conserva la cifra del PDF tal como se imprime (hoy `pob_pdf`, ver D41), pero no se asume igual a las proyecciones DANE.
