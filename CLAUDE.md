@@ -77,6 +77,7 @@ Lo que llena Harold a mano: `data/raw/meta_ads/facebook_prestadores_20261021.xls
 - LLM: temperatura 0; guardar instrucción, versión del modelo y respuesta de cada llamada.
 - Semillas fijas para muestreos (`seed: 2026`).
 - **Registro de decisiones.** Toda decisión de método (fuente, filtro, estructura de datos, modelo, parámetro, regla de etiquetado) se registra en `docs/decisiones.md` con **Decisión, Por qué** (con evidencia: cifras, archivo, commit), **Descartado, Sustento y Estado**, en el mismo commit que la implementa. Nunca se borra una decisión: se marca como reemplazada. Es el registro oficial; si este archivo y `decisiones.md` difieren, manda `decisiones.md`.
+- **Control de versiones.** Al final de cada fase o sesión de trabajo se verifica `git status` y se hace push de la rama activa. `main` solo recibe fases cerradas, con `git merge --no-ff` y un mensaje que resume la fase y lista sus decisiones (D-números). Antes de subir se comprueba que no haya `data/`, `.env`, claves ni libros de etiquetado en el índice ni en el historial.
 - Código limpio y con pocos comentarios.
 - No leer archivos de datos completos en el contexto: usar muestras o resúmenes generados con código.
 - No guardar datos personales: ni representantes legales, supervisores, ordenadores, cuentas bancarias, documentos de personas, ni contactos de las cámaras de comercio.
