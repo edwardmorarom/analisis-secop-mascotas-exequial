@@ -15,13 +15,10 @@ DESTINO = RAIZ / "docs" / "revision_f4" / "top_valor.xlsx"
 
 
 def con_etiqueta_humana(u, procesado):
-    """Llaves (fuente, llave) con alguna etiqueta humana: muestra de 400, validación de 60, SECOP I nuevos y adicionales."""
-    llaves = set(u.loc[u["id_muestra"].notna(), ["fuente", "llave"]].itertuples(index=False, name=None))
-    for archivo in ("validacion_externa_maestra.parquet", "secop1_nuevos_maestra.parquet"):
-        m = pd.read_parquet(procesado / archivo)
-        llaves |= set(zip(m["fuente"], m["llave"]))
-    llaves |= set(u.loc[u["etiqueta_humana_adicional"].notna(), ["fuente", "llave"]].itertuples(index=False, name=None))
-    return llaves
+    """Llaves (fuente, llave) con etiqueta humana distinta de la propia revisión por valor (que no cambia la selección)."""
+    from src.modelos.etiquetas_humanas import construir
+    h = construir(incluir_top_valor=False)
+    return set(zip(h["fuente"], h["llave"]))
 
 
 def seleccionar(config, n=N_TOP):
@@ -53,6 +50,8 @@ def cobertura(u, candidatos, elegibles, top):
 
 def main():
     config = cargar_config()
+    if DESTINO.exists() and pd.read_excel(DESTINO, sheet_name="Etiquetado", dtype=str)["etiqueta"].notna().any():
+        raise SystemExit("top_valor.xlsx ya tiene etiquetas: no se regenera (cambiaría la selección).")
     u, candidatos, elegibles, top = seleccionar(config)
     c = cobertura(u, candidatos, elegibles, top)
     procesado = ruta(config, "processed")
@@ -81,6 +80,34 @@ def main():
     print({k: (round(v / 1e9, 3) if "valor" in k or k in ("mercado_tfidf_sin_mixto", "mercado_tfidf_con_mixto", "union_modelos", "top50_en_mercado_sin_mixto", "top50_en_mercado_con_mixto") else (round(v, 2) if isinstance(v, float) else v)) for k, v in c.items()})
     print(mezcla.groupby(["pred_tfidf_modelo", "pred_e5_modelo"]).size().to_dict())
     print("→", DESTINO)
+
+
+
+def evaluar(config=None):
+    """Precisión y sensibilidad de TF-IDF y e5 en los 50, ponderadas por valor constante y por número de contratos."""
+    config = config or cargar_config()
+    procesado = ruta(config, "processed")
+    m = pd.read_parquet(procesado / "top_valor_maestra.parquet")
+    e = pd.read_excel(DESTINO, sheet_name="Etiquetado", dtype=str)[["id_muestra", "etiqueta"]]
+    d = m.merge(e, on="id_muestra", validate="one_to_one")
+    d["etiqueta"] = d["etiqueta"].str.strip().str.lower()
+    filas = []
+    for nombre, clases in (("sin mixto", ["funerario"]), ("con mixto", ["funerario", "mixto"])):
+        for modelo, col in (("tfidf", "pred_tfidf_modelo"), ("e5", "pred_e5_modelo")):
+            pred, hum = d[col].isin(clases), d["etiqueta"].isin(clases)
+            v = d["valor_constante_2025"] / 1e9
+            vp = v[pred & hum].sum()
+            filas.append({"definicion": nombre, "modelo": modelo, "predichos": int(pred.sum()), "humanos": int(hum.sum()),
+                          "aciertos": int((pred & hum).sum()), "precision_por_contratos": (pred & hum).sum() / pred.sum(),
+                          "sensibilidad_por_contratos": (pred & hum).sum() / hum.sum(), "valor_predicho": v[pred].sum(),
+                          "valor_humano": v[hum].sum(), "valor_acertado": vp, "precision_por_valor": vp / v[pred].sum(),
+                          "sensibilidad_por_valor": vp / v[hum].sum(),
+                          "valor_clase_exacta": v[d[col] == d["etiqueta"]].sum(), "clase_exacta_contratos": int((d[col] == d["etiqueta"]).sum())})
+    t = pd.DataFrame(filas)
+    t.to_csv(procesado / "resultados_secop" / "top_valor_evaluacion.csv", index=False, encoding="utf-8-sig")
+    resumen = d.groupby("etiqueta").agg(contratos=("valor", "size"), valor_constante=("valor_constante_2025", lambda s: s.sum() / 1e9)).reset_index()
+    resumen.to_csv(procesado / "resultados_secop" / "top_valor_etiquetas.csv", index=False, encoding="utf-8-sig")
+    return t, resumen
 
 
 if __name__ == "__main__":

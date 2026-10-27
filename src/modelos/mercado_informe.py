@@ -54,6 +54,21 @@ def main():
     hh = pd.read_csv(s / "proveedores_hhi_cr4_anual.csv")
     hd = pd.read_csv(s / "proveedores_hhi_departamento.csv")
     top = pd.read_csv(s / "proveedores_top_participacion.csv")
+    est = pd.read_csv(s / "estimador_diferencia.csv")
+    est_c = est[est["con_censo"]].copy()
+    est_sc = est[~est["con_censo"]].set_index(["modelo", "mixto"])
+    est_c["modelo"] = est_c["modelo"].map({"tfidf": "TF-IDF", "e5": "e5"})
+    est_c["sin corregir"] = est_c["total_sin_corregir"] / 1e9
+    est_c["con etiquetas humanas"] = est_c["total_con_etiquetas_humanas"] / 1e9
+    est_c["estimador (solo muestra)"] = [est_sc.loc[(m, x), "estimador_diferencia"] / 1e9 for m, x in zip(est["modelo"][est["con_censo"]], est["mixto"][est["con_censo"]])]
+    est_c["ESTIMADOR PRINCIPAL"] = est_c["estimador_diferencia"] / 1e9
+    est_c["IC 95 %"] = [f"{a / 1e9:.1f} a {b / 1e9:.1f}" for a, b in zip(est_c["ic95_bajo"], est_c["ic95_alto"])]
+    d_est = est_c[["modelo", "mixto", "sin corregir", "con etiquetas humanas", "estimador (solo muestra)", "ESTIMADOR PRINCIPAL", "IC 95 %"]]
+    rev = pd.read_csv(s / "mercado_con_y_sin_revision.csv")
+    d_rev_mercado = rev[(rev["modelo"] == "tfidf")][["estado", "mixto", "contratos", "valor_mm", "v2020", "v2021", "v2022", "v2023", "v2024", "v2025"]]
+    tv = pd.read_csv(s / "top_valor_evaluacion.csv")
+    d_tv = tv[["definicion", "modelo", "predichos", "humanos", "aciertos", "precision_por_contratos", "precision_por_valor", "sensibilidad_por_valor"]]
+    tvl = pd.read_csv(s / "top_valor_etiquetas.csv")
 
     principal = sa[sa["escenario"] == "tfidf_sin_mixto"].copy()
     principal["valor corriente (mm)"] = mm(principal["valor_corriente"])
@@ -138,6 +153,22 @@ Sensibilidad (suma 2020–2025; `serie_anual.csv`):
 {tabla(sens)}
 
 **Decisión D67** (propuesta): pesos constantes de 2025 con el IPC mensual del mes de firma; valor inicial sin adiciones.
+
+## 2b. Estimación principal del total (D84, D85, D86)
+
+**Jerarquía (D84):** en el mercado, toda etiqueta humana reemplaza a la predicción del modelo (muestra de 400, validación de 60 revisada, los 30 de SECOP I 2023–2025, los 2 de D81 y los 50 de la revisión por valor). Las métricas de evaluación siguen usando las predicciones fuera de pliegue.
+
+**Estimación principal del total, 2020–2025, en miles de millones de pesos de 2025** (estimador de diferencia, Särndal, Swensson y Wretman 1992: total del modelo más la corrección de la revisión censal de los 50 de mayor valor y de los 2 de D81, más la suma en la muestra de 400 de peso × (indicador humano − indicador predicho) × valor, con intervalo bootstrap estratificado):
+
+{tabla(d_est, {"sin corregir": "{:.1f}", "con etiquetas humanas": "{:.1f}", "estimador (solo muestra)": "{:.1f}", "ESTIMADOR PRINCIPAL": "{:.1f}"})}
+
+Mercado funerario con TF-IDF (sin y con `mixto` por separado) con y sin la revisión por valor (A: sin revisión; B: jerarquía sin los 50; C: jerarquía completa; `mercado_con_y_sin_revision.csv`):
+
+{tabla(d_rev_mercado, {"valor_mm": "{:.1f}", "v2020": "{:.1f}", "v2021": "{:.1f}", "v2022": "{:.1f}", "v2023": "{:.1f}", "v2024": "{:.1f}", "v2025": "{:.1f}"})}
+
+**Revisión por valor (D83, D86):** Edward etiquetó los 50 contratos de mayor valor: {', '.join(f"{int(r.contratos)} {r.etiqueta} ({r.valor_constante:.1f} miles de millones)" for r in tvl.itertuples())}. Precisión y sensibilidad de los modelos en esos 50, por contratos y ponderadas por valor constante (`top_valor_evaluacion.csv`):
+
+{tabla(d_tv, {"precision_por_contratos": "{:.3f}", "precision_por_valor": "{:.3f}", "sensibilidad_por_valor": "{:.3f}"})}
 
 ## 3. Territorio y por 100.000 habitantes (D66, D67)
 

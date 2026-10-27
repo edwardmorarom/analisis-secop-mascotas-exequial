@@ -79,19 +79,15 @@ def codigo_departamento(divipola):
 
 
 def aplicar_etiquetas_humanas(clasif, procesado):
-    """Sustituye la clase del modelo por la etiqueta humana adicional (con su origen) y conserva la predicción original."""
-    archivo = procesado / "etiquetas_humanas_adicionales.csv"
-    clasif = clasif.assign(pred_tfidf_modelo=clasif["pred_tfidf"], pred_e5_modelo=clasif["pred_e5"],
-                           etiqueta_humana_adicional=None, origen_etiqueta_adicional=None)
-    if not archivo.exists():
-        return clasif
-    h = pd.read_csv(archivo, dtype=str)
-    indice = clasif.set_index(["fuente", "llave"]).index
-    for r in h.itertuples():
-        pos = np.flatnonzero((clasif["fuente"] == r.fuente) & (clasif["llave"] == r.llave))
-        assert len(pos) == 1, f"etiqueta humana adicional sin contrato único: {r.llave}"
-        i = clasif.index[pos[0]]
-        clasif.loc[i, ["pred_tfidf", "pred_e5", "etiqueta_humana_adicional", "origen_etiqueta_adicional"]] = [r.etiqueta, r.etiqueta, r.etiqueta, r.origen]
+    """Jerarquía: etiqueta humana > predicción del modelo. Reemplaza la clase y conserva la predicción original."""
+    from src.modelos.etiquetas_humanas import construir
+    h = construir()
+    clasif = clasif.assign(pred_tfidf_modelo=clasif["pred_tfidf"], pred_e5_modelo=clasif["pred_e5"])
+    clasif = clasif.merge(h[["fuente", "llave", "etiqueta", "origen"]].rename(
+        columns={"etiqueta": "etiqueta_humana_mercado", "origen": "origen_etiqueta_humana"}), on=["fuente", "llave"], how="left", validate="one_to_one")
+    humana = clasif["etiqueta_humana_mercado"].notna()
+    clasif.loc[humana, "pred_tfidf"] = clasif.loc[humana, "etiqueta_humana_mercado"]
+    clasif.loc[humana, "pred_e5"] = clasif.loc[humana, "etiqueta_humana_mercado"]
     return clasif
 
 
