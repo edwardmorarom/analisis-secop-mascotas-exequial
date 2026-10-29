@@ -57,9 +57,10 @@ def main():
     escribir_tablas(config, d, salida, divipola)
     _, pa, dep, n_excel = escribir_patrones(d, salida, divipola)
     print("indicadores de componentes evaluados:", n_excel)
-    from src.modelos import estimador_diferencia, mercado_graficos, mercado_informe, top_valor
+    from src.modelos import estimador_diferencia, estimador_principal, mercado_graficos, mercado_informe, top_valor
     estimador_diferencia.main()
     estimador_diferencia.estados_de_revision(config)
+    estimador_principal.main()
     top_valor.evaluar(config)
     mercado_graficos.estilo()
     mercado_graficos.main()

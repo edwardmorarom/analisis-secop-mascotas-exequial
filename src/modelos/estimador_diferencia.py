@@ -129,8 +129,8 @@ def estados_de_revision(config):
     u = pd.read_parquet(ruta(config, "processed") / "resultados_secop" / "universo_mercado.parquet")
     h_all = construir(config)
     estados = {"A: sin revisión (modelo y las 2 etiquetas de D81)": h_all[h_all["origen"] == "adicionales_d81"],
-               "B: jerarquía sin la revisión por valor (400, 60, 30 y D81)": h_all[h_all["origen"] != "top_valor"],
-               "C: jerarquía completa (con los 50 por valor)": h_all}
+               "B: jerarquía sin la revisión por valor (400, 60, 30, D81 y lotes de D91)": h_all[h_all["origen"] != "top_valor"],
+               "C: jerarquía completa (con los 50 por valor y los lotes de D91)": h_all}
     filas = []
     for nombre, h in estados.items():
         x = u.merge(h[["fuente", "llave", "etiqueta"]], on=["fuente", "llave"], how="left")

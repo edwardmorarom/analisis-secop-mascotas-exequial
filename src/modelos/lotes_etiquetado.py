@@ -92,6 +92,22 @@ def lote_estrato_d(config, u):
     return m, len(marco)
 
 
+def lote_no_recuperados(config):
+    """Libro a ciegas con la muestra de 100 contratos de SECOP II que la consulta original no recupera (D22); el crudo no se modifica."""
+    d = pd.read_json(ruta(config, "raw") / "secop" / "secop2_muestra_no_recuperados.jsonl", lines=True, dtype=False)
+    d = d.sample(frac=1, random_state=config["seed"]).reset_index(drop=True)
+    d.insert(0, "id_muestra", [f"R{i:03d}" for i in range(1, len(d) + 1)])
+    d["anio"] = d["fecha_de_firma"].astype(str).str[:4].astype(int)
+    d["fuente"] = "secop2"
+    d[["id_muestra", "fuente", "id_contrato", "anio"]].rename(columns={"id_contrato": "llave"}).to_parquet(
+        ruta(config, "processed") / "no_recuperados_100_maestra.parquet", index=False)
+    texto = pd.DataFrame({"id_muestra": d["id_muestra"], "fuente": d["fuente"], "anio": d["anio"], "nombre_entidad": d["nombre_entidad"],
+                          "objeto": d["objeto_del_contrato"].fillna("").map(anonimizar), "descripcion": d["descripcion_del_proceso"].fillna("").map(anonimizar),
+                          "codigo": None})
+    guardar(libro_a_ciegas(texto, "No recuperados por la consulta original (D22) — revisor: Edward (100 contratos)"), REVISION / "no_recuperados_100.xlsx")
+    return d
+
+
 def asignacion_neyman(config):
     p = ruta(config, "processed")
     m = pd.read_parquet(p / "muestra_secop_maestra.parquet")[["id_muestra", "subestrato", "N_estrato"]]

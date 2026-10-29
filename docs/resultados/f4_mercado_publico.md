@@ -1,6 +1,6 @@
 # F4 · Mercado público funerario (SECOP 2020–2025)
 
-Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `data/processed/resultados_secop/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63); como sensibilidad, TF-IDF con `mixto`, e5 y e5 con `mixto`.
+Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `data/processed/resultados_secop/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63). **La cifra principal es solo `funerario` (D89); los `mixto` van aparte y no se suman.** El estimador principal es el de la sección 2c (D90, D93); el caso A de D85 se reporta al lado.
 
 > **Cobertura (D70, D73, D74).** SECOP I se extendió a 2023–2025 (5.080 contratos candidatos más, D73), así que la serie cubre SECOP I y SECOP II en los seis años. Limitación: ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025; el error de clasificación en ese bloque se medirá con los 30 contratos de `docs/revision_f4/secop1_nuevos.xlsx`.
 
@@ -10,9 +10,9 @@ Tabla de origen: `tasa_cruce_ubicacion.csv`.
 
 | | contratos | funerarios (TF-IDF) |
 |---|---|---|
-| universo | 39,870 | 4,991 |
-| con municipio DIVIPOLA | 38,136 (95.7%) | 4,840 |
-| con departamento | 39,774 (99.8%) | 4,984 |
+| universo | 39,870 | 4,993 |
+| con municipio DIVIPOLA | 38,136 (95.7%) | 4,842 |
+| con departamento | 39,774 (99.8%) | 4,986 |
 
 Sin municipio quedan los contratos con la entidad registrada en «No Definido» y unos pocos nombres sin equivalente. Los cruces aproximados fueron revisados por Edward (20 de 20 correctos, D66). **Decisión D66** (vigente).
 
@@ -25,9 +25,9 @@ Tabla de origen: `serie_anual.csv`; gráfico `docs/resultados/graficos/1_serie_a
 | 2020 | 1.066 | 31,4 | 44,8 |
 | 2021 | 973 | 30,3 | 41,9 |
 | 2022 | 809 | 28,9 | 36,6 |
-| 2023 | 765 | 30,5 | 34,3 |
+| 2023 | 766 | 30,5 | 34,3 |
 | 2024 | 690 | 33,4 | 35,0 |
-| 2025 | 688 | 38,2 | 38,2 |
+| 2025 | 689 | 38,2 | 38,2 |
 
 Por fuente (`serie_anual_fuente.csv`):
 
@@ -39,21 +39,21 @@ Por fuente (`serie_anual_fuente.csv`):
 | 2021 | secop2 | 157 | 21,8 |
 | 2022 | secop1 | 599 | 15,4 |
 | 2022 | secop2 | 210 | 21,2 |
-| 2023 | secop1 | 525 | 13,2 |
+| 2023 | secop1 | 526 | 13,2 |
 | 2023 | secop2 | 240 | 21,0 |
 | 2024 | secop1 | 396 | 10,0 |
 | 2024 | secop2 | 294 | 25,0 |
 | 2025 | secop1 | 339 | 9,6 |
-| 2025 | secop2 | 349 | 28,7 |
+| 2025 | secop2 | 350 | 28,7 |
 
-Sensibilidad (suma 2020–2025; `serie_anual.csv`):
+Sensibilidad (suma 2020–2025; `serie_anual.csv`). Los escenarios con `mixto` no son un límite superior del mercado (D89); se conservan solo como cálculo:
 
 | escenario | contratos | valor constante 2025 (mm) |
 |---|---|---|
-| e5_con_mixto | 5.060 | 381,5 |
-| e5_sin_mixto | 4.920 | 223,2 |
-| tfidf_con_mixto | 5.102 | 388,1 |
-| tfidf_sin_mixto | 4.991 | 230,7 |
+| e5_con_mixto | 5.061 | 381,5 |
+| e5_sin_mixto | 4.921 | 223,2 |
+| tfidf_con_mixto | 5.104 | 388,1 |
+| tfidf_sin_mixto | 4.993 | 230,7 |
 
 **Decisión D67** (propuesta): pesos constantes de 2025 con el IPC mensual del mes de firma; valor inicial sin adiciones.
 
@@ -76,10 +76,10 @@ Mercado funerario con TF-IDF (sin y con `mixto` por separado) con y sin la revis
 |---|---|---|---|---|---|---|---|---|---|
 | A: sin revisión (modelo y las 2 etiquetas de D81) | sin | 4.990 | 246.2 | 48.6 | 54.2 | 36.5 | 34.3 | 34.0 | 38.7 |
 | A: sin revisión (modelo y las 2 etiquetas de D81) | con | 5.095 | 406.1 | 186.0 | 54.5 | 39.6 | 38.3 | 36.9 | 50.9 |
-| B: jerarquía sin la revisión por valor (400, 60, 30 y D81) | sin | 4.993 | 243.9 | 48.5 | 51.3 | 36.6 | 34.3 | 35.0 | 38.2 |
-| B: jerarquía sin la revisión por valor (400, 60, 30 y D81) | con | 5.108 | 407.9 | 186.1 | 54.7 | 40.0 | 38.3 | 38.2 | 50.7 |
-| C: jerarquía completa (con los 50 por valor) | sin | 4.991 | 230.7 | 44.8 | 41.9 | 36.6 | 34.3 | 35.0 | 38.2 |
-| C: jerarquía completa (con los 50 por valor) | con | 5.102 | 388.1 | 177.8 | 45.2 | 37.3 | 38.3 | 39.5 | 50.1 |
+| B: jerarquía sin la revisión por valor (400, 60, 30, D81 y lotes de D91) | sin | 4.995 | 243.9 | 48.5 | 51.3 | 36.6 | 34.3 | 35.0 | 38.2 |
+| B: jerarquía sin la revisión por valor (400, 60, 30, D81 y lotes de D91) | con | 5.110 | 407.9 | 186.1 | 54.7 | 40.0 | 38.3 | 38.2 | 50.7 |
+| C: jerarquía completa (con los 50 por valor y los lotes de D91) | sin | 4.993 | 230.7 | 44.8 | 41.9 | 36.6 | 34.3 | 35.0 | 38.2 |
+| C: jerarquía completa (con los 50 por valor y los lotes de D91) | con | 5.104 | 388.1 | 177.8 | 45.2 | 37.3 | 38.3 | 39.5 | 50.1 |
 
 **Revisión por valor (D83, D86):** Edward etiquetó los 50 contratos de mayor valor: 28 funerario (55.0 miles de millones), 8 mixto (142.4 miles de millones), 14 no_funerario (46.1 miles de millones). Precisión y sensibilidad de los modelos en esos 50, por contratos y ponderadas por valor constante (`top_valor_evaluacion.csv`):
 
@@ -89,6 +89,46 @@ Mercado funerario con TF-IDF (sin y con `mixto` por separado) con y sin la revis
 | sin mixto | e5 | 30 | 28 | 24 | 0.800 | 0.797 | 0.929 |
 | con mixto | tfidf | 42 | 36 | 35 | 0.833 | 0.903 | 0.993 |
 | con mixto | e5 | 44 | 36 | 32 | 0.727 | 0.859 | 0.980 |
+
+## 2c. Estimador principal con los lotes nuevos (D90, D93)
+
+Caso C de D90: los 317 contratos humanitarios con componente funerario forman un estrato aparte. Los 21 con etiqueta previa se corrigen exactamente; los 296 restantes se estiman con la muestra de 40 (estimador de diferencia dentro de cada estrato A1 y A2, pesos de D91: 8,33 y 4,60). El estrato D suma los 150 nuevos a los 50 de la muestra de 400 (200 con peso común). Intervalo bootstrap estratificado (2.000 remuestreos, semilla 2026). Miles de millones de pesos de 2025, solo `funerario`.
+
+| modelo | total sin corregir | corrección censal | corrección muestra 400 y D | corrección humanitarios (40) | **estimador principal** | IC 95 % |
+|---|---|---|---|---|---|---|
+| TF-IDF | 262.9 | -33.5 | 24.6 | 0.09 | **254.0** | 225.4 a 304.5 |
+| e5 | 235.6 | -12.4 | -1.3 | 0.06 | **221.9** | 215.4 a 228.2 |
+
+**Caso A (D85, para transparencia; M214 dentro de la muestra de A2):** TF-IDF 198.4 (IC 79.2 a 284.3).
+
+**Contratos con componente funerario no separable (`mixto`, D89)**, aparte y sin sumarse: 111 contratos, 157.4 miles de millones de pesos de 2025 (TF-IDF con la jerarquía de etiquetas). Por año:
+
+| año | contratos mixto | valor constante 2025 (mm) |
+|---|---|---|
+| 2020 | 14 | 133,0 |
+| 2021 | 18 | 3,3 |
+| 2022 | 21 | 0,7 |
+| 2023 | 18 | 4,0 |
+| 2024 | 21 | 4,5 |
+| 2025 | 19 | 11,8 |
+
+**Estrato D, cota de funerarios ocultos:** 0 funerarios en 208 contratos etiquetados (50 de la muestra de 400, 150 nuevos y 8 de la validación de 60). Regla del tres: la proporción de funerarios en D es menor que 1.44% con 95 % de confianza, es decir, hasta 381 de los 26,396 contratos de D (cifra ilustrativa de valor con el valor medio de un contrato de D, 73 millones: 28.0 miles de millones). No es una estimación, es un límite superior.
+
+**TF-IDF en los lotes nuevos** (predicciones del modelo entrenado con los 400, sin haber visto estos contratos; `f1_lotes_nuevos.csv`). Humanitarios 40, `funerario`:
+
+| modelo | escala | precision | sensibilidad | f1 | f1_ic_bajo | f1_ic_alto |
+|---|---|---|---|---|---|---|
+| TF-IDF | ponderado | 1.000 | 0.953 | 0.976 | 0.934 | 1.000 |
+| TF-IDF | sin ponderar | 1.000 | 0.943 | 0.971 | 0.925 | 1.000 |
+| e5 | ponderado | 1.000 | 0.969 | 0.985 | 0.950 | 1.000 |
+| e5 | sin ponderar | 1.000 | 0.971 | 0.986 | 0.952 | 1.000 |
+
+Estrato D, 150 contratos (todos `no_funerario`; sin positivos el F1 no está definido):
+
+| modelo | falsos_positivos | verdaderos_negativos | positivos_reales |
+|---|---|---|---|
+| TF-IDF | 0,0 | 150,0 | 0,0 |
+| e5 | 0,0 | 150,0 | 0,0 |
 
 ## 3. Territorio y por 100.000 habitantes (D66, D67)
 
@@ -132,7 +172,7 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 | tipo_entidad | contratos | pct_contratos | pct_valor |
 |---|---|---|---|
-| alcaldia_municipio | 4.428 | 88,7 | 63,3 |
+| alcaldia_municipio | 4.430 | 88,7 | 63,3 |
 | educacion_universidad | 13 | 0,3 | 0,1 |
 | gobernacion_departamento | 99 | 2,0 | 3,2 |
 | otra_entidad | 233 | 4,7 | 16,6 |
@@ -146,7 +186,7 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 |---|---|---|---|
 | contratacion_directa | 524 | 10,5 | 11,7 |
 | licitacion_concurso | 7 | 0,1 | 8,7 |
-| minima_cuantia | 4.018 | 80,5 | 43,9 |
+| minima_cuantia | 4.020 | 80,5 | 43,9 |
 | otra | 5 | 0,1 | 0,1 |
 | regimen_especial | 162 | 3,2 | 3,0 |
 | seleccion_abreviada | 275 | 5,5 | 32,6 |
@@ -161,21 +201,21 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 | 2021 | secop2 | 157 | 12,8 | 16,2 |
 | 2022 | secop1 | 599 | 3,8 | 5,7 |
 | 2022 | secop2 | 210 | 13,3 | 15,2 |
-| 2023 | secop1 | 525 | 2,9 | 2,9 |
+| 2023 | secop1 | 526 | 2,9 | 2,9 |
 | 2023 | secop2 | 240 | 9,0 | 12,2 |
 | 2024 | secop1 | 396 | 3,5 | 3,5 |
 | 2024 | secop2 | 294 | 5,6 | 8,5 |
 | 2025 | secop1 | 339 | 3,0 | 3,2 |
-| 2025 | secop2 | 349 | 10,4 | 13,4 |
+| 2025 | secop2 | 350 | 10,4 | 13,4 |
 
 **Mes de firma** (`borrador_mes_firma.csv`):
 
 | mes | contratos | pct_contratos | pct_valor |
 |---|---|---|---|
 | 1 | 364 | 7,3 | 5,2 |
-| 2 | 727 | 14,6 | 9,5 |
+| 2 | 728 | 14,6 | 9,5 |
 | 3 | 796 | 15,9 | 14,1 |
-| 4 | 625 | 12,5 | 13,2 |
+| 4 | 626 | 12,5 | 13,2 |
 | 5 | 514 | 10,3 | 9,9 |
 | 6 | 398 | 8,0 | 7,3 |
 | 7 | 333 | 6,7 | 6,0 |
@@ -189,7 +229,7 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 | componente | contratos | % de contratos que lo incluye | % del valor que lo incluye |
 |---|---|---|---|
-| incluye_traslado | 304 | 6,1 | 4,5 |
+| incluye_traslado | 306 | 6,1 | 4,5 |
 | incluye_ataudes_bienes | 1.674 | 33,5 | 21,4 |
 | incluye_plan_exequial | 414 | 8,3 | 5,4 |
 | incluye_operacion_cementerio | 61 | 1,2 | 1,2 |
@@ -240,9 +280,9 @@ Pooled 2020–2025 (n = 32 departamentos con 5 o más proveedores): percentiles 
 | 2020 | 604 | 240 | 24.1 |
 | 2021 | 532 | 228 | 22.9 |
 | 2022 | 477 | 292 | 25.2 |
-| 2023 | 471 | 267 | 26.5 |
+| 2023 | 472 | 267 | 26.5 |
 | 2024 | 425 | 417 | 33.9 |
-| 2025 | 437 | 651 | 33.3 |
+| 2025 | 438 | 651 | 33.3 |
 
 **Decisión D69** (vigente con condiciones): medida principal por departamento, HHI nacional como contexto, HHI de 2025 después de las correcciones de D81 y con la sensibilidad sin los tres mayores.
 
@@ -267,26 +307,26 @@ HHI de 2025 quitando los mayores contratos (`hhi_2025_sin_mayores.csv`):
 
 | sin los N mayores contratos | contratos | valor constante (mm) | proveedores | HHI | CR4 |
 |---|---|---|---|---|---|
-| 0 | 688 | 38.2 | 437 | 651 | 33.3 |
-| 1 | 687 | 31.8 | 437 | 175 | 20.0 |
-| 2 | 686 | 29.9 | 437 | 116 | 14.7 |
-| 3 | 685 | 28.1 | 436 | 92 | 11.9 |
-| 5 | 683 | 26.8 | 436 | 86 | 11.9 |
-| 10 | 678 | 24.5 | 435 | 71 | 10.1 |
+| 0 | 689 | 38.2 | 438 | 651 | 33.3 |
+| 1 | 688 | 31.8 | 438 | 175 | 20.0 |
+| 2 | 687 | 29.9 | 438 | 116 | 14.7 |
+| 3 | 686 | 28.1 | 437 | 92 | 11.9 |
+| 5 | 684 | 26.8 | 437 | 86 | 11.9 |
+| 10 | 679 | 24.5 | 436 | 71 | 10.0 |
 
 HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.csv`):
 
 | clasificacion | anio | proveedores | HHI | CR4 |
 |---|---|---|---|---|
-| TF-IDF | 2023 | 471 | 267 | 26.5 |
+| TF-IDF | 2023 | 472 | 267 | 26.5 |
 | TF-IDF | 2024 | 425 | 417 | 33.9 |
-| TF-IDF | 2025 | 437 | 651 | 33.3 |
-| e5 | 2023 | 478 | 266 | 26.2 |
+| TF-IDF | 2025 | 438 | 651 | 33.3 |
+| e5 | 2023 | 479 | 266 | 26.2 |
 | e5 | 2024 | 419 | 423 | 34.2 |
 | e5 | 2025 | 426 | 686 | 34.2 |
-| ambos modelos | 2023 | 448 | 295 | 27.9 |
+| ambos modelos | 2023 | 449 | 295 | 27.9 |
 | ambos modelos | 2024 | 400 | 452 | 35.5 |
-| ambos modelos | 2025 | 406 | 733 | 35.5 |
+| ambos modelos | 2025 | 407 | 733 | 35.5 |
 
 ## Limitaciones
 

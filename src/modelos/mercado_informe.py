@@ -70,9 +70,20 @@ def main():
     d_tv = tv[["definicion", "modelo", "predichos", "humanos", "aciertos", "precision_por_contratos", "precision_por_valor", "sensibilidad_por_valor"]]
     tvl = pd.read_csv(s / "top_valor_etiquetas.csv")
 
+    ep = pd.read_csv(s / "estimador_principal.csv").set_index("modelo")
+    cota = pd.read_csv(s / "cota_estrato_d.csv", index_col=0).iloc[:, 0]
+    f1n = pd.read_csv(s / "f1_lotes_nuevos.csv")
+    mixa = pd.read_csv(s / "mixtos_aparte.csv", index_col=0).iloc[:, 0]
+    caso_a = est_c[(est_c["modelo"] == "TF-IDF") & (est_c["mixto"] == "sin mixto")].iloc[0]
     principal = sa[sa["escenario"] == "tfidf_sin_mixto"].copy()
     principal["valor corriente (mm)"] = mm(principal["valor_corriente"])
     principal["valor constante 2025 (mm)"] = mm(principal["valor_constante_2025"])
+    con = sa[sa["escenario"] == "tfidf_con_mixto"].set_index("anio")
+    sin = principal.set_index("anio")
+    mixtos_anual = pd.DataFrame({"año": sin.index.astype(int), "contratos mixto": (con["contratos"] - sin["contratos"]).values,
+                                 "valor constante 2025 (mm)": mm(con["valor_constante_2025"] - sin["valor_constante_2025"]).values})
+    f1_40 = f1n[(f1n["lote"] == "humanitarios 40") & (f1n["definicion"] == "funerario")][["modelo", "escala", "precision", "sensibilidad", "f1", "f1_ic_bajo", "f1_ic_alto"]]
+    f1_150 = f1n[f1n["lote"] == "estrato D 150"][["modelo", "falsos_positivos", "verdaderos_negativos", "positivos_reales"]]
     anual = principal[["anio", "contratos", "valor corriente (mm)", "valor constante 2025 (mm)"]].rename(columns={"anio": "año"})
     anual["año"] = anual["año"].astype(int)
     sens = sa.groupby("escenario").agg(contratos=("contratos", "sum"), valor_constante=("valor_constante_2025", "sum")).reset_index()
@@ -122,7 +133,7 @@ def main():
     c = lambda k: cruce.loc[k]
     txt = f"""# F4 · Mercado público funerario (SECOP 2020–2025)
 
-Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `{TABLAS}/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63); como sensibilidad, TF-IDF con `mixto`, e5 y e5 con `mixto`.
+Generado por `python -m src.modelos.mercado` y `python -m src.modelos.mercado_informe`. Las tablas están en `{TABLAS}/` (no se versionan). **Las secciones marcadas «borrador» no tienen conclusiones.** Cifras en miles de millones de pesos («mm»). Modelo de clasificación: TF-IDF (`clase_final`, D63). **La cifra principal es solo `funerario` (D89); los `mixto` van aparte y no se suman.** El estimador principal es el de la sección 2c (D90, D93); el caso A de D85 se reporta al lado.
 
 > **Cobertura (D70, D73, D74).** SECOP I se extendió a 2023–2025 (5.080 contratos candidatos más, D73), así que la serie cubre SECOP I y SECOP II en los seis años. Limitación: ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025; el error de clasificación en ese bloque se medirá con los 30 contratos de `docs/revision_f4/secop1_nuevos.xlsx`.
 
@@ -148,7 +159,7 @@ Por fuente (`serie_anual_fuente.csv`):
 
 {tabla(fuente)}
 
-Sensibilidad (suma 2020–2025; `serie_anual.csv`):
+Sensibilidad (suma 2020–2025; `serie_anual.csv`). Los escenarios con `mixto` no son un límite superior del mercado (D89); se conservan solo como cálculo:
 
 {tabla(sens)}
 
@@ -169,6 +180,31 @@ Mercado funerario con TF-IDF (sin y con `mixto` por separado) con y sin la revis
 **Revisión por valor (D83, D86):** Edward etiquetó los 50 contratos de mayor valor: {', '.join(f"{int(r.contratos)} {r.etiqueta} ({r.valor_constante:.1f} miles de millones)" for r in tvl.itertuples())}. Precisión y sensibilidad de los modelos en esos 50, por contratos y ponderadas por valor constante (`top_valor_evaluacion.csv`):
 
 {tabla(d_tv, {"precision_por_contratos": "{:.3f}", "precision_por_valor": "{:.3f}", "sensibilidad_por_valor": "{:.3f}"})}
+
+## 2c. Estimador principal con los lotes nuevos (D90, D93)
+
+Caso C de D90: los 317 contratos humanitarios con componente funerario forman un estrato aparte. Los 21 con etiqueta previa se corrigen exactamente; los 296 restantes se estiman con la muestra de 40 (estimador de diferencia dentro de cada estrato A1 y A2, pesos de D91: 8,33 y 4,60). El estrato D suma los 150 nuevos a los 50 de la muestra de 400 (200 con peso común). Intervalo bootstrap estratificado (2.000 remuestreos, semilla 2026). Miles de millones de pesos de 2025, solo `funerario`.
+
+| modelo | total sin corregir | corrección censal | corrección muestra 400 y D | corrección humanitarios (40) | **estimador principal** | IC 95 % |
+|---|---|---|---|---|---|---|
+| TF-IDF | {ep.loc['tfidf','total_sin_corregir'] / 1e9:.1f} | {ep.loc['tfidf','correccion_censo'] / 1e9:.1f} | {ep.loc['tfidf','correccion_muestra_400_y_D150'] / 1e9:.1f} | {ep.loc['tfidf','correccion_humanitarios_40'] / 1e9:.2f} | **{ep.loc['tfidf','estimador'] / 1e9:.1f}** | {ep.loc['tfidf','ic95_bajo'] / 1e9:.1f} a {ep.loc['tfidf','ic95_alto'] / 1e9:.1f} |
+| e5 | {ep.loc['e5','total_sin_corregir'] / 1e9:.1f} | {ep.loc['e5','correccion_censo'] / 1e9:.1f} | {ep.loc['e5','correccion_muestra_400_y_D150'] / 1e9:.1f} | {ep.loc['e5','correccion_humanitarios_40'] / 1e9:.2f} | **{ep.loc['e5','estimador'] / 1e9:.1f}** | {ep.loc['e5','ic95_bajo'] / 1e9:.1f} a {ep.loc['e5','ic95_alto'] / 1e9:.1f} |
+
+**Caso A (D85, para transparencia; M214 dentro de la muestra de A2):** TF-IDF {caso_a['ESTIMADOR PRINCIPAL']:.1f} (IC {caso_a['IC 95 %']}).
+
+**Contratos con componente funerario no separable (`mixto`, D89)**, aparte y sin sumarse: {int(mixa['contratos'])} contratos, {mixa['valor_mm']:.1f} miles de millones de pesos de 2025 (TF-IDF con la jerarquía de etiquetas). Por año:
+
+{tabla(mixtos_anual)}
+
+**Estrato D, cota de funerarios ocultos:** {int(cota['funerarios'])} funerarios en {int(cota['etiquetados'])} contratos etiquetados (50 de la muestra de 400, 150 nuevos y 8 de la validación de 60). Regla del tres: la proporción de funerarios en D es menor que {cota['cota_proporcion_95']:.2%} con 95 % de confianza, es decir, hasta {cota['contratos_ocultos_max']:.0f} de los {int(cota['tamano_D']):,} contratos de D (cifra ilustrativa de valor con el valor medio de un contrato de D, {cota['valor_medio_contrato_D_mm'] * 1000:.0f} millones: {cota['valor_ilustrativo_mm']:.1f} miles de millones). No es una estimación, es un límite superior.
+
+**TF-IDF en los lotes nuevos** (predicciones del modelo entrenado con los 400, sin haber visto estos contratos; `f1_lotes_nuevos.csv`). Humanitarios 40, `funerario`:
+
+{tabla(f1_40, {"precision": "{:.3f}", "sensibilidad": "{:.3f}", "f1": "{:.3f}", "f1_ic_bajo": "{:.3f}", "f1_ic_alto": "{:.3f}"})}
+
+Estrato D, 150 contratos (todos `no_funerario`; sin positivos el F1 no está definido):
+
+{tabla(f1_150)}
 
 ## 3. Territorio y por 100.000 habitantes (D66, D67)
 
