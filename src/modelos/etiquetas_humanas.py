@@ -8,6 +8,8 @@ RUTA_LOTES = {"humanitarios_40": ("humanitarios_40.xlsx", "humanitarios_40_maest
               "estrato_d_150": ("estrato_d_150.xlsx", "estrato_d_150_maestra.parquet")}
 # D92: servicios profesionales o de apoyo a la gestión que apoyan asistencia funeraria son no_funerario (el Excel de Edward los trae como mixto).
 CORRECCION_D92 = {"humanitarios_40": {"H005", "H009", "H028", "H030", "H031"}}
+# D92: V046 (SSF-013, personal de la Subdirección de Servicios Funerarios) pasa de funerario a no_funerario por decisión de Edward.
+CORRECCION_D92_VALIDACION = {"V046": "no_funerario"}
 
 
 def muestra_400(procesado):
@@ -25,7 +27,9 @@ def validacion_60(procesado):
     e = e.set_index("id_muestra")
     e.loc[r.index, "etiqueta"] = r["etiqueta_revisada"]
     e.loc[r.index, "forense"] = r["forense_revisado"].fillna(e.loc[r.index, "forense"])
-    m = pd.read_parquet(procesado / "validacion_externa_maestra.parquet")[["id_muestra", "fuente", "llave"]]
+    for i, etiqueta in CORRECCION_D92_VALIDACION.items():
+        e.loc[i, "etiqueta"] = etiqueta
+    m =pd.read_parquet(procesado / "validacion_externa_maestra.parquet")[["id_muestra", "fuente", "llave"]]
     return e.reset_index().merge(m, on="id_muestra").assign(origen="validacion_60_revisada")
 
 

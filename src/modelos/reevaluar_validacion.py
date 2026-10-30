@@ -22,6 +22,14 @@ def etiquetas_revisadas(d):
     return out, r
 
 
+def etiquetas_d92(d):
+    from src.modelos.etiquetas_humanas import CORRECCION_D92_VALIDACION
+    out = d.copy()
+    for i, etiqueta in CORRECCION_D92_VALIDACION.items():
+        out.loc[out["id_muestra"] == i, "etiqueta"] = etiqueta
+    return out
+
+
 def tabla(d, version):
     filas = []
     for m in MODELOS:
@@ -39,11 +47,13 @@ def main():
     revisado, cambios = etiquetas_revisadas(d)
     pd.set_option("display.width", 220)
     print("filas revisadas:", len(cambios), "| cambian de etiqueta:", int((revisado["etiqueta"] != d["etiqueta"]).sum()))
-    t = pd.concat([tabla(d, "original"), tabla(revisado, "revisada")])
+    d92 = etiquetas_d92(revisado)
+    print("cambian por D92:", int((d92["etiqueta"] != revisado["etiqueta"]).sum()))
+    t = pd.concat([tabla(d, "original"), tabla(revisado, "revisada"), tabla(d92, "revisada_d92")])
     cols = ["version", "modelo", "pond_precision", "pond_sensibilidad", "pond_f1", "pond_f1_ic_bajo", "pond_f1_ic_alto",
             "sin_precision", "sin_sensibilidad", "sin_f1", "sin_f1_ic_bajo", "sin_f1_ic_alto"]
     print(t[cols].round(3).to_string(index=False))
-    for version, x in (("original", d), ("revisada", revisado)):
+    for version, x in (("original", d), ("revisada", revisado), ("revisada_d92", d92)):
         mejor = t[t["version"] == version].sort_values("pond_f1", ascending=False).iloc[0]["modelo"]
         print(f"{version}: el F1 ponderado más alto es el de {mejor}; DeepSeek {'sí' if mejor == 'deepseek_flash' else 'no'} lo tiene (regla D62)")
         for m in MODELOS:

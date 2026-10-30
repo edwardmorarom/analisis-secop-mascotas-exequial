@@ -286,10 +286,15 @@ HHI según el modelo que define `funerario` (`proveedores_hhi_por_clasificacion.
 
 ## Limitaciones
 
-- Clasificación con TF-IDF: F1 ponderado de 0,93 en la validación cruzada de 400 casos y 0,65 (0,86 sin ponderar) en la validación externa de 60, donde un solo caso de peso 3.293 explica la diferencia (D63).
+- **Validación de 60 revisada (D80).** TF-IDF obtiene un F1 ponderado de `funerario` de 0,956 (IC 95 % 0,908–0,996; 0,913 sin ponderar) con las etiquetas revisadas y la corrección de D92 (V046). Con las etiquetas originales era 0,648 (0,389–0,970), porque un solo caso de peso 3.293 dominaba el resultado (D63); se conservan las tres versiones.
+- **SECOP I 2023–2025.** Ni la muestra de 400 ni la validación de 60 incluyen esos contratos (D74); se evaluaron aparte con 30 contratos, sin errores de TF-IDF ni de e5 (D80), lo que acota el error de cada grupo en 18,1 % pero mide poco los funerarios que el modelo deja pasar.
+- **Estimador principal (D93).** El total de solo `funerario` es 254,0 miles de millones de pesos de 2025 con TF-IDF (IC 95 % 225,4–304,5) y 221,9 con e5 (215,4–228,2); el caso A de D85 (198,4; 79,2–284,3) se reporta aparte. El estrato de humanitarios se definió después de ver el problema de M214 (D90). El intervalo solo recoge la variabilidad del muestreo de las correcciones, no el error del modelo en contratos que ninguna muestra cubre; el de e5 es angosto por esa razón.
+- **Estrato D (D93).** Con 0 funerarios en 208 contratos etiquetados, la proporción de funerarios sin señal es menor que 1,44 % (regla del tres), es decir, hasta 380 de 26.396 contratos de D.
+- **No recuperados sin etiquetar (D22).** Los 100 contratos que la consulta original no recupera no se han etiquetado y no entran en ningún cálculo; se etiquetarán solo como prueba de lo que la búsqueda deja escapar, no para corregir el total. Hasta entonces el total es una cota inferior respecto de lo que la búsqueda no recupera.
+- **Palabras de contexto en TF-IDF.** Entre los 20 términos que más empujan hacia `funerario` hay palabras de contexto y no de servicio («población», «personas», «vulnerable», «del distrito», «funcionarios», «víctimas»), y entre los que más empujan en contra aparecen «rosario» y «servicios profesionales» (`coeficientes_tfidf.md`).
+- **Personal de apoyo (D92).** Los 117 contratos sin etiqueta humana con el patrón «servicios profesionales o apoyo a la gestión» que TF-IDF marca `funerario` pueden ser personal y no servicios: efecto máximo de 3,9 miles de millones, 1,5 % del total.
 - La serie mezcla SECOP I y SECOP II; un mismo proveedor puede figurar en ambos con identificadores distintos (D15).
-- Ni la muestra de 400 ni la validación de 60 incluyen contratos de SECOP I de 2023–2025 (D74).
-- La ubicación es la sede de la entidad, no el lugar de ejecución.
+- **Ubicación.** Es la sede de la entidad, no el lugar de ejecución; las cifras por territorio siguen la ubicación de la entidad.
 """
     DESTINO.parent.mkdir(parents=True, exist_ok=True)
     DESTINO.write_text(txt, encoding="utf-8")
