@@ -83,11 +83,25 @@ def seccion_estacionalidad():
     return "\n".join(texto)
 
 
+def _resumen_covid(sufijo):
+    m = leer(f"estacionalidad_covid_modelos{sufijo}.csv")
+    c = leer(f"estacionalidad_covid_coeficientes{sufijo}.csv")
+    r = m[m["muestra"] == "meses con registro de COVID"].copy()
+    r["id"] = r["modelo"].str.split().str[0]
+    r = r.set_index("id")
+    pasan = r[~r["falla_autocorrelacion"] & ~r["falla_normalidad_rq"]]
+    lc = c[c["termino"] == "lcovid"]
+    return m, c, r, pasan, lc
+
+
+def _coef(lc, prefijo, col):
+    return lc[lc["modelo"].str.startswith(prefijo)][col].iloc[0]
+
+
 def seccion_covid():
     if not existe("estacionalidad_covid_modelos.csv"):
         return ""
-    m = leer("estacionalidad_covid_modelos.csv")
-    c = leer("estacionalidad_covid_coeficientes.csv")
+    m, c, r, pasan, lcov = _resumen_covid("")
     cv = leer("covid_muertes_mensual.csv")
     cor = leer("estacionalidad_covid_correlacion.csv")
     tabla_m = pd.DataFrame({"muestra": m["muestra"], "modelo": m["modelo"], "parámetros": m["parametros"], "BIC": m["BIC"].map(lambda v: f(v, 1)), "ΔBIC (en su muestra)": m["dBIC"].map(lambda v: f(v, 1)),
@@ -95,32 +109,41 @@ def seccion_covid():
                             "exceso de curtosis RQ": m["exceso_curtosis_rq"].map(lambda v: f(v, 2)),
                             "Wald de la parte estacional, p (Newey-West)": m["wald_p_newey_west"].map(lambda v: "< 0,0001" if v < 1e-4 else f(v, 4)),
                             "amplitud de 12 meses": m["amplitud_12"].map(lambda v: "" if pd.isna(v) else f(v, 2)),
-                            "falla": m.apply(lambda r: ", ".join(n for n, x in (("autocorrelación", r.falla_autocorrelacion), ("normalidad RQ", r.falla_normalidad_rq)) if x) or "ninguno", axis=1)})
+                            "falla": m.apply(lambda r_: ", ".join(n for n, x in (("autocorrelación", r_.falla_autocorrelacion), ("normalidad RQ", r_.falla_normalidad_rq)) if x) or "ninguno", axis=1)})
     claves = c[c["termino"].isin(["lagy", "lcovid", "alto", "jas2020"])].copy()
     claves["término"] = claves["termino"].map({"lagy": "autorregresivo", "lcovid": "log(1 + muertes COVID del mes)", "alto": "mes sobre el percentil 75", "jas2020": "jul–sep 2020"})
-    tabla_c = pd.DataFrame({"muestra": claves["muestra"], "modelo": claves["modelo"].str.split().str[0], "término": claves["término"], "estimador": claves["estimador"].map(lambda v: f(v, 3)),
-                            "EE del modelo": claves["se_modelo"].map(lambda v: f(v, 3)), "EE Newey-West": claves["se_newey_west"].map(lambda v: f(v, 3)),
-                            "p Newey-West": claves["p_newey_west"].map(lambda v: f(v, 4))})
+    tabla_c = pd.DataFrame({"modelo": claves["modelo"].str.split().str[0], "término": claves["término"], "estimador": claves["estimador"].map(lambda v: f(v, 3)),
+                            "EE Newey-West": claves["se_newey_west"].map(lambda v: f(v, 3)), "p Newey-West": claves["p_newey_west"].map(lambda v: f(v, 4))})
     sobre = cv[cv["sobre_p75"] == 1]["mes_txt"].tolist()
     reg = cv["fallecidos"].dropna()
-    c47 = m[m["muestra"] == "meses con registro de COVID"].set_index(m[m["muestra"] == "meses con registro de COVID"]["modelo"].str.split().str[0])
     s72 = m[m["muestra"].str.startswith("72")].set_index(m[m["muestra"].str.startswith("72")]["modelo"].str.split().str[0])
-    lcov = c[c["termino"] == "lcovid"]
-    alto = c[c["termino"] == "alto"]
-    pasan = c47[~c47["falla_autocorrelacion"] & ~c47["falla_normalidad_rq"]]
-    mejor = c47["BIC"].idxmin()
+    principal = r.loc[["2e", "3e"]]
+    pp = principal[~principal["falla_autocorrelacion"] & ~principal["falla_normalidad_rq"]]
+    menor = pasan["BIC"].idxmin()
+    ms, cs, rs, pasan_s, lcov_s = _resumen_covid("_sin_filtrar")
+    cv_s = leer("covid_muertes_mensual_sin_filtrar.csv")
+    pm, pm_s = leer("perfil_mensual_2e.csv"), leer("perfil_mensual_2e_sin_filtrar.csv")
+    top = lambda d_: ", ".join(d_.sort_values("efecto", ascending=False)["mes"].head(3).map(lambda v: f"{int(v):02d}"))
+    filas = ["Fallecidos en la serie", "Meses sobre el percentil 75", "Modelos que pasan los supuestos", "Menor BIC entre los que pasan", "Contraste estacional (Newey-West)", "Amplitud de 12 meses (rango)",
+             "Log de las muertes, modelo 2e: coeficiente (p Newey-West)", "Tres meses del año con mayor efecto (2e)"]
+    col_f = [f(reg.sum(), 0), str(len(sobre)), ", ".join(pasan.index), f"{menor} ({f(pasan.loc[menor, 'BIC'], 1)})", "p < 0,0001 en las 12", f"{f(m['amplitud_12'].min(), 2)} a {f(m['amplitud_12'].max(), 2)}",
+             f"{f(_coef(lcov, '2e', 'estimador'), 3)} ({f(_coef(lcov, '2e', 'p_newey_west'), 4)})", top(pm)]
+    col_s = [f(cv_s["fallecidos"].dropna().sum(), 0), str(int(cv_s["sobre_p75"].sum())), ", ".join(pasan_s.index), f"{pasan_s['BIC'].idxmin()} ({f(pasan_s['BIC'].min(), 1)})", "p < 0,0001 en las 12", f"{f(ms['amplitud_12'].min(), 2)} a {f(ms['amplitud_12'].max(), 2)}",
+             f"{f(_coef(lcov_s, '2e', 'estimador'), 3)} ({f(_coef(lcov_s, '2e', 'p_newey_west'), 4)})", top(pm_s)]
+    comp = pd.DataFrame({"": filas, "serie filtrada (estado Fallecido; principal)": col_f, "serie sin filtrar (toda fecha_muerte)": col_s})
     return chr(10).join(["### 4. Muertes COVID mensuales en lugar de la indicadora de julio a septiembre de 2020 (D99, exploratorio)", "",
-                      f"Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), una consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). "
-                      f"La serie tiene {f(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024 (pico de {f(reg.max(), 0)} en {cv.loc[cv['fallecidos'].idxmax(), 'mes_txt']}). Los {int(cv['fallecidos'].isna().sum())} meses sin registro (enero y febrero de 2020 y desde febrero de 2024) son **faltantes, no ceros**: los modelos con términos de COVID se ajustan solo a los {len(reg)} meses con registro (marzo de 2020 a enero de 2024, contiguos), y los modelos 2 y 3 de D97 se muestran además con los 72 meses. "
-                      f"El percentil 75 se calcula sobre los {len(reg)} meses con registro: {f(float(np.percentile(reg, 75)), 0)} muertes; {len(sobre)} meses lo superan: {', '.join(sobre)}. Correlación entre el log de las muertes y la indicadora del percentil 75: {f(cor.iloc[0, 0], 2)}.", "",
-                      "Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98 (autorregresivo e indicadora de julio a septiembre de 2020); 2c y 3c con las muertes (log + 1) y la indicadora del percentil 75 sin autorregresivo; 2d y 3d con autorregresivo y esos dos términos. "
-                      "Los ocho se comparan en los mismos meses; el BIC solo es comparable dentro de una muestra.", "", tabla(tabla_m), "",
+                      "Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). "
+                      f"**Serie principal: solo los registros con estado «Fallecido»** (consulta filtrada), {f(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024 (pico de {f(reg.max(), 0)} en {cv.loc[cv['fallecidos'].idxmax(), 'mes_txt']}); la primera consulta (toda fila con `fecha_muerte`, 184.393) queda como serie sin filtrar y se compara abajo. "
+                      f"Los {int(cv['fallecidos'].isna().sum())} meses sin registro (enero y febrero de 2020 y desde febrero de 2024) son **faltantes, no ceros**: los modelos con COVID se ajustan a los {len(reg)} meses con registro (contiguos); los modelos 2 y 3 de D97 se muestran también con los 72 meses. "
+                      f"El percentil 75 se calcula sobre los {len(reg)} meses con registro: {f(float(np.percentile(reg, 75)), 0)} muertes; {len(sobre)} meses lo superan: {', '.join(sobre)}. Correlación entre el log de las muertes y la indicadora: {f(cor.iloc[0, 0], 2)}.", "",
+                      "Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98; 2c a 3d con el log de las muertes y la indicadora del percentil 75 (sensibilidad); **2e y 3e con solo el log de las muertes (principales; decisión tomada después de ver los resultados, D99)**. "
+                      "El BIC solo es comparable dentro de una muestra.", "", tabla(tabla_m), "",
                       "Coeficientes de los términos de COVID y del autorregresivo, con errores estándar de Newey-West:", "", tabla(tabla_c), "",
-                      f"- Con los {len(reg)} meses con registro, el Ljung-Box a 12 rezagos da p = {f(c47.loc['2', 'ljung_box_12_p'], 3)} (modelo 2), {f(c47.loc['3', 'ljung_box_12_p'], 3)} (3), {f(c47.loc['2c', 'ljung_box_12_p'], 3)} (2c), {f(c47.loc['3c', 'ljung_box_12_p'], 3)} (3c), {f(c47.loc['2d', 'ljung_box_12_p'], 3)} (2d) y {f(c47.loc['3d', 'ljung_box_12_p'], 3)} (3d); con los modelos de D98 con indicadora de julio a septiembre de 2020, {f(c47.loc['2b', 'ljung_box_12_p'], 3)} (2b) y {f(c47.loc['3b', 'ljung_box_12_p'], 3)} (3b). "
-                      f"Pasan ambos supuestos: {', '.join(pasan.index) or 'ninguno'}. Con los 72 meses, los modelos 2 y 3 sin COVID fallan (p = {f(s72.loc['2', 'ljung_box_12_p'], 3)} y {f(s72.loc['3', 'ljung_box_12_p'], 3)}).",
-                      f"- **La señal estacional se mantiene** en todos los modelos: el contraste conjunto de la parte estacional con errores de Newey-West da p < 0,0001 en las {len(m)} especificaciones y la amplitud del armónico de 12 meses queda entre {f(m['amplitud_12'].min(), 2)} y {f(m['amplitud_12'].max(), 2)}.",
-                      f"- El log de las muertes queda asociado con más contratos en todos los modelos (coeficiente {f(lcov['estimador'].min(), 2)} a {f(lcov['estimador'].max(), 2)}; p de Newey-West ≤ {f(lcov['p_newey_west'].max(), 4)}). La indicadora del percentil 75 sale con signo negativo ({f(alto['estimador'].min(), 2)} a {f(alto['estimador'].max(), 2)}) y solo es significativa en los modelos de mes y año; está correlacionada con el log de las muertes ({f(cor.iloc[0, 0], 2)}), de modo que sus coeficientes no se interpretan por separado. La asociación es descriptiva y no se interpreta como causal.",
-                      f"- El menor BIC entre los modelos con registro es el {mejor} ({f(c47.loc[mejor, 'BIC'], 1)}); los que quedan a menos de 2 puntos: {', '.join(k for k in c47.index if k != mejor and c47.loc[k, 'dBIC'] < 2) or 'ninguno'}.", ""])
+                      f"- Pasan ambos supuestos (Ljung-Box a 12 rezagos y normalidad de residuos cuantílicos): {', '.join(pasan.index) or 'ninguno'}. De los modelos principales pasa {', '.join(pp.index) or 'ninguno'}; el de menor BIC entre todos los que pasan es el {menor} ({f(pasan.loc[menor, 'BIC'], 1)}). Con los 72 meses, los modelos 2 y 3 sin COVID fallan (p = {f(s72.loc['2', 'ljung_box_12_p'], 3)} y {f(s72.loc['3', 'ljung_box_12_p'], 3)}).",
+                      f"- **La señal estacional se mantiene** en todos los modelos: Wald de la parte estacional con Newey-West p < 0,0001 en las {len(m)} especificaciones; amplitud de 12 meses entre {f(m['amplitud_12'].min(), 2)} y {f(m['amplitud_12'].max(), 2)}.",
+                      f"- El log de las muertes queda asociado con más contratos en el modelo principal 2e ({f(_coef(lcov, '2e', 'estimador'), 3)}; p de Newey-West {f(_coef(lcov, '2e', 'p_newey_west'), 4)}) y con menos precisión con armónicos (3e: p = {f(_coef(lcov, '3e', 'p_newey_west'), 4)}). La asociación es descriptiva y no causal.", "",
+                      "**Serie filtrada frente a sin filtrar:**", "", tabla(comp), "",
+                      "- Los meses del año de mayor contratación y el perfil mensual de los efectos de mes del modelo 2e prácticamente no cambian con la serie (correlación de 0,999).", ""])
 
 
 

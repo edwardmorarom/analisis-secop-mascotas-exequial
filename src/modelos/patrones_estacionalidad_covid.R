@@ -7,7 +7,10 @@ dir_out <- file.path(dir_res, "patrones")
 dir_fig <- file.path(raiz, "docs", "resultados", "graficos", "patrones")
 
 b <- read.csv(file.path(dir_res, "patrones_base.csv"), stringsAsFactors = FALSE)
-cv <- read.csv(file.path(dir_out, "covid_muertes_mensual.csv"), stringsAsFactors = FALSE)
+args <- commandArgs(trailingOnly = TRUE)
+sin_filtrar <- "--sin-filtrar" %in% args
+sufijo <- if (sin_filtrar) "_sin_filtrar" else ""
+cv <- read.csv(file.path(dir_out, paste0("covid_muertes_mensual", sufijo, ".csv")), stringsAsFactors = FALSE)
 meses <- cv$mes_txt
 d <- data.frame(mes_txt = meses, y = as.integer(table(factor(b$mes, levels = meses))))
 d$anio <- factor(substr(d$mes_txt, 1, 4), levels = c("2025", "2020", "2021", "2022", "2023", "2024"))
@@ -49,11 +52,13 @@ formulas <- list(
   "2c mes, año y COVID" = y ~ mes + anio + lcovid + alto,
   "3c armónicos, tendencia y COVID" = y ~ s12 + c12 + s6 + c6 + t + lcovid + alto,
   "2d mes, año, AR y COVID" = y ~ mes + anio + lagy + lcovid + alto,
-  "3d armónicos, tendencia, AR y COVID" = y ~ s12 + c12 + s6 + c6 + t + lagy + lcovid + alto)
+  "3d armónicos, tendencia, AR y COVID" = y ~ s12 + c12 + s6 + c6 + t + lagy + lcovid + alto,
+  "2e mes, año y log COVID (principal)" = y ~ mes + anio + lcovid,
+  "3e armónicos, tendencia y log COVID (principal)" = y ~ s12 + c12 + s6 + c6 + t + lcovid)
 # Muestras: 72 meses (sin término autorregresivo) y 71 meses (sin el primer mes), donde caben todos los modelos
 con <- d[!is.na(d$lcovid), ]
 stopifnot(all(diff(con$t) == 1))
-panel <- list("72 meses (sin términos de COVID)" = list(datos = d, modelos = 1:2), "meses con registro de COVID" = list(datos = con, modelos = 1:8))
+panel <- list("72 meses (sin términos de COVID)" = list(datos = d, modelos = 1:2), "meses con registro de COVID" = list(datos = con, modelos = 1:10))
 
 resultados <- list(); coefs <- list()
 for (nm in names(panel)) {
@@ -80,9 +85,9 @@ res$falla_normalidad_rq <- abs(res$asimetria_rq) > 1 | res$exceso_curtosis_rq > 
 cf <- do.call(rbind, coefs)
 # correlación entre los dos términos COVID
 cor_cov <- data.frame(correlacion_log_muertes_e_indicadora = cor(con$lcovid, con$alto), correlacion_log_muertes_con_jul_sep_2020 = cor(con$lcovid, con$jas2020))
-write.csv(res, file.path(dir_out, "estacionalidad_covid_modelos.csv"), row.names = FALSE, fileEncoding = "UTF-8")
-write.csv(cf, file.path(dir_out, "estacionalidad_covid_coeficientes.csv"), row.names = FALSE, fileEncoding = "UTF-8")
-write.csv(cor_cov, file.path(dir_out, "estacionalidad_covid_correlacion.csv"), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(res, file.path(dir_out, paste0("estacionalidad_covid_modelos", sufijo, ".csv")), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(cf, file.path(dir_out, paste0("estacionalidad_covid_coeficientes", sufijo, ".csv")), row.names = FALSE, fileEncoding = "UTF-8")
+write.csv(cor_cov, file.path(dir_out, paste0("estacionalidad_covid_correlacion", sufijo, ".csv")), row.names = FALSE, fileEncoding = "UTF-8")
 print(res[, c("muestra", "modelo", "parametros", "BIC", "dBIC", "ljung_box_12_p", "asimetria_rq", "exceso_curtosis_rq", "wald_p_newey_west", "amplitud_12")], digits = 3)
 print(cf[cf$termino %in% c("lagy", "lcovid", "alto", "jas2020"), ], digits = 3)
 print(cor_cov)

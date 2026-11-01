@@ -389,46 +389,64 @@ Todos los modelos se ajustan a los mismos 71 meses (febrero de 2020 a diciembre 
 
 ### 4. Muertes COVID mensuales en lugar de la indicadora de julio a septiembre de 2020 (D99, exploratorio)
 
-Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), una consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). La serie tiene 184.393 fallecidos de marzo de 2020 a enero de 2024 (pico de 19.415 en 2021-06). Los 25 meses sin registro (enero y febrero de 2020 y desde febrero de 2024) son **faltantes, no ceros**: los modelos con términos de COVID se ajustan solo a los 47 meses con registro (marzo de 2020 a enero de 2024, contiguos), y los modelos 2 y 3 de D97 se muestran además con los 72 meses. El percentil 75 se calcula sobre los 47 meses con registro: 6.386 muertes; 12 meses lo superan: 2020-07, 2020-08, 2020-09, 2020-11, 2020-12, 2021-01, 2021-02, 2021-04, 2021-05, 2021-06, 2021-07, 2022-01. Correlación entre el log de las muertes y la indicadora del percentil 75: 0,68.
+Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). **Serie principal: solo los registros con estado «Fallecido»** (consulta filtrada), 143.125 fallecidos de marzo de 2020 a enero de 2024 (pico de 18.013 en 2021-06); la primera consulta (toda fila con `fecha_muerte`, 184.393) queda como serie sin filtrar y se compara abajo. Los 25 meses sin registro (enero y febrero de 2020 y desde febrero de 2024) son **faltantes, no ceros**: los modelos con COVID se ajustan a los 47 meses con registro (contiguos); los modelos 2 y 3 de D97 se muestran también con los 72 meses. El percentil 75 se calcula sobre los 47 meses con registro: 5.105 muertes; 12 meses lo superan: 2020-07, 2020-08, 2020-09, 2020-10, 2020-11, 2020-12, 2021-01, 2021-02, 2021-04, 2021-05, 2021-06, 2021-07. Correlación entre el log de las muertes y la indicadora: 0,72.
 
-Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98 (autorregresivo e indicadora de julio a septiembre de 2020); 2c y 3c con las muertes (log + 1) y la indicadora del percentil 75 sin autorregresivo; 2d y 3d con autorregresivo y esos dos términos. Los ocho se comparan en los mismos meses; el BIC solo es comparable dentro de una muestra.
+Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98; 2c a 3d con el log de las muertes y la indicadora del percentil 75 (sensibilidad); **2e y 3e con solo el log de las muertes (principales; decisión tomada después de ver los resultados, D99)**. El BIC solo es comparable dentro de una muestra.
 
 | muestra | modelo | parámetros | BIC | ΔBIC (en su muestra) | Ljung-Box 6 (p) | Ljung-Box 12 (p) | exceso de curtosis RQ | Wald de la parte estacional, p (Newey-West) | amplitud de 12 meses | falla |
 |---|---|---|---|---|---|---|---|---|---|---|
 | 72 meses (sin términos de COVID) | 2 mes y año | 18 | 656,4 | 32,5 | 0,019 | 0,020 | 0,13 | < 0,0001 |  | autocorrelación |
 | 72 meses (sin términos de COVID) | 3 armónicos y tendencia | 7 | 624,0 | 0,0 | 0,011 | 0,037 | -0,74 | < 0,0001 | 0,56 | autocorrelación |
-| meses con registro de COVID | 2 mes y año | 17 | 433,8 | 23,3 | 0,041 | 0,091 | 2,76 | < 0,0001 |  | ninguno |
-| meses con registro de COVID | 3 armónicos y tendencia | 7 | 414,0 | 3,6 | 0,101 | 0,020 | -0,46 | < 0,0001 | 0,54 | autocorrelación |
-| meses con registro de COVID | 2b mes, año, AR y jul–sep 2020 (D98) | 19 | 427,9 | 17,4 | 0,000 | 0,000 | 0,34 | < 0,0001 |  | autocorrelación |
-| meses con registro de COVID | 3b armónicos, tendencia, AR y jul–sep 2020 (D98) | 9 | 415,7 | 5,2 | 0,053 | 0,010 | -0,71 | < 0,0001 | 0,45 | autocorrelación |
-| meses con registro de COVID | 2c mes, año y COVID | 19 | 410,5 | 0,0 | 0,616 | 0,134 | -0,32 | < 0,0001 |  | ninguno |
-| meses con registro de COVID | 3c armónicos, tendencia y COVID | 9 | 411,9 | 1,4 | 0,131 | 0,060 | -1,01 | < 0,0001 | 0,54 | ninguno |
-| meses con registro de COVID | 2d mes, año, AR y COVID | 20 | 414,3 | 3,8 | 0,697 | 0,129 | -0,32 | < 0,0001 |  | ninguno |
-| meses con registro de COVID | 3d armónicos, tendencia, AR y COVID | 10 | 414,0 | 3,5 | 0,183 | 0,086 | -1,13 | < 0,0001 | 0,46 | ninguno |
+| meses con registro de COVID | 2 mes y año | 17 | 433,8 | 20,0 | 0,041 | 0,091 | 2,76 | < 0,0001 |  | ninguno |
+| meses con registro de COVID | 3 armónicos y tendencia | 7 | 414,0 | 0,2 | 0,101 | 0,020 | -0,46 | < 0,0001 | 0,54 | autocorrelación |
+| meses con registro de COVID | 2b mes, año, AR y jul–sep 2020 (D98) | 19 | 427,9 | 14,1 | 0,000 | 0,000 | 0,34 | < 0,0001 |  | autocorrelación |
+| meses con registro de COVID | 3b armónicos, tendencia, AR y jul–sep 2020 (D98) | 9 | 415,7 | 1,9 | 0,053 | 0,010 | -0,71 | < 0,0001 | 0,45 | autocorrelación |
+| meses con registro de COVID | 2c mes, año y COVID | 19 | 420,1 | 6,3 | 0,260 | 0,114 | -0,56 | < 0,0001 |  | ninguno |
+| meses con registro de COVID | 3c armónicos, tendencia y COVID | 9 | 417,5 | 3,7 | 0,102 | 0,015 | -0,91 | < 0,0001 | 0,55 | autocorrelación |
+| meses con registro de COVID | 2d mes, año, AR y COVID | 20 | 421,7 | 7,9 | 0,061 | 0,025 | -0,68 | < 0,0001 |  | autocorrelación |
+| meses con registro de COVID | 3d armónicos, tendencia, AR y COVID | 10 | 418,1 | 4,3 | 0,151 | 0,039 | -1,05 | < 0,0001 | 0,43 | autocorrelación |
+| meses con registro de COVID | 2e mes, año y log COVID (principal) | 18 | 420,1 | 6,3 | 0,503 | 0,161 | -0,78 | < 0,0001 |  | ninguno |
+| meses con registro de COVID | 3e armónicos, tendencia y log COVID (principal) | 8 | 413,8 | 0,0 | 0,105 | 0,011 | -0,95 | < 0,0001 | 0,55 | autocorrelación |
 
 Coeficientes de los términos de COVID y del autorregresivo, con errores estándar de Newey-West:
 
-| muestra | modelo | término | estimador | EE del modelo | EE Newey-West | p Newey-West |
-|---|---|---|---|---|---|---|
-| meses con registro de COVID | 2b | autorregresivo | 0,372 | 0,125 | 0,093 | 0,0001 |
-| meses con registro de COVID | 2b | jul–sep 2020 | 0,185 | 0,143 | 0,075 | 0,0130 |
-| meses con registro de COVID | 3b | autorregresivo | 0,266 | 0,144 | 0,114 | 0,0193 |
-| meses con registro de COVID | 3b | jul–sep 2020 | 0,170 | 0,160 | 0,085 | 0,0440 |
-| meses con registro de COVID | 2c | log(1 + muertes COVID del mes) | 0,152 | 0,020 | 0,022 | 0,0000 |
-| meses con registro de COVID | 2c | mes sobre el percentil 75 | -0,146 | 0,064 | 0,067 | 0,0300 |
-| meses con registro de COVID | 3c | log(1 + muertes COVID del mes) | 0,095 | 0,027 | 0,020 | 0,0000 |
-| meses con registro de COVID | 3c | mes sobre el percentil 75 | -0,125 | 0,097 | 0,083 | 0,1317 |
-| meses con registro de COVID | 2d | autorregresivo | -0,036 | 0,125 | 0,129 | 0,7817 |
-| meses con registro de COVID | 2d | log(1 + muertes COVID del mes) | 0,158 | 0,028 | 0,035 | 0,0000 |
-| meses con registro de COVID | 2d | mes sobre el percentil 75 | -0,148 | 0,064 | 0,070 | 0,0341 |
-| meses con registro de COVID | 3d | autorregresivo | 0,187 | 0,138 | 0,108 | 0,0853 |
-| meses con registro de COVID | 3d | log(1 + muertes COVID del mes) | 0,080 | 0,029 | 0,021 | 0,0001 |
-| meses con registro de COVID | 3d | mes sobre el percentil 75 | -0,122 | 0,094 | 0,081 | 0,1314 |
+| modelo | término | estimador | EE Newey-West | p Newey-West |
+|---|---|---|---|---|
+| 2b | autorregresivo | 0,372 | 0,093 | 0,0001 |
+| 2b | jul–sep 2020 | 0,185 | 0,075 | 0,0130 |
+| 3b | autorregresivo | 0,266 | 0,114 | 0,0193 |
+| 3b | jul–sep 2020 | 0,170 | 0,085 | 0,0440 |
+| 2c | log(1 + muertes COVID del mes) | 0,131 | 0,029 | 0,0000 |
+| 2c | mes sobre el percentil 75 | -0,153 | 0,075 | 0,0405 |
+| 3c | log(1 + muertes COVID del mes) | 0,056 | 0,030 | 0,0644 |
+| 3c | mes sobre el percentil 75 | -0,034 | 0,097 | 0,7296 |
+| 2d | autorregresivo | 0,189 | 0,110 | 0,0849 |
+| 2d | log(1 + muertes COVID del mes) | 0,108 | 0,033 | 0,0013 |
+| 2d | mes sobre el percentil 75 | -0,151 | 0,071 | 0,0322 |
+| 3d | autorregresivo | 0,266 | 0,104 | 0,0104 |
+| 3d | log(1 + muertes COVID del mes) | 0,045 | 0,028 | 0,1015 |
+| 3d | mes sobre el percentil 75 | -0,068 | 0,075 | 0,3677 |
+| 2e | log(1 + muertes COVID del mes) | 0,103 | 0,024 | 0,0000 |
+| 3e | log(1 + muertes COVID del mes) | 0,052 | 0,029 | 0,0724 |
 
-- Con los 47 meses con registro, el Ljung-Box a 12 rezagos da p = 0,091 (modelo 2), 0,020 (3), 0,134 (2c), 0,060 (3c), 0,129 (2d) y 0,086 (3d); con los modelos de D98 con indicadora de julio a septiembre de 2020, 0,000 (2b) y 0,010 (3b). Pasan ambos supuestos: 2, 2c, 3c, 2d, 3d. Con los 72 meses, los modelos 2 y 3 sin COVID fallan (p = 0,020 y 0,037).
-- **La señal estacional se mantiene** en todos los modelos: el contraste conjunto de la parte estacional con errores de Newey-West da p < 0,0001 en las 10 especificaciones y la amplitud del armónico de 12 meses queda entre 0,45 y 0,56.
-- El log de las muertes queda asociado con más contratos en todos los modelos (coeficiente 0,08 a 0,16; p de Newey-West ≤ 0,0001). La indicadora del percentil 75 sale con signo negativo (-0,15 a -0,12) y solo es significativa en los modelos de mes y año; está correlacionada con el log de las muertes (0,68), de modo que sus coeficientes no se interpretan por separado. La asociación es descriptiva y no se interpreta como causal.
-- El menor BIC entre los modelos con registro es el 2c (410,5); los que quedan a menos de 2 puntos: 3c.
+- Pasan ambos supuestos (Ljung-Box a 12 rezagos y normalidad de residuos cuantílicos): 2, 2c, 2e. De los modelos principales pasa 2e; el de menor BIC entre todos los que pasan es el 2e (420,1). Con los 72 meses, los modelos 2 y 3 sin COVID fallan (p = 0,020 y 0,037).
+- **La señal estacional se mantiene** en todos los modelos: Wald de la parte estacional con Newey-West p < 0,0001 en las 12 especificaciones; amplitud de 12 meses entre 0,43 y 0,56.
+- El log de las muertes queda asociado con más contratos en el modelo principal 2e (0,103; p de Newey-West 0,0000) y con menos precisión con armónicos (3e: p = 0,0724). La asociación es descriptiva y no causal.
+
+**Serie filtrada frente a sin filtrar:**
+
+|  | serie filtrada (estado Fallecido; principal) | serie sin filtrar (toda fecha_muerte) |
+|---|---|---|
+| Fallecidos en la serie | 143.125 | 184.393 |
+| Meses sobre el percentil 75 | 12 | 12 |
+| Modelos que pasan los supuestos | 2, 2c, 2e | 2, 2c, 3c, 2d, 3d, 2e |
+| Menor BIC entre los que pasan | 2e (420,1) | 2c (410,5) |
+| Contraste estacional (Newey-West) | p < 0,0001 en las 12 | p < 0,0001 en las 12 |
+| Amplitud de 12 meses (rango) | 0,43 a 0,56 | 0,45 a 0,56 |
+| Log de las muertes, modelo 2e: coeficiente (p Newey-West) | 0,103 (0,0000) | 0,126 (0,0000) |
+| Tres meses del año con mayor efecto (2e) | 03, 02, 04 | 03, 02, 04 |
+
+- Los meses del año de mayor contratación y el perfil mensual de los efectos de mes del modelo 2e prácticamente no cambian con la serie (correlación de 0,999).
 
 ### Limitaciones del análisis exploratorio
 

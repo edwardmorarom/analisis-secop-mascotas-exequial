@@ -30,7 +30,7 @@ def elegir(columnas, patron, tipos=None):
     return None
 
 
-def main():
+def main(solo_fallecidos=False):
     columnas = columnas_del_conjunto()
     if columnas is None:
         print("El conjunto gt2j-8ykr no existe o no responde: no se descarga nada.")
@@ -45,9 +45,12 @@ def main():
     mes = f"substring({muerte}, 1, 7)"
     seleccion = f"{mes} as mes" + (f", {depto} as departamento" if depto else "") + ", count(*) as fallecidos"
     grupo = "mes" + (", departamento" if depto else "")
-    params = {"$select": seleccion, "$where": f"{muerte} IS NOT NULL AND substring({muerte}, 1, 4) between '{DESDE}' and '{HASTA}'", "$group": grupo, "$order": "mes", "$limit": 50000}
+    donde = f"{muerte} IS NOT NULL AND substring({muerte}, 1, 4) between '{DESDE}' and '{HASTA}'"
+    if solo_fallecidos:
+        donde += " AND upper(estado) = 'FALLECIDO'"
+    params = {"$select": seleccion, "$where": donde, "$group": grupo, "$order": "mes", "$limit": 50000}
     filas = consultar(DOMINIO, DATASET, params)
-    destino = ruta(cargar_config(), "raw") / "covid" / f"ins_covid_fallecidos_mes_{date.today():%Y%m%d}.jsonl"
+    destino = ruta(cargar_config(), "raw") / "covid" / f"ins_covid_fallecidos_{'estado_' if solo_fallecidos else ''}mes_{date.today():%Y%m%d}.jsonl"
     if destino.exists():
         print(destino.name, "ya existe: no se sobrescribe")
         return 1
@@ -61,4 +64,4 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(solo_fallecidos="--solo-fallecidos" in sys.argv))
