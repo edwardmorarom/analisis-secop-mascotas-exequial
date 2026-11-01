@@ -1,0 +1,65 @@
+# Commits de la rama modelos que entrarían en main (F4)
+
+Generado con `git log --reverse main..modelos` el 2026-11-01, antes del commit que contiene este archivo y el cierre de D99 (que también entra). No se hizo el merge.
+
+- `b673d3d` feat(modelos): clasificar los 34.790 contratos con TF-IDF y e5 (D61)
+- `37b811c` feat(modelos): validación externa de 60 contratos y regla para la corrida de DeepSeek (D62)
+- `735d672` feat(modelos): script de evaluación de la validación externa con métricas sin ponderar y matrices (D62)
+- `b9f10d5` docs: resultado de la validación externa y aplicación de la regla D62 (D63)
+- `36c7219` chore: ignorar la configuración local de Claude
+- `61bac57` docs: avance del reporte nocturno (pasos 2 y 4)
+- `78e6a8a` feat(modelos): ubicar los contratos por la entidad compradora con DIVIPOLA (D66)
+- `6eeb59d` feat(modelos): series de número y valor en pesos constantes y por 100.000 habitantes (D67)
+- `f20f0ca` feat(modelos): patrones de compra, proveedores, gráficos e informe del mercado público (D68, D69)
+- `4116730` docs: estado de las fases en CLAUDE.md
+- `c2175a8` docs: cierre del reporte nocturno y ajuste del estado de las fases
+- `721c853` docs: D66 y D67 vigentes, adiciones como sensibilidad y revisión de siete etiquetas
+- `1b881c8` docs: conteo de SECOP I en 2023-2025 sin descarga y advertencia de cobertura (D70)
+- `3aa0e2f` feat(modelos): indicadores de componentes no excluyentes en lugar del subtipo único (D68)
+- `63576f3` Merge main en modelos: traer F3 (D64, D65) y los PR integrados
+- `03a9cbf` feat(modelos): robustez con SVM lineal y XGBoost y propuesta de contraste con la EM 2021 (D71, D72)
+- `f4c7404` feat(etl): extender SECOP I a 2023-2025 con el procedimiento de D42 y D18 (D73)
+- `a8c0e27` docs: variable de mascotas de la EM 2021 confirmada y capítulos a descargar (D75)
+- `d5226a5` feat(modelos): clasificar los contratos nuevos de SECOP I y recalcular el mercado, componentes y HHI (D67, D68, D69, D74)
+- `c87b499` fix(modelos): nota del gráfico de la serie anual con SECOP I completo
+- `82fd8d3` feat(etl): perros y gatos por municipio y localidad de la EM 2021 frente a MinSalud, y gasto en mascotas (D76)
+- `ed443b4` feat(modelos): descomposición del HHI de 2025, componentes reportados y diseño muestral (D77, D78, D79)
+- `ef8dbda` docs: evaluación en SECOP I 2023-2025 y validación externa con las siete etiquetas revisadas (D80)
+- `cf78de2` feat(modelos): etiquetas humanas de los dos contratos dudosos de 2025 y recálculo del mercado (D81)
+- `b2ae6c9` docs: D69 vigente con HHI departamental como medida principal y los 10 mayores contratos de 2020-2024 (D82)
+- `208771e` feat(modelos): revisión censal por valor de los 50 contratos de mayor valor (D83)
+- `8ff2cb3` feat(modelos): jerarquía de etiquetas humanas, estimador de diferencia y revisión por valor (D84, D85, D86)
+- `9b6e946` feat(modelos): verificación del estimador de diferencia (D85 sin cambios)
+- `e2831ba` feat(modelos): diagnóstico de los contratos mixtos de mayor valor (solo evidencia)
+- `265184f` docs: la línea de mascotas se llama Previsión Exequial de Mascotas (D87)
+- `8fa834d` docs(ins): corrección del INS como contraste de MinSalud y prueba sin denominador compartido (D88)
+- `0dcca1b` feat(modelos): sensibilidad del mercado a contratos mixtos humanitarios, M214 y traslado (solo diagnóstico)
+- `1e68841` docs(decisiones): D89 mercado solo funerario, D90 estimador con estrato humanitario, D91 lotes de etiquetado; código de los lotes
+- `894fae8` feat(modelos): bloque 1: etiquetas de los lotes, estimador principal (D90, D93), regla D92, robustez revisada, semillas y no recuperados (D22)
+- `0b1c4a2` docs(modelos): coeficientes del modelo TF-IDF con las etiquetas vigentes (bloque 3, solo reporte)
+- `789e689` docs(modelos): perfil de variables de los contratos funerarios de SECOP I y II (bloque 2, solo diagnóstico)
+- `0b240b5` docs: resumen de seguimiento del 2026-10-29 (bloque 4)
+- `542d6bc` feat(modelos): D92 con decisiones de Edward (V046 no_funerario, limitación de los 117), D80 tercera versión, D22 copia fija del marco y uso de los no recuperados, limitaciones del informe
+- `c44f5ed` docs(decisiones): D94 no se ejecuta la corrida completa de DeepSeek; D63 cerrada, limitación de D62
+- `3586bb3` docs(decisiones): estado de D70, D72, D75 y D82 resuelto
+- `c7d9715` docs(decisiones): D22 resultado de los 100 no recuperados, D95 validación de variables derivadas y propuesta de componentes; lote derivadas_entidad_2
+- `0ea2610` feat(modelos): D95 ajuste B de componentes aplicado, lote servicios_funebres_10, protección de libros de Excel
+- `213d1bb` docs(decisiones): D96 evaluación de derivadas_entidad_2 y servicios_funebres_10, propuestas sin aplicar
+- `a88a8de` feat(modelos): D96 ajuste de tipo de entidad y regla A1 aplicados; perfil de variables, componentes y patrones regenerados
+- `751bbf0` docs(decisiones): D97 patrones de compra: preguntas, modelos, supuestos y regla de decisión, antes de los resultados
+- `e0eae07` feat(modelos): patrones de compra (D97): tipología de clases latentes, valor y estacionalidad, con informe
+- `8154cae` docs(decisiones): D98 enmienda exploratoria a D97, registrada antes de correr
+- `9376b00` feat(modelos): análisis exploratorio D98 (regresión por cuantiles, poLCA sin variables redundantes, estacionalidad con autorregresivo), informe actualizado
+- `0050c19` fix(modelos): sintaxis del informe D98 y sección de limitaciones
+- `d593501` docs(decisiones): D99 qué se reporta de los patrones de compra (propuesta)
+- `bb6e2d0` feat(modelos): muertes COVID mensuales (INS gt2j-8ykr) en la estacionalidad; fuente y resultados en D99
+- `5a1597f` test+docs: reproducibilidad (cifras regeneradas frente a reportadas), verificación de citas de decisiones y pruebas pytest
+- `0119b1f` docs: resumen de seguimiento del 2026-11-01 (bloque 4)
+- `89832e7` docs+fix: D99 enmienda (7 contratos de valor 0 excluidos; meses COVID sin registro como faltantes), nota de imputación forense en D54
+- `75e21f1` docs: bloque A, resumen corregido (COVID con faltantes) y limitación de estacionalidad actualizada
+- `f54a018` feat(covid): serie filtrada por estado Fallecido (143.125), modelo principal con solo el log, comparación con la sin filtrar; D99 enmienda
+- `c3a7b88` docs(decisiones): notas de actualización en D84, D85, D86, D89 y D90
+- `14a065f` fix(robustez): XGBoost con un solo hilo, cifra reproducible en D71 y prueba
+- `d835ba9` feat(patrones): criterio de grupos de HCPC (Jaccard >= 0,75 y >= 1 %), prueba v y enmienda de D99
+- `5cdbab2` docs: cierre de F4 generado desde los CSV y prueba de coincidencia
+- `55404a8` docs: resumen de seguimiento del 2026-11-01 (segunda sesión)

@@ -78,6 +78,7 @@ Lo que llena Harold a mano: `data/raw/meta_ads/facebook_prestadores_20261021.xls
 - Semillas fijas para muestreos (`seed: 2026`).
 - **Registro de decisiones.** Toda decisión de método (fuente, filtro, estructura de datos, modelo, parámetro, regla de etiquetado) se registra en `docs/decisiones.md` con **Decisión, Por qué** (con evidencia: cifras, archivo, commit), **Descartado, Sustento y Estado**, en el mismo commit que la implementa. Nunca se borra una decisión: se marca como reemplazada. Es el registro oficial; si este archivo y `decisiones.md` difieren, manda `decisiones.md`.
 - **Control de versiones.** Al final de cada fase o sesión de trabajo se verifica `git status` y se hace push de la rama activa. `main` solo recibe fases cerradas, con `git merge --no-ff` y un mensaje que resume la fase y lista sus decisiones (D-números). Antes de subir se comprueba que no haya `data/`, `.env`, claves ni libros de etiquetado en el índice ni en el historial.
+- **Nombres.** No usar nombres comerciales de servicios o empresas existentes; la línea se llama Previsión Exequial de Mascotas.
 - Código limpio y con pocos comentarios.
 - No leer archivos de datos completos en el contexto: usar muestras o resúmenes generados con código.
 - No guardar datos personales: ni representantes legales, supervisores, ordenadores, cuentas bancarias, documentos de personas, ni contactos de las cámaras de comercio.
@@ -156,6 +157,17 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 | F7 Evaluación | informe de evaluación | umbrales (abajo) |
 | F8 Análisis | indicadores, mapas, tipología | cada cifra rastreable |
 | F9 Entrega | documento Word, tablero, README | revisión del equipo |
+
+## Estado de las fases (2026-10-26)
+
+| Fase | Estado |
+|---|---|
+| F0 Preparación | repo, entorno y claves listos; Langfuse y Docker sin verificar en este registro |
+| F1 Adquisición | cerrada (D28); integrada en `main` |
+| F2 Extracción | cerrada (D28): MinSalud 2014–2024 (D44–D53); integrada en `main` |
+| F3 Armonización | cerrada en la rama `etl` (D64, D65: INS 2022–2025, panel de agresiones, `incidencias.csv`); D65 está marcada como propuesta; sin integrar en `main` |
+| F4 SECOP | en curso, rama `modelos`: clasificadores y validación externa hechos (D55–D63; TF-IDF elegido, DeepSeek no aprobado); mercado público en borrador (D66–D69, todas propuestas), pendiente de revisión de Edward; sin integrar en `main` |
+| F5–F9 | pendientes |
 
 ## Análisis SECOP
 

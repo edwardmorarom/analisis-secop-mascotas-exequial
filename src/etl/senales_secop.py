@@ -56,10 +56,11 @@ def censurar(df, conteo=None, ejemplos=None):
 def seudonimizar_proveedores(s1, s2, config):
     """D15: nombres y documentos de personas naturales salen de interim; las jurídicas conservan nombre y NIT."""
     llave = clave()
-    ruta_ids = ruta(config, "interim") / "secop1_contratistas.parquet"
-    if not ruta_ids.exists():
+    archivos_ids = sorted((ruta(config, "interim")).glob("secop1_contratistas*.parquet"))
+    if not archivos_ids:
         raise FileNotFoundError("Falta secop1_contratistas.parquet: ejecute python -m src.etl.contratistas_secop1")
-    ids = pd.read_parquet(ruta_ids)[["uid", "contratista_persona_natural", "contratista_id"]]
+    ids = pd.concat([pd.read_parquet(a)[["uid", "contratista_persona_natural", "contratista_id"]] for a in archivos_ids]
+                    ).drop_duplicates("uid", keep="first")
     s1 = s1.merge(ids, on="uid", how="left", validate="one_to_one")
     if s1["contratista_id"].isna().any() and s1["contratista_persona_natural"].isna().any():
         raise ValueError("uid de SECOP I sin identificador de contratista")
@@ -77,7 +78,8 @@ def seudonimizar_proveedores(s1, s2, config):
 def cargar(config, conteo=None, ejemplos=None):
     raw = ruta(config, "raw") / "secop"
     s2 = pd.read_json(raw / "secop2_candidatos_2020_2025.jsonl", lines=True, dtype=False)
-    s1 = pd.read_json(raw / "secop1_candidatos_2020_2022.jsonl", lines=True, dtype=False)
+    s1 = pd.concat([pd.read_json(a, lines=True, dtype=False) for a in sorted(raw.glob("secop1_candidatos_*.jsonl"))],
+                   ignore_index=True)
     s2 = s2.assign(fuente="secop2", llave=s2["id_contrato"], objeto=s2["objeto_del_contrato"],
                    descripcion=s2["descripcion_del_proceso"],
                    codigo=s2["codigo_de_categoria_principal"].fillna("").str.replace("V1.", "", regex=False),
