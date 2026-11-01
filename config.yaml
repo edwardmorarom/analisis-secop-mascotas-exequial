@@ -59,5 +59,8 @@ evaluacion:
     municipios_borrados: 10
     coberturas_100: 10
     saltos_falsos: 5
+  falsas_alarmas_definicion: "alarmas sobre registros sin falla sembrada ni incidencia previa en incidencias.csv, entre el total de alarmas; las alarmas sobre incidencias reales se reportan aparte (A03)"
+  categorias_diagnostico: [error_extraccion, error_pdf_origen, imputacion_minsalud, cambio_real, no_determinable]
+  anclaje_derivados: "el 100 % se exige sobre valores impresos en el PDF; los valores derivados se verifican recalculandolos desde los impresos citados (A03)"
   consistencia_corridas: 3
   revision_aleatoria_alta: 60

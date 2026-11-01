@@ -1,3 +1,5 @@
+> Si trabajas en la rama agentes, lee primero docs/agente/ESPECIFICACION.md, src/agentes/CLAUDE.md y docs/decisiones_agente.md, y propón un plan antes de escribir código.
+
 # CLAUDE.md — Mercado funerario (SECOP) y Previsión Exequial de Mascotas
 
 Proyecto de consultoría USTA. Equipo: Edward Mora (código), Natalia Carrero y Harold Funeme (revisión, fuentes manuales). Plazo: 10 días hábiles desde el 20 oct 2026. Sistema operativo del equipo: Windows (PowerShell).
@@ -209,7 +211,7 @@ orquestador → extraccion → validar (código) ─falla y <3 intentos→ extra
                                        └─pasa→ incidencias → revision_humana (interrupt) → cargar
 ```
 
-- Herramientas = funciones de `src/etl` y `src/modelos`: `descargar`, `extraer_pdf`, `validar`, `consultar`, `comparar_fuentes`, `correr_modelo`, `registrar_incidencia`.
+- Herramientas = funciones de `src/etl` y `src/modelos`: `extraer_pdf`, `validar`, `consultar`, `comparar_fuentes`, `correr_modelo`, `registrar_incidencia`.
 - Reglas en el grafo: máximo 3 reintentos, sin carga si falla la validación, tope de costo por corrida, el agente no edita `data/raw`.
 - Todo diagnóstico devuelve: `cod_divipola`, `anio`, `valor_citado`, `archivo`, `pagina`, `conclusion`.
 - Langfuse: `config={"callbacks": [CallbackHandler()]}` al invocar el grafo. Exportar el diagrama del grafo para el documento.

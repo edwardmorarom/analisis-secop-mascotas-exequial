@@ -42,7 +42,7 @@ orquestador → extraccion → validar (código, sin LLM) ─falla y < 3 intento
 - **Incidencias (diagnóstico):** el LLM propone una explicación de cada incidencia a partir de la evidencia que le entregan las herramientas; nunca de memoria.
 - **Revisión humana:** `interrupt` de LangGraph antes de cargar; la persona aprueba, rechaza o corrige.
 - **Herramientas = los scripts que ya existen en `src/etl`, que se importan y no se reescriben:** `extraer_minsalud` (y las variantes de 2014, 2016 y 2017), `extraer_ins`, `panel_minsalud`, `panel_agresiones`, `detectar_imputacion`, `incidencias`, `revisar_cruces`, `comun` y `manifiesto`. Si falta una función, se envuelve en `src/agentes/herramientas.py`; si hay que cambiar `src/etl`, se pide en `docs/agente/solicitudes.md`.
-- Herramientas expuestas al grafo (nombres): `descargar`, `extraer_pdf`, `validar`, `consultar`, `comparar_fuentes`, `registrar_incidencia`.
+- Herramientas expuestas al grafo (nombres): `extraer_pdf`, `validar`, `consultar`, `comparar_fuentes`, `registrar_incidencia`. **No hay herramienta de descarga:** el agente trabaja con el paquete de datos y no escribe en `data/raw`.
 
 ## 4. Reglas que impone el grafo (no el prompt)
 
@@ -63,7 +63,7 @@ orquestador → extraccion → validar (código, sin LLM) ─falla y < 3 intento
 
 ## 6. Evaluación F7 (D27)
 
-Los umbrales se fijan **antes de construir** y están en `config.yaml` (`evaluacion.umbrales`):
+Los umbrales se fijan **antes de construir** y están en `config.yaml` (`evaluacion.umbrales`; definiciones en A03):
 
 | Medida | Umbral |
 |---|---|
@@ -72,13 +72,13 @@ Los umbrales se fijan **antes de construir** y están en `config.yaml` (`evaluac
 | κ de Cohen entre agente y revisión humana | ≥ 0,70 |
 | Anclaje | 100 % |
 
-**Fallas sembradas.** Una copia del panel con **60 fallas** conocidas (semilla 2026): 20 duplicados, 15 dígitos cambiados, 10 municipios borrados, 10 coberturas forzadas al 100 % y 5 saltos falsos. Se mide cuántas detecta el agente y cuántas alarmas son falsas, con **intervalos de Wilson**. Código en `src/evaluacion/fallas_sembradas.py`.
+**Fallas sembradas.** Una copia del panel con **60 fallas** conocidas (semilla 2026): 20 duplicados, 15 dígitos cambiados, 10 municipios borrados, 10 coberturas forzadas al 100 % y 5 saltos falsos. Se mide cuántas detecta el agente y cuántas alarmas son falsas, con **intervalos de Wilson**. **Falsas alarmas (A03):** alarmas sobre registros que no tienen falla sembrada ni incidencia previa en `incidencias.csv`, divididas entre el total de alarmas; las alarmas sobre incidencias reales (las de `incidencias.csv`) se reportan aparte. Código en `src/evaluacion/fallas_sembradas.py`.
 
-**Anclaje.** `verificar_anclaje()` (`src/evaluacion/anclaje.py`) comprueba por código que el `valor_citado` exista en el `archivo`, el año y la `pagina` indicados. Debe dar 100 %.
+**Anclaje.** `verificar_anclaje()` (`src/evaluacion/anclaje.py`) comprueba por código que el `valor_citado` exista en el `archivo`, el año y la `pagina` indicados. Debe dar 100 %. **Alcance (A03):** el 100 % se exige sobre los **valores impresos en el PDF**; los **valores derivados** (coberturas, razones) se verifican recalculándolos desde los impresos citados.
 
 **Consistencia.** Cada incidencia real se corre **3 veces**; si los resultados no coinciden, la confianza es baja.
 
-**Revisión humana.** Todos los casos de confianza baja (Harold) y **60 al azar de confianza alta** (Natalia, semilla 2026). κ de Cohen entre el agente y la revisión; si hay 0 errores en 60, el error es menor que 5 % (regla del tres).
+**Revisión humana.** Todos los casos de confianza baja (Harold) y **60 al azar de confianza alta** (Natalia, semilla 2026). κ de Cohen entre el agente y la revisión, sobre las categorías de diagnóstico fijadas en A03: `error_extraccion`, `error_pdf_origen`, `imputacion_minsalud`, `cambio_real`, `no_determinable`; si hay 0 errores en 60, el error es menor que 5 % (regla del tres).
 
 ## 7. Definición de terminado
 
@@ -88,7 +88,7 @@ Los umbrales se fijan **antes de construir** y están en `config.yaml` (`evaluac
 - [ ] las reglas de la sección 4 están en el grafo y cada una tiene una prueba que falla si se quita;
 - [ ] no existe ninguna ruta de `validar` a `cargar` que no pase por `revision_humana`;
 - [ ] el tope de costo detiene una corrida simulada;
-- [ ] cada diagnóstico tiene los seis campos y pasa `verificar_anclaje()`;
+- [ ] cada diagnóstico tiene los seis campos y una categoría de A03, y pasa `verificar_anclaje()` (impresos en el PDF; derivados recalculados);
 - [ ] las trazas llegan a Langfuse y a `logs/*.jsonl`, con instrucción, modelo y respuesta;
 - [ ] el diagrama del grafo está exportado a `docs/agente/`;
 - [ ] `pytest` pasa y `git status` está limpio (sin `data/`, `.env`, claves ni trazas con datos en el índice);
@@ -98,7 +98,7 @@ Los umbrales se fijan **antes de construir** y están en `config.yaml` (`evaluac
 
 - [ ] los umbrales están registrados en `decisiones_agente.md` con fecha anterior a la primera evaluación;
 - [ ] la copia del panel con las 60 fallas sembradas existe y es reproducible (semilla 2026);
-- [ ] detección ≥ 90 % y falsas alarmas ≤ 10 %, con intervalos de Wilson;
+- [ ] detección ≥ 90 % y falsas alarmas ≤ 10 % (definición de A03), con intervalos de Wilson, y las alarmas sobre incidencias reales reportadas aparte;
 - [ ] anclaje de 100 %;
 - [ ] consistencia entre 3 corridas medida y los casos de confianza baja listados;
 - [ ] revisión humana hecha (todos los de confianza baja y 60 al azar de confianza alta), con κ ≥ 0,70 y la regla del tres;
