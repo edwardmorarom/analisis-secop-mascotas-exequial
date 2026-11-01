@@ -180,9 +180,9 @@ def construir():
          "- La cifra de XGBoost de D71 depende del número de hilos (0,887 original; 0,890 reproducible con un hilo).",
          "- Mortalidad de mascotas: vacío documentado; no se estiman escenarios de defunciones (decisión cerrada).", "",
          "## 8. Decisiones pendientes de Edward", "",
-         "- Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D95 y D96 resueltas (2026-11-01). Solo el mes de firma de D68 no tiene validación humana (es la fecha de firma sin transformación).",
+         "- Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D74, D83, D95 y D96 resueltas (2026-11-01); el mes de firma se usa sin validación humana porque es la fecha original de SECOP (D68).",
          "- Integrar `modelos` en `main` con `git merge --no-ff` y un mensaje que resuma la fase y liste sus decisiones (D55–D99).",
-         "- Recalcular el tamaño efectivo de la robustez de D71/D79 con las etiquetas vigentes, si se quiere citar.", ""]
+         ""]
     return "\n".join(L)
 
 
