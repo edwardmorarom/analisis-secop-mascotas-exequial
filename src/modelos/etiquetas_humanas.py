@@ -18,6 +18,24 @@ def muestra_400(procesado):
     return e.merge(m, on="id_muestra").assign(origen="muestra_400")
 
 
+def corregir_validacion_d92(e):
+    """Aplica la corrección de D92 a la validación de 60; `e` está indexado por id_muestra."""
+    e = e.copy()
+    for i, etiqueta in CORRECCION_D92_VALIDACION.items():
+        e.loc[i, "etiqueta"] = etiqueta
+    return e
+
+
+def aplicar_correccion_d92(e, nombre):
+    """Pasa a no_funerario los contratos de un lote cubiertos por D92 y conserva la etiqueta del Excel."""
+    if e is None or nombre not in CORRECCION_D92:
+        return e
+    e = e.copy()
+    e["etiqueta_excel"] = e["etiqueta"]
+    e.loc[e["id_muestra"].isin(CORRECCION_D92[nombre]), "etiqueta"] = "no_funerario"
+    return e
+
+
 def validacion_60(procesado):
     from src.modelos.evaluar_validacion import LIBRO
     from src.modelos.revision_etiquetas import DESTINO
@@ -27,9 +45,8 @@ def validacion_60(procesado):
     e = e.set_index("id_muestra")
     e.loc[r.index, "etiqueta"] = r["etiqueta_revisada"]
     e.loc[r.index, "forense"] = r["forense_revisado"].fillna(e.loc[r.index, "forense"])
-    for i, etiqueta in CORRECCION_D92_VALIDACION.items():
-        e.loc[i, "etiqueta"] = etiqueta
-    m =pd.read_parquet(procesado / "validacion_externa_maestra.parquet")[["id_muestra", "fuente", "llave"]]
+    e = corregir_validacion_d92(e)
+    m = pd.read_parquet(procesado / "validacion_externa_maestra.parquet")[["id_muestra", "fuente", "llave"]]
     return e.reset_index().merge(m, on="id_muestra").assign(origen="validacion_60_revisada")
 
 
@@ -45,11 +62,7 @@ def desde_excel(procesado, libro, maestra, origen):
 
 def lote(procesado, nombre):
     libro, maestra = RUTA_LOTES[nombre]
-    e = desde_excel(procesado, RAIZ / "docs" / "revision_f4" / libro, maestra, nombre)
-    if e is not None and nombre in CORRECCION_D92:
-        e["etiqueta_excel"] = e["etiqueta"]
-        e.loc[e["id_muestra"].isin(CORRECCION_D92[nombre]), "etiqueta"] = "no_funerario"
-    return e
+    return aplicar_correccion_d92(desde_excel(procesado, RAIZ / "docs" / "revision_f4" / libro, maestra, nombre), nombre)
 
 
 def adicionales(procesado):
@@ -70,6 +83,11 @@ def construir(config=None, incluir_top_valor=True):
               adicionales(procesado), lote(procesado, "humanitarios_40"), lote(procesado, "estrato_d_150")]
     if incluir_top_valor:
         partes.append(desde_excel(procesado, TOP, "top_valor_maestra.parquet", "top_valor"))
+    return fusionar(partes)
+
+
+def fusionar(partes):
+    """Jerarquía de D84: si un contrato está en varias fuentes, manda la de mayor precedencia en ORDEN_PRECEDENCIA."""
     todo = pd.concat([p for p in partes if p is not None], ignore_index=True)
     todo["etiqueta"] = todo["etiqueta"].str.strip().str.lower()
     assert todo["etiqueta"].isin(CLASES).all(), "etiqueta humana inválida"
