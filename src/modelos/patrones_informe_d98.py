@@ -185,6 +185,7 @@ def md_d98():
     partes.append(tip)
     if tabla_polca is not None and not tabla_polca["cumple"].any():
         partes.append(seccion_hcpc(tabla_polca))
+        partes.append(seccion_criterio_hcpc())
     elif tabla_polca is not None:
         partes.append(seccion_cumplen(tabla_polca))
     partes.append(seccion_estacionalidad())
@@ -198,6 +199,34 @@ def md_d98():
                              "- **Estacionalidad:** la indicadora de julio a septiembre de 2020 fue una aproximación y **fue reemplazada por la serie mensual del INS (D99, sección 4)**, con la que el modelo 3b ya no pasa el Ljung-Box; lo que sigue describe el análisis de D98 con 71 meses: el Ljung-Box de los modelos 2 y 3 cambia de conclusión al quitar enero de 2020 (con 72 meses fallaban, con 71 pasan), de modo que el supuesto está cerca del umbral y la elección del modelo 3b es frágil; "
                              "con 71 observaciones los errores de Newey-West tienen poca precisión.", ""]))
     return "\n".join(partes)
+
+
+def grupos_que_cumplen():
+    est = leer("hcpc_d98_estabilidad.csv")
+    tam = leer("hcpc_d98_tamanos.csv")
+    d = est.merge(tam[["grupo", "pct"]], on="grupo")
+    d["cumple"] = (d["jaccard_medio"] >= 0.75) & (d["pct"] >= 1.0)
+    return d
+
+
+def seccion_criterio_hcpc():
+    if not existe("hcpc_d98_vtest.csv"):
+        return ""
+    d = grupos_que_cumplen()
+    v = leer("hcpc_d98_vtest.csv")
+    v = v[v["v_test"] > 0].copy()
+    v["orden"] = v["v_test"].replace(np.inf, 1e9)
+    filas = []
+    for g in d[d["cumple"]]["grupo"]:
+        cat = v[v["grupo"] == g].sort_values(["orden", "pct_de_la_categoria_en_el_grupo"], ascending=False).head(4)
+        txt = "; ".join(f"{r.categoria.split('=')[1]} ({f(r.pct_de_la_categoria_en_el_grupo, 0)} % de la categoría está en el grupo, {f(r.pct_del_grupo_en_la_categoria, 0)} % del grupo la tiene)" for r in cat.itertuples())
+        fila = d[d["grupo"] == g].iloc[0]
+        filas.append({"grupo": int(g), "contratos": int(fila["contratos"]), "% de los contratos": f(fila["pct"], 1), "Jaccard medio": f(fila["jaccard_medio"], 2), "categorías características (prueba v, mayor a menor)": txt})
+    fuera = d[~d["cumple"]]
+    motivos = "; ".join(f"grupo {int(r.grupo)} ({int(r.contratos)} contrato(s), {f(r.pct, 2)} %, Jaccard {f(r.jaccard_medio, 2)})" for r in fuera.itertuples())
+    return chr(10).join(["**Criterio de reporte de los grupos de HCPC (enmienda de D99, tomada después de ver los resultados):** un grupo se reporta si tiene Jaccard medio de bootstrap ≥ 0,75 (Hennig 2007) y al menos 1 % de los contratos. "
+                      f"Cumplen {int(d['cumple'].sum())} de {len(d)}; quedan fuera: {motivos}.", "",
+                      "Los grupos se describen solo por sus categorías sobrerrepresentadas (prueba v de `FactoMineR`, de mayor a menor; una prueba v infinita significa p numéricamente 0), sin interpretación de negocio:", "", tabla(pd.DataFrame(filas)), ""])
 
 
 def seccion_hcpc(t):
