@@ -174,8 +174,8 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 |---|---|---|---|
 | alcaldia_municipio | 4.430 | 88,7 | 63,4 |
 | educacion_universidad | 13 | 0,3 | 0,1 |
-| gobernacion_departamento | 99 | 2,0 | 3,2 |
-| otra_entidad | 233 | 4,7 | 16,6 |
+| gobernacion_departamento | 104 | 2,1 | 3,9 |
+| otra_entidad | 228 | 4,6 | 16,0 |
 | salud_hospital_ese | 85 | 1,7 | 1,6 |
 | seguridad_justicia | 13 | 0,3 | 12,4 |
 | servicios_publicos_empresa | 119 | 2,4 | 2,7 |

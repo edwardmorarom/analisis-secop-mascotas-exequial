@@ -19,9 +19,10 @@ MODALIDADES = [
     ("licitacion_concurso", r"LICITACION|CONCURSO"),
 ]
 TIPOS_ENTIDAD = [
+    ("otra_entidad", r"LOTERIA|INSTITUTO.{0,40}(CULTURA|RECREACION|DEPORTE)"),
     ("salud_hospital_ese", r"\bE\.?S\.?E\.?\b|HOSPITAL|SALUD|CLINICA"),
     ("alcaldia_municipio", r"ALCALDIA|MUNICIPIO|CONCEJO|PERSONERIA"),
-    ("gobernacion_departamento", r"GOBERNACION|DEPARTAMENTO|ASAMBLEA"),
+    ("gobernacion_departamento", r"GOBERNACION|DEPARTAMENTO|ASAMBLEA|GOBIERNO DEPARTAMENTAL"),
     ("servicios_publicos_empresa", r"EMPRESA|\bE\.?S\.?P\.?\b|SERVICIOS PUBLICOS|ACUEDUCTO|ENERGIA"),
     ("educacion_universidad", r"UNIVERSIDAD|COLEGIO|INSTITUCION EDUCATIVA|SENA|ESCUELA"),
     ("seguridad_justicia", r"POLICIA|FISCALIA|CARCEL|INPEC|DEFENSA|EJERCITO|JUSTICIA|MEDICINA LEGAL"),
@@ -79,10 +80,16 @@ COMPONENTES = {
 DESTINO_DE_BIENES = r"(ATAUD\w*|URNAS?|COFRES?|LAPIDAS?|CAJAS? FUNERARIAS?)( \w+){0,3} PARA (LA |EL |LAS |LOS )?(INHUMA\w*|CREMACI\w*|SEPULT\w*|EXHUMA\w*)"
 
 
+# D96 (regla A1): «servicios fúnebres» activa inhumacion_cremacion salvo que el objeto hable de coches fúnebres.
+SERVICIOS_FUNEBRES = r"SERVICIOS? FUNEBRES?"
+COCHES_FUNEBRES = r"COCHES? FUNEBRES?"
+
+
 def indicadores(texto, animales=False):
     t = normalizar_texto(texto)
     out = {k: re.search(v, t) is not None for k, v in COMPONENTES.items()}
-    out["incluye_inhumacion_cremacion"] = re.search(COMPONENTES["incluye_inhumacion_cremacion"], re.sub(DESTINO_DE_BIENES, " ", t)) is not None
+    out["incluye_inhumacion_cremacion"] = (re.search(COMPONENTES["incluye_inhumacion_cremacion"], re.sub(DESTINO_DE_BIENES, " ", t)) is not None
+                                           or (re.search(SERVICIOS_FUNEBRES, t) is not None and re.search(COCHES_FUNEBRES, t) is None))
     if animales:
         out["incluye_disposicion_animales"] = True
     if out["incluye_disposicion_animales"] or re.search(r"ANIMALES|VETERINARI", t):
