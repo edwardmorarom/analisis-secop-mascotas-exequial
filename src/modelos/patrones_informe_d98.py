@@ -83,6 +83,41 @@ def seccion_estacionalidad():
     return "\n".join(texto)
 
 
+def seccion_covid():
+    if not existe("estacionalidad_covid_modelos.csv"):
+        return ""
+    m = leer("estacionalidad_covid_modelos.csv")
+    c = leer("estacionalidad_covid_coeficientes.csv")
+    cv = leer("covid_muertes_mensual.csv")
+    cor = leer("estacionalidad_covid_correlacion.csv")
+    tabla_m = pd.DataFrame({"muestra": m["muestra"], "modelo": m["modelo"], "parámetros": m["parametros"], "BIC": m["BIC"].map(lambda v: f(v, 1)), "ΔBIC (en su muestra)": m["dBIC"].map(lambda v: f(v, 1)),
+                            "Ljung-Box 6 (p)": m["ljung_box_6_p"].map(lambda v: f(v, 3)), "Ljung-Box 12 (p)": m["ljung_box_12_p"].map(lambda v: f(v, 3)),
+                            "exceso de curtosis RQ": m["exceso_curtosis_rq"].map(lambda v: f(v, 2)),
+                            "Wald de la parte estacional, p (Newey-West)": m["wald_p_newey_west"].map(lambda v: "< 0,0001" if v < 1e-4 else f(v, 4)),
+                            "amplitud de 12 meses": m["amplitud_12"].map(lambda v: "" if pd.isna(v) else f(v, 2)),
+                            "falla": m.apply(lambda r: ", ".join(n for n, x in (("autocorrelación", r.falla_autocorrelacion), ("normalidad RQ", r.falla_normalidad_rq)) if x) or "ninguno", axis=1)})
+    claves = c[c["termino"].isin(["lagy", "lcovid", "alto", "jas2020"])].copy()
+    claves["término"] = claves["termino"].map({"lagy": "autorregresivo", "lcovid": "log(1 + muertes COVID del mes)", "alto": "mes sobre el percentil 75", "jas2020": "jul–sep 2020"})
+    tabla_c = pd.DataFrame({"muestra": claves["muestra"], "modelo": claves["modelo"].str.split().str[0], "término": claves["término"], "estimador": claves["estimador"].map(lambda v: f(v, 3)),
+                            "EE del modelo": claves["se_modelo"].map(lambda v: f(v, 3)), "EE Newey-West": claves["se_newey_west"].map(lambda v: f(v, 3)),
+                            "p Newey-West": claves["p_newey_west"].map(lambda v: f(v, 4))})
+    sobre = cv[cv["sobre_p75"] == 1]["mes_txt"].tolist()
+    pasan72 = m[(m["muestra"] == "72 meses") & ~m["falla_autocorrelacion"] & ~m["falla_normalidad_rq"]]["modelo"].tolist()
+    return chr(10).join(["### 4. Muertes COVID mensuales en lugar de la indicadora de julio a septiembre de 2020 (D99, exploratorio)", "",
+                      f"Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), una consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). "
+                      f"La serie tiene {f(cv['fallecidos'].sum(), 0)} fallecidos de marzo de 2020 a enero de 2024 (pico de {f(cv['fallecidos'].max(), 0)} en {cv.loc[cv['fallecidos'].idxmax(), 'mes_txt']}); los {int((cv['fallecidos'] == 0).sum())} meses sin registro (enero y febrero de 2020 y desde febrero de 2024) se toman como cero. "
+                      f"El percentil 75 de los 72 meses es {f(float(np.percentile(cv['fallecidos'], 75)), 0)} muertes y {len(sobre)} meses lo superan: {', '.join(sobre)}. Correlación entre el log de las muertes y la indicadora del percentil 75: {f(cor.iloc[0, 0], 2)}.", "",
+                      "Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98 (autorregresivo e indicadora de julio a septiembre de 2020); 2c y 3c con las muertes (log + 1) y la indicadora del percentil 75 sin autorregresivo; 2d y 3d con autorregresivo y esos dos términos. "
+                      "Primero con los 72 meses (solo modelos sin autorregresivo) y luego sin enero de 2020 (71 meses, donde caben los ocho).", "", tabla(tabla_m), "",
+                      "Coeficientes de los términos de COVID y del autorregresivo, con errores estándar de Newey-West:", "", tabla(tabla_c), "",
+                      f"- Con los 72 meses, los modelos sin términos de COVID fallan el Ljung-Box a 12 rezagos (p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('2 ')]['ljung_box_12_p'].iloc[0], 3)} y {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('3 ')]['ljung_box_12_p'].iloc[0], 3)}), "
+                      f"y los de COVID lo pasan sin necesidad del autorregresivo ni de quitar el primer mes (2c, p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('2c')]['ljung_box_12_p'].iloc[0], 3)}; 3c, p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('3c')]['ljung_box_12_p'].iloc[0], 3)}): "
+                      "es decir, las muertes mensuales reducen la autocorrelación residual sin depender de perder un mes.",
+                      f"- **La señal estacional se mantiene** en todos los modelos: el contraste conjunto de la parte estacional con errores de Newey-West da p < 0,0001 en las {len(m)} especificaciones y la amplitud del armónico de 12 meses queda entre {f(m['amplitud_12'].min(), 2)} y {f(m['amplitud_12'].max(), 2)}.",
+                      "- En los modelos con armónicos (3c y 3d) la que aparece asociada con el conteo de contratos es la indicadora del percentil 75 y el log de las muertes aporta poco; en los de mes y año (2c y 2d) ocurre lo contrario: el log de las muertes es significativo (0,07 a 0,08) y la indicadora no (ver tabla). La asociación es descriptiva y no se interpreta como causal.",
+                      f"- Entre los modelos que pasan los supuestos con 72 meses ({', '.join(x.split()[0] for x in pasan72)}) y con 71, el de menor BIC es el que muestra la tabla; el 3b de D98 y el 3c quedan a menos de 2 puntos de BIC con 71 meses.", ""])
+
+
 def seccion_tipologia():
     t = leer("polca_comparacion.csv")
     top97 = leer("d98_bvr_completo_m3_k7.csv")
@@ -124,6 +159,7 @@ def md_d98():
     elif tabla_polca is not None:
         partes.append(seccion_cumplen(tabla_polca))
     partes.append(seccion_estacionalidad())
+    partes.append(seccion_covid())
     partes.append(chr(10).join(["### Limitaciones del análisis exploratorio", "",
                              "- Los tres análisis se decidieron después de ver los resultados de D97; son exploratorios y no sustituyen a los de D97.",
                              "- **Valor:** los intervalos de la mediana por bootstrap agrupado son anchos en las categorías con pocos contratos (otras entidades, otras modalidades, operación de cementerio); los de Wald del gamma son los más angostos porque son del modelo y no robustos; "
