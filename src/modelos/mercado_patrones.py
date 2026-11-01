@@ -75,9 +75,14 @@ COMPONENTES = {
 }
 
 
+# D95: INHUMA, CREMACI, SEPULT o EXHUMA como destino de un suministro de bienes no activan inhumacion_cremacion.
+DESTINO_DE_BIENES = r"(ATAUD\w*|URNAS?|COFRES?|LAPIDAS?|CAJAS? FUNERARIAS?)( \w+){0,3} PARA (LA |EL |LAS |LOS )?(INHUMA\w*|CREMACI\w*|SEPULT\w*|EXHUMA\w*)"
+
+
 def indicadores(texto, animales=False):
     t = normalizar_texto(texto)
     out = {k: re.search(v, t) is not None for k, v in COMPONENTES.items()}
+    out["incluye_inhumacion_cremacion"] = re.search(COMPONENTES["incluye_inhumacion_cremacion"], re.sub(DESTINO_DE_BIENES, " ", t)) is not None
     if animales:
         out["incluye_disposicion_animales"] = True
     if out["incluye_disposicion_animales"] or re.search(r"ANIMALES|VETERINARI", t):

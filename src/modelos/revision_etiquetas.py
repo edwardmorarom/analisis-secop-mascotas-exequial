@@ -4,7 +4,7 @@ from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
 from src.etl.anonimizar import anonimizar
-from src.etl.comun import RAIZ, cargar_config, ruta
+from src.etl.comun import RAIZ, cargar_config, guardar_libro, ruta
 from src.modelos.datos_clasificacion import CLASES
 from src.modelos.evaluar_validacion import LIBRO, universo
 
@@ -53,8 +53,7 @@ def main():
     for letra, ancho in zip("ABCDEFGHI", (11, 70, 50, 14, 10, 60, 16, 12, 35)):
         ws.column_dimensions[letra].width = ancho
     ws.freeze_panes = "B2"
-    DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(DESTINO)
+    guardar_libro(wb, DESTINO)
     print(len(d), "filas en", DESTINO)
 
 

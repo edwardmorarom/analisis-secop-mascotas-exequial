@@ -4,7 +4,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from src.etl.comun import RAIZ, cargar_config, ruta
+from src.etl.comun import RAIZ, cargar_config, guardar_libro, ruta
 from src.etl.extraer_minsalud import cargar_pob_dane
 from src.modelos.mercado_base import construir_universo
 
@@ -32,8 +32,7 @@ def excel_cruces(d, divipola, destino, n=20, semilla=2026):
         ws.column_dimensions[letra].width = ancho
     for fila in range(2, ws.max_row + 1):
         ws.cell(fila, 7).fill = PatternFill("solid", fgColor="FFF2CC")
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(destino)
+    guardar_libro(wb, destino)
     return len(aprox), len(muestra)
 
 

@@ -3,7 +3,7 @@ import pandas as pd
 from openpyxl.styles import Alignment, Font
 
 from src.etl.anonimizar import anonimizar
-from src.etl.comun import RAIZ, cargar_config, ruta
+from src.etl.comun import RAIZ, cargar_config, guardar_libro, ruta
 from src.evaluacion.plantillas_etiquetado import libro
 from src.evaluacion.reglas_etiquetado import D20, D21
 from src.modelos.validacion_externa import REGLAS_NUEVAS
@@ -48,8 +48,7 @@ def main():
     for t in D20 + D21 + REGLAS_NUEVAS:
         fila += 1
         ws.cell(fila, 1, t).alignment = Alignment(wrap_text=True, vertical="top")
-    DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(DESTINO)
+    guardar_libro(wb, DESTINO)
     print(len(m), "contratos;", m.groupby("anio").size().to_dict(), "→", DESTINO)
 
 

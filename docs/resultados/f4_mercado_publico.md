@@ -249,7 +249,7 @@ Todo lo de esta sección es borrador sin conclusiones; usa los contratos `funera
 
 | indicador | aciertos | acierto | precision | sensibilidad |
 |---|---|---|---|---|
-| incluye_inhumacion_cremacion | 27 | 0.68 | 0.46 | 1.00 |
+| incluye_inhumacion_cremacion | 27 | 0.68 | 0.45 | 0.91 |
 | incluye_atencion_vulnerables_NN | 23 | 0.57 | 0.39 | 1.00 |
 
 **Disposición de animales** (evaluada aparte): el estrato B de la muestra de 400 son los 23 contratos «posible disposición de animales» (todo el estrato: N = n = 23), y todos son `no_funerario`. Casi todos son gestión de residuos peligrosos de centros de zoonosis; solo uno (M078) incluye «animales muertos» de más de 50 kg. El indicador lo marca y no marca los otros 22; ningún contrato clasificado como `funerario` lo activa (D78).

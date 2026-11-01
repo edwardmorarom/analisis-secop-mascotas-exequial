@@ -6,7 +6,7 @@ from openpyxl.worksheet.datavalidation import DataValidation
 from scipy.stats import chi2_contingency, kurtosis, skew
 
 from src.etl.anonimizar import anonimizar
-from src.etl.comun import RAIZ, cargar_config, ruta
+from src.etl.comun import RAIZ, cargar_config, guardar_libro, ruta
 from src.modelos import mercado_patrones as mp
 
 DESTINO = RAIZ / "docs" / "resultados" / "perfil_variables_secop.md"
@@ -284,8 +284,7 @@ def excel_derivadas(f, destino):
                     ws.cell(fila_, k).fill = estilo
         for letra, ancho in zip("ABCDEFGHI", (8, 9, 7, 60 if hoja == "componentes" else 40, 40, 32, 14, 28, 30)):
             ws.column_dimensions[letra].width = ancho
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(destino)
+    guardar_libro(wb, destino)
 
 
 def main():

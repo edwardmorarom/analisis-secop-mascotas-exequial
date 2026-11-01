@@ -70,6 +70,8 @@ def calcular(e, n, maestra, umbral):
 
 
 def exportar_desacuerdos(m, destino):
+    if destino.exists():
+        raise SystemExit(f"{destino.name} ya existe: no se sobrescribe (puede tener etiquetas de Harold).")
     d = m.copy()
     d["incoherente"] = ((d.forense_e == 1) & (d.etiqueta_e == "funerario")) | \
                        ((d.forense_n == 1) & (d.etiqueta_n == "funerario"))

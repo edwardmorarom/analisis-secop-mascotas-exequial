@@ -20,6 +20,17 @@ def ruta(config, clave):
     return RAIZ / config["rutas"][clave]
 
 
+def guardar_libro(wb, destino):
+    """Guarda un libro de Excel solo si no existe: un libro que ya existe puede tener etiquetas de un revisor."""
+    destino = Path(destino)
+    if destino.exists():
+        print(f"{destino.name} ya existe: no se sobrescribe")
+        return False
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    wb.save(destino)
+    return True
+
+
 def sha256(path, bloque=1 << 20):
     h = hashlib.sha256()
     with open(path, "rb") as f:

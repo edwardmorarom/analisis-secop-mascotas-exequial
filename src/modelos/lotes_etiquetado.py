@@ -3,7 +3,7 @@ import pandas as pd
 from openpyxl.styles import Alignment, Font
 
 from src.etl.anonimizar import anonimizar
-from src.etl.comun import RAIZ, cargar_config, ruta
+from src.etl.comun import RAIZ, cargar_config, guardar_libro, ruta
 from src.evaluacion.plantillas_etiquetado import libro
 from src.evaluacion.reglas_etiquetado import D20, D21
 from src.modelos.sensibilidad_mixtos import humanitarios, universo
@@ -56,8 +56,7 @@ def libro_a_ciegas(datos, titulo):
 
 
 def guardar(wb, destino):
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(destino)
+    guardar_libro(wb, destino)
 
 
 def lote_humanitarios(config, u):

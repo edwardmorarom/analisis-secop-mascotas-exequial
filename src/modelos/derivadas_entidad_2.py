@@ -3,7 +3,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.worksheet.datavalidation import DataValidation
 
-from src.etl.comun import RAIZ, cargar_config
+from src.etl.comun import RAIZ, cargar_config, guardar_libro
 from src.modelos import mercado_patrones as mp
 from src.modelos.perfil_variables import SEMILLA, cargar, homologar
 
@@ -53,8 +53,8 @@ def main():
                 ws.cell(fila, k).fill = estilo
     for letra, ancho in zip("ABCDEFGHI", (8, 9, 7, 40, 40, 32, 14, 28, 30)):
         ws.column_dimensions[letra].width = ancho
-    DESTINO.parent.mkdir(parents=True, exist_ok=True)
-    wb.save(DESTINO)
+    if not guardar_libro(wb, DESTINO):
+        return
     print("escrito", DESTINO, n, "filas | contratos con «salud» y «alcaldía» o «municipio»:", n_mixto)
     print(muestra["tipo_entidad"].value_counts().to_dict())
 
