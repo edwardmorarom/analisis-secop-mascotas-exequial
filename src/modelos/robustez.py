@@ -1,3 +1,7 @@
+import os
+
+os.environ["OMP_NUM_THREADS"] = "1"
+
 import warnings
 
 import numpy as np
@@ -29,7 +33,7 @@ def svm():
 
 def xgb():
     return XGBClassifier(objective="multi:softprob", n_estimators=300, max_depth=4, learning_rate=0.1, subsample=0.8,
-                         colsample_bytree=0.5, random_state=SEMILLA, n_jobs=4, eval_metric="mlogloss", verbosity=0)
+                         colsample_bytree=0.5, random_state=SEMILLA, n_jobs=1, eval_metric="mlogloss", verbosity=0)
 
 
 def puntajes(nombre, modelo, x_entrenamiento, y, x_prueba):
