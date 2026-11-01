@@ -84,9 +84,15 @@ def cuerpo(termino, fila, token=None, tamano=20):
 def llamar(clave, peticion):
     r = requests.post(URL, json=peticion, timeout=60, headers={
         "X-Goog-Api-Key": clave, "X-Goog-FieldMask": MASCARA, "Content-Type": "application/json"})
+    estado = ""
+    if r.status_code >= 400:
+        try:
+            estado = r.json().get("error", {}).get("status", "")
+        except ValueError:
+            pass
+    if r.status_code == 429 or estado == "RESOURCE_EXHAUSTED":
+        raise TopeDeLlamadas(f"HTTP {r.status_code} {estado}: cuota agotada")
     if r.status_code in (400, 401, 403):
-        raise ClaveRechazada(f"HTTP {r.status_code}: {r.json().get('error', {}).get('status', '')}")
-    if r.status_code == 429:
-        raise TopeDeLlamadas("HTTP 429: cuota agotada")
+        raise ClaveRechazada(f"HTTP {r.status_code}: {estado}")
     r.raise_for_status()
     return r.json()

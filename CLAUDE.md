@@ -130,7 +130,7 @@ WHERE fecha_de_firma BETWEEN '2020-01-01T00:00:00' AND '2025-12-31T23:59:59'
 - Si se incluye SECOP I, misma lógica sobre su conjunto en datos.gov.co.
 
 ### Cámaras de Comercio (API Socrata: `gwqv-sqvs` Ibagué, `yufs-urdt` Arauca, `pevq-v2xz` Villavicencio)
-Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU, municipio, estado de la matrícula y fecha. Solo para validar la cobertura de Places. Villavicencio no trae NIT. En personas naturales el NIT (cédula) no se guarda, y la razón social queda solo en `data/raw`; en interim y processed se reemplaza por un seudónimo `PN-…` (HMAC con `SEUDONIMO_SALT`) y nunca se usa en salidas (`src/etl/procesar_camaras.py`).
+Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU, municipio, estado de la matrícula y fecha. Contexto de la oferta funeraria formal (personas): no validan prestadores de mascotas (D101); la cobertura de Places se valida por captura y recaptura contra el archivo de Facebook. Villavicencio no trae NIT. En personas naturales el NIT (cédula) no se guarda, y la razón social queda solo en `data/raw`; en interim y processed se reemplaza por un seudónimo `PN-…` (HMAC con `SEUDONIMO_SALT`) y nunca se usa en salidas (`src/etl/procesar_camaras.py`).
 
 ### Google Places (Text Search New)
 - Solo campos Pro: nombre, dirección, ubicación, tipos. Nada de reseñas, calificación ni sitio web (tarifa Enterprise).

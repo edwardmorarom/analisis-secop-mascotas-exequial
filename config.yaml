@@ -42,6 +42,8 @@ places:
   tope_llamadas_prueba: 140
   holgura_nuevo_belen_grados: 0.1
   prueba_fijos: ["73001", "50001"]
+  corte_llamadas_corrida: 2450
+  directorio_corrida: places/corrida_completa
 
 llm:
   proveedor: deepseek
