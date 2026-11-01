@@ -35,6 +35,13 @@ places:
   cuota_diaria: 150
   municipios_prueba: 10
   segunda_pasada_max: 200
+  terminos: ["cremación de mascotas", "funeraria de mascotas"]
+  terminos_solo_prueba: ["cementerio de mascotas"]
+  tamano_pagina: 20
+  max_paginas: 3
+  tope_llamadas_prueba: 140
+  holgura_nuevo_belen_grados: 0.1
+  prueba_fijos: ["73001", "50001"]
 
 llm:
   proveedor: deepseek

@@ -167,7 +167,7 @@ Filtrar CIIU 9603 en la consulta. Guardar solo NIT, razón social, códigos CIIU
 | F2 Extracción | cerrada (D28): MinSalud 2014–2024 (D44–D53); integrada en `main` |
 | F3 Armonización | cerrada (D64, D65: INS 2022–2025, panel de agresiones, `incidencias.csv`); integrada en `main` |
 | F4 SECOP | cerrada (D55–D99; cierre en `docs/resultados/cierre_f4.md`); integrada en `main` con el merge `4d48d28` y la etiqueta `f4-cerrada` |
-| F5 Capas complementarias | pendiente |
+| F5 Capas complementarias | en curso en la rama `oferta` (D101: diseño y prueba de Places con 10 municipios; D102 propuesta de clasificación) |
 | F6–F7 Agente y evaluación | en la rama `agentes` (D100; contrato en `docs/agente/ESPECIFICACION.md` de esa rama) |
 | F8–F9 | pendientes |
 
