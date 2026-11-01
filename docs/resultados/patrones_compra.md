@@ -230,3 +230,159 @@ Sensibilidad del modelo 3 (armónicos y tendencia): con y sin 2020, y con una in
 - **Valor:** la distribución del residuo tiene colas más pesadas que la normal en los tres modelos (incluido el gamma, residuos cuantílicos con exceso de curtosis de 5,6); el gamma mixto de `lme4` estima la dispersión de forma aproximada (Laplace); el BIC en la escala del valor penaliza igual a los tres modelos por parámetro, sin contar el efecto aleatorio por entidad como parámetros individuales; la validación cruzada usa predicción de población y no premia el efecto aleatorio; Cook no está disponible para los modelos mixtos; una entidad con pocos contratos tiene un efecto aleatorio poco determinado.
 - **Estacionalidad:** 72 meses; el Ljung-Box a 12 rezagos tiene poca potencia con ese tamaño y no se ajustó por los grados de libertad de cada modelo; los p de 0,02 a 0,04 de los modelos 2 y 3 son cercanos al umbral de 0,05; 2020 está atravesado por la pandemia y reportado aparte; el modelo 3 asume una tendencia lineal.
 - **General:** los umbrales de «falla» son convencionales y se fijaron antes de ver los datos; con n = 4.992 el BIC favorece estructuras sencillas; la ubicación de las entidades es la sede, no el lugar de ejecución; el universo es el de los contratos clasificados `funerario` por TF-IDF (D84), con sus errores de clasificación (D93).
+
+## Análisis exploratorio (D98)
+
+**Esta sección es exploratoria.** D98 se decidió después de ver los resultados de D97 (ningún modelo cumplió los supuestos en ninguna pregunta); los umbrales y modelos de D97 no se tocaron y sus resultados siguen arriba. Los hallazgos de esta sección deben confirmarse antes de apoyar una conclusión. Descripción de los datos, sin conclusiones de negocio.
+
+### 1. Valor: regresión por cuantiles frente a los modelos de D97
+
+Modelo principal: regresión por cuantiles en la **mediana** del log del valor constante de 2025, con las explicativas de D97 y bootstrap agrupado por entidad (500 remuestreos, semilla 2034, 912 entidades). Sensibilidad: el lineal mixto de D97 con errores robustos agrupados por entidad (CR1) y el gamma log mixto de D97. Los coeficientes de la mediana y del lineal mixto están en escala log del valor; los del gamma, en escala log de la media, y son comparables en signo y significancia, no en magnitud. Referencias: alcaldía y municipio; mínima cuantía; 2020; SECOP I.
+
+| término | mediana (IC 95 % bootstrap por entidad) | lineal mixto, errores robustos (IC 95 %) | gamma log mixto (IC 95 % de Wald) | significativo (mediana / lineal / gamma) | cambia de signo | cambia de significancia |
+|---|---|---|---|---|---|---|
+| tipo_entidadgobernacion_departamento | 0,663 (0,238 a 1,013) | 0,916 (0,672 a 1,159) | 0,872 (0,633 a 1,111) | sí / sí / sí | no | no |
+| tipo_entidadotra_entidad | 0,142 (-0,508 a 0,735) | -0,090 (-0,506 a 0,325) | -0,227 (-0,430 a -0,023) | no / no / sí | sí | sí |
+| tipo_entidadotras | 0,782 (-0,535 a 3,679) | 0,303 (-0,875 a 1,480) | 0,273 (-0,190 a 0,737) | no / no / no | no | no |
+| tipo_entidadsalud_hospital_ese | 0,234 (-0,406 a 1,492) | -0,265 (-0,820 a 0,290) | -0,314 (-0,603 a -0,026) | no / no / sí | sí | sí |
+| tipo_entidadservicios_publicos_empresa | 0,370 (-1,022 a 1,689) | -0,220 (-1,056 a 0,616) | -0,446 (-0,847 a -0,045) | no / no / sí | sí | sí |
+| modalidad_grupocontratacion_directa | -0,086 (-0,509 a 0,253) | 0,034 (-0,249 a 0,317) | 0,137 (0,056 a 0,219) | no / no / sí | sí | sí |
+| modalidad_grupootras | 2,079 (-1,656 a 4,910) | 1,568 (0,618 a 2,518) | 1,613 (1,171 a 2,054) | no / sí / sí | no | sí |
+| modalidad_gruporegimen_especial | -0,535 (-1,579 a 0,198) | 0,267 (-0,291 a 0,826) | 0,514 (0,287 a 0,742) | no / no / sí | sí | sí |
+| modalidad_gruposeleccion_abreviada | 1,603 (1,384 a 1,824) | 1,187 (0,928 a 1,445) | 1,256 (1,156 a 1,356) | sí / sí / sí | no | no |
+| fuentesecop2 | 0,477 (0,270 a 0,564) | 0,238 (0,151 a 0,325) | 0,231 (0,151 a 0,311) | sí / sí / sí | no | no |
+| inhumacion_cremacion | 0,052 (-0,038 a 0,187) | 0,148 (0,042 a 0,254) | 0,052 (-0,004 a 0,107) | no / sí / no | no | sí |
+| traslado | 0,064 (-0,081 a 0,311) | -0,006 (-0,139 a 0,126) | -0,026 (-0,120 a 0,067) | no / no / no | sí | no |
+| ataudes_bienes | -0,003 (-0,116 a 0,126) | 0,003 (-0,091 a 0,096) | -0,043 (-0,102 a 0,017) | no / no / no | sí | no |
+| plan_exequial | -0,332 (-0,550 a -0,085) | -0,088 (-0,223 a 0,047) | -0,109 (-0,209 a -0,008) | sí / no / sí | no | sí |
+| operacion_cementerio | -0,013 (-0,673 a 0,830) | -0,560 (-1,208 a 0,089) | -0,327 (-0,509 a -0,145) | no / no / sí | no | sí |
+| atencion_vulnerables_NN | 0,192 (-0,003 a 0,349) | 0,077 (-0,031 a 0,185) | 0,022 (-0,049 a 0,094) | no / no / no | no | no |
+| anio2021 | -0,030 (-0,138 a 0,045) | -0,043 (-0,094 a 0,008) | -0,062 (-0,117 a -0,006) | no / no / sí | no | sí |
+| anio2022 | -0,056 (-0,147 a 0,061) | 0,034 (-0,026 a 0,094) | -0,030 (-0,090 a 0,030) | no / no / no | sí | no |
+| anio2023 | -0,128 (-0,223 a 0,006) | -0,061 (-0,161 a 0,039) | -0,095 (-0,156 a -0,033) | no / no / sí | no | sí |
+| anio2024 | -0,116 (-0,217 a 0,000) | -0,002 (-0,066 a 0,061) | -0,054 (-0,119 a 0,012) | no / no / no | no | no |
+| anio2025 | -0,016 (-0,085 a 0,125) | 0,060 (-0,002 a 0,122) | 0,033 (-0,034 a 0,101) | no / no / no | sí | no |
+
+- **Cambian de signo** entre los tres estimadores puntuales: 9 de 21 coeficientes (tipo_entidadotra_entidad, tipo_entidadsalud_hospital_ese, tipo_entidadservicios_publicos_empresa, modalidad_grupocontratacion_directa, modalidad_gruporegimen_especial, traslado, ataudes_bienes, anio2022, anio2025).
+- **Cambian de significancia** (al 5 %) entre los tres: 11 de 21 (tipo_entidadotra_entidad, tipo_entidadsalud_hospital_ese, tipo_entidadservicios_publicos_empresa, modalidad_grupocontratacion_directa, modalidad_grupootras, modalidad_gruporegimen_especial, inhumacion_cremacion, plan_exequial, operacion_cementerio, anio2021, anio2023).
+- Significativos en los tres a la vez: 3; no significativos en ninguno: 7.
+
+### 2. Tipología: sin variables redundantes y con `poLCA`
+
+**Paso 1: residuos bivariados más altos (BVR) del modelo de menor BIC de D97** (fuente y año, 7 clases):
+
+| posición | variable 1 | variable 2 | BVR |
+|---|---|---|---|
+| 1 | traslado | atencion_vulnerables_NN | 36,5 |
+| 2 | inhumacion_cremacion | plan_exequial | 26,4 |
+| 3 | tipo_contrato_hom | operacion_cementerio | 23,6 |
+| 4 | tipo_entidad | traslado | 10,7 |
+| 5 | tipo_entidad | plan_exequial | 10,3 |
+| 6 | tipo_entidad | orden_nivel | 9,9 |
+| 7 | tipo_entidad | modalidad_grupo | 8,9 |
+| 8 | traslado | plan_exequial | 8,7 |
+| 9 | modalidad_grupo | orden_nivel | 6,3 |
+| 10 | tipo_contrato_hom | inhumacion_cremacion | 5,6 |
+| 11 | traslado | ataudes_bienes | 5,2 |
+| 12 | tipo_entidad | inhumacion_cremacion | 5,0 |
+
+Y del de menor BIC sin covariables (6 clases):
+
+| posición | variable 1 | variable 2 | BVR |
+|---|---|---|---|
+| 1 | ataudes_bienes | operacion_cementerio | 50,5 |
+| 2 | traslado | atencion_vulnerables_NN | 31,8 |
+| 3 | inhumacion_cremacion | plan_exequial | 29,6 |
+| 4 | tipo_entidad | traslado | 11,4 |
+| 5 | tipo_entidad | orden_nivel | 8,0 |
+| 6 | tipo_contrato_hom | operacion_cementerio | 7,6 |
+| 7 | orden_nivel | plan_exequial | 7,2 |
+| 8 | tipo_entidad | atencion_vulnerables_NN | 6,8 |
+| 9 | tipo_entidad | modalidad_grupo | 6,6 |
+| 10 | traslado | ataudes_bienes | 6,6 |
+| 11 | traslado | plan_exequial | 6,4 |
+| 12 | orden_nivel | inhumacion_cremacion | 6,2 |
+
+**Paso 2: variables que se quitan.** `cuartil_valor` se quita siempre (el valor se modela aparte). El par `tipo_contrato_hom` con `ataudes_bienes` está en la posición 14 del modelo de menor BIC de D97 (BVR 4,6), fuera de los 5 más altos; por la regla de D98, **`tipo_contrato_hom` se conserva**. Quedan 10 variables: tipo de entidad, grupo de modalidad, tipo de contrato homologado, territorial o nacional y los seis componentes.
+
+**Paso 3: `poLCA` (versión 1.6.0.2), 100 arranques, 2 a 10 clases, tres modelos.** Cumplen el criterio (BVR máximo ≤ 10 y mejor ajuste en al menos 5 arranques): **0 de 27**. El BVR máximo más bajo alcanzado es 9,4 (sin covariables, 10 clases); 8 modelos repiten su mejor ajuste en al menos 5 arranques.
+
+| covariables | clases | parámetros | BIC | ΔBIC | entropía relativa | arranques con el máximo (de 100) | clase más pequeña (%) | BVR máximo | pares con BVR > 10 | cumple (BVR ≤ 10 y ≥ 5 arranques) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| sin covariables | 2 | 43 | 43.037,8 | 3.389,8 | 0,79 | 54 | 43,7 | 540,3 | 24 | no |
+| sin covariables | 3 | 65 | 40.738,1 | 1.090,1 | 0,84 | 94 | 10,9 | 252,1 | 13 | no |
+| sin covariables | 4 | 87 | 40.358,4 | 710,5 | 0,88 | 39 | 4,4 | 53,5 | 11 | no |
+| sin covariables | 5 | 109 | 40.066,3 | 418,3 | 0,87 | 24 | 4,2 | 26,2 | 3 | no |
+| sin covariables | 6 | 131 | 39.964,4 | 316,4 | 0,89 | 1 | 1,5 | 25,1 | 2 | no |
+| sin covariables | 7 | 153 | 39.916,3 | 268,4 | 0,89 | 1 | 1,5 | 25,2 | 3 | no |
+| sin covariables | 8 | 175 | 39.931,3 | 283,3 | 0,88 | 1 | 1,4 | 28,5 | 2 | no |
+| sin covariables | 9 | 197 | 39.966,6 | 318,7 | 0,82 | 1 | 1,5 | 25,7 | 3 | no |
+| sin covariables | 10 | 219 | 40.045,5 | 397,5 | 0,81 | 1 | 1,4 | 9,4 | 0 | no |
+| fuente | 2 | 44 | 42.599,8 | 2.951,9 | 0,79 | 93 | 41,6 | 533,3 | 24 | no |
+| fuente | 3 | 67 | 40.161,2 | 513,3 | 0,84 | 30 | 11,7 | 262,4 | 11 | no |
+| fuente | 4 | 90 | 39.786,4 | 138,5 | 0,86 | 1 | 4,8 | 119,6 | 10 | no |
+| fuente | 5 | 113 | 39.648,0 | 0,0 | 0,90 | 1 | 4,1 | 65,4 | 10 | no |
+| fuente | 6 | 136 | 40.751,8 | 1.103,9 | 0,91 | 1 | 0,0 | 243,6 | 15 | no |
+| fuente | 7 | 159 | 40.988,4 | 1.340,4 | 0,92 | 1 | 0,0 | 271,2 | 14 | no |
+| fuente | 8 | 182 | 40.515,6 | 867,7 | 0,87 | 1 | 0,0 | 55,8 | 10 | no |
+| fuente | 9 | 205 | 41.364,7 | 1.716,7 | 0,93 | 1 | 0,0 | 75,9 | 14 | no |
+| fuente | 10 | 228 | 39.988,7 | 340,7 | 0,90 | 1 | 0,0 | 17,9 | 3 | no |
+| fuente y año | 2 | 49 | 42.608,4 | 2.960,4 | 0,79 | 39 | 41,6 | 533,8 | 24 | no |
+| fuente y año | 3 | 77 | 40.142,7 | 494,8 | 0,84 | 41 | 11,6 | 269,1 | 11 | no |
+| fuente y año | 4 | 105 | 39.875,7 | 227,7 | 0,80 | 2 | 9,7 | 280,8 | 11 | no |
+| fuente y año | 5 | 133 | 42.987,5 | 3.339,5 | 0,94 | 1 | 0,0 | 362,1 | 27 | no |
+| fuente y año | 6 | 161 | 43.047,0 | 3.399,0 | 0,93 | 1 | 0,0 | 360,7 | 25 | no |
+| fuente y año | 7 | 189 | 44.195,5 | 4.547,5 | 0,95 | 1 | 0,7 | 472,6 | 27 | no |
+| fuente y año | 8 | 217 | 44.299,7 | 4.651,8 | 0,94 | 1 | 0,0 | 505,4 | 28 | no |
+| fuente y año | 9 | 245 | 44.618,9 | 4.970,9 | 0,96 | 1 | 0,0 | 599,7 | 23 | no |
+| fuente y año | 10 | 273 | 45.651,1 | 6.003,1 | 0,97 | 1 | 0,0 | 498,4 | 31 | no |
+
+**Resultado: no hay tipología latente que cumpla independencia local.** Ninguno de los 27 modelos de `poLCA` cumple a la vez BVR máximo ≤ 10 y mejor ajuste en al menos 5 de 100 arranques. Matiz: los modelos con BVR máximo ≤ 10 son: sin covariables, 10 clases (BVR máximo 9,4, mejor ajuste en 1 de 100 arranques, ΔBIC 397,5); su mejor ajuste no se reproduce, de modo que no se distingue de un máximo local. En 10 modelos con covariables la mejor solución tiene una clase vacía (0,0 %): el ajuste con covariables no convergió a una solución útil (el BIC de esos modelos sube con el número de clases). Según D98, la tipología de clases latentes queda sin elegir y se deja el **ACM + HCPC solo como descripción**.
+
+**ACM + HCPC (descriptivo).** Variables: las 10 de arriba. Las dos primeras dimensiones retienen 12,6 % y 9,2 % de la inercia (42,0 % las cinco primeras). HCPC sugiere 11 grupos. Estabilidad por bootstrap (200 remuestreos, semilla 2034; Jaccard de cada grupo frente a su mejor coincidencia, umbral de 0,60):
+
+| grupo | contratos | % | Jaccard medio (bootstrap) | Jaccard percentil 5 | remuestreos en que se disuelve (Jaccard < 0,5, %) |
+|---|---|---|---|---|---|
+| 1 | 1278 | 25,6 | 0,96 | 0,81 | 0,0 |
+| 2 | 280 | 5,6 | 0,87 | 0,15 | 8,0 |
+| 3 | 253 | 5,1 | 0,87 | 0,07 | 9,5 |
+| 4 | 362 | 7,3 | 0,91 | 0,70 | 0,0 |
+| 5 | 2314 | 46,4 | 0,96 | 0,87 | 0,0 |
+| 6 | 47 | 0,9 | 0,85 | 0,65 | 2,0 |
+| 7 | 206 | 4,1 | 0,77 | 0,35 | 26,0 |
+| 8 | 34 | 0,7 | 0,87 | 0,33 | 12,5 |
+| 9 | 121 | 2,4 | 0,91 | 0,79 | 0,5 |
+| 10 | 96 | 1,9 | 0,93 | 0,76 | 0,0 |
+| 11 | 1 | 0,0 | 0,99 | 1,00 | 0,8 |
+
+0 de 11 grupos tienen un Jaccard medio inferior a 0,60. Los dos grupos grandes (1 y 5, con 72,0 % de los contratos) son los más estables; el grupo 7 (206 contratos) se disuelve en 26 % de los remuestreos y los grupos 2, 3 y 8 tienen percentiles 5 de 0,07 a 0,33. El grupo 11 es un solo contrato y solo aparece en 118 de 200 remuestreos, así que su Jaccard no es informativo.
+
+### 3. Estacionalidad: término autorregresivo e indicadora de julio a septiembre de 2020
+
+Todos los modelos se ajustan a los mismos 71 meses (febrero de 2020 a diciembre de 2025), porque el término autorregresivo no existe en enero de 2020. Los modelos 1, 2 y 3 son los de D97 reajustados a esos 71 meses; 2b y 3b agregan `log(conteo del mes anterior + 1)` y una indicadora de julio, agosto y septiembre de 2020 (aproximación del pico de mortalidad por COVID-19, sin verificar con la serie mensual del INS; D98).
+
+| modelo | parámetros | BIC (71 meses) | ΔBIC | Ljung-Box 6 (p) | Ljung-Box 12 (p) | asimetría RQ | exceso de curtosis RQ | supuestos que falla |
+|---|---|---|---|---|---|---|---|---|
+| 1 Poisson (mes y año) | 17 | 726,5 | 117,6 | 0,031 | 0,080 | -0,18 | 0,51 | sobredispersión |
+| 2 binomial negativa (mes y año) | 18 | 645,0 | 36,2 | 0,122 | 0,271 | -0,30 | 0,39 | ninguno |
+| 3 binomial negativa (armónicos y tendencia) | 7 | 613,0 | 4,1 | 0,043 | 0,177 | -0,16 | -0,65 | ninguno |
+| 2b binomial negativa (mes, año, autorregresivo y COVID) | 20 | 640,6 | 31,7 | 0,169 | 0,353 | -0,17 | -0,14 | ninguno |
+| 3b binomial negativa (armónicos, tendencia, autorregresivo y COVID) | 9 | 608,8 | 0,0 | 0,398 | 0,432 | -0,25 | -0,22 | ninguno |
+
+- **Pasan todos los supuestos:** 2, 3, 2b, 3b. Aplicando la regla de BIC de D97 entre ellos, **queda 3b binomial negativa (armónicos, tendencia, autorregresivo y COVID)** (ΔBIC de 4,1 frente al siguiente, 3 ; mayor que 2, así que no entra la cláusula del más simple).
+- **Sensibilidad del Ljung-Box a la muestra:** con los 72 meses de D97, los modelos 2 y 3 daban p = 0,020 y 0,037 a 12 rezagos (fallaban); con los 71 meses sin enero de 2020 dan p = 0,271 y 0,177 (pasan). Quitar un solo mes cambia la conclusión de autocorrelación en esos modelos, lo que indica que ese supuesto está cerca del umbral y que el resultado de D97 y el de aquí son frágiles.
+- Errores estándar de Newey-West (Bartlett, rezago 3, T = 71) frente a los del modelo de verosimilitud en los coeficientes de 2b y 3b:
+
+| modelo | término | estimador | EE del modelo | EE Newey-West | p del modelo | p Newey-West |
+|---|---|---|---|---|---|---|
+| 2b | autorregresivo log(conteo previo + 1) | 0,222 | 0,116 | 0,102 | 0,0566 | 0,0297 |
+| 2b | indicadora jul–sep 2020 | 0,356 | 0,155 | 0,106 | 0,0221 | 0,0008 |
+| 3b | seno 12 meses | 0,489 | 0,061 | 0,065 | 0,0000 | 0,0000 |
+| 3b | coseno 12 meses | -0,054 | 0,059 | 0,056 | 0,3618 | 0,3394 |
+| 3b | seno 6 meses | 0,060 | 0,043 | 0,038 | 0,1626 | 0,1130 |
+| 3b | coseno 6 meses | -0,139 | 0,039 | 0,040 | 0,0004 | 0,0004 |
+| 3b | tendencia (por mes) | -0,006 | 0,002 | 0,001 | 0,0001 | 0,0000 |
+| 3b | autorregresivo log(conteo previo + 1) | 0,215 | 0,113 | 0,109 | 0,0576 | 0,0489 |
+| 3b | indicadora jul–sep 2020 | 0,338 | 0,152 | 0,097 | 0,0256 | 0,0005 |
+
+- La indicadora de julio a septiembre de 2020 y el término autorregresivo tienen p de Newey-West de 0,0005 a 0,0008 y de 0,030 a 0,049, respectivamente. Gráfico de las autocorrelaciones: `graficos/patrones/estacionalidad_d98_acf.png`.

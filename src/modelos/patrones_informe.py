@@ -218,7 +218,8 @@ def elegido_is_none(t):
 
 
 def main():
-    texto = md()
+    from src.modelos.patrones_informe_d98 import md_d98
+    texto = md() + md_d98()
     DESTINO.write_text(texto, encoding="utf-8")
     print("escrito", DESTINO, len(texto))
 
