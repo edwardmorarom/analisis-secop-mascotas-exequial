@@ -369,7 +369,7 @@ Todos los modelos se ajustan a los mismos 71 meses (febrero de 2020 a diciembre 
 | 2b binomial negativa (mes, año, autorregresivo y COVID) | 20 | 640,6 | 31,7 | 0,169 | 0,353 | -0,17 | -0,14 | ninguno |
 | 3b binomial negativa (armónicos, tendencia, autorregresivo y COVID) | 9 | 608,8 | 0,0 | 0,398 | 0,432 | -0,25 | -0,22 | ninguno |
 
-- **Pasan todos los supuestos:** 2, 3, 2b, 3b. Aplicando la regla de BIC de D97 entre ellos, **queda 3b binomial negativa (armónicos, tendencia, autorregresivo y COVID)** (ΔBIC de 4,1 frente al siguiente, 3 ; mayor que 2, así que no entra la cláusula del más simple).
+- **Pasan todos los supuestos:** 2, 3, 2b, 3b. Aplicando la regla de BIC de D97 entre ellos, **queda 3b binomial negativa (armónicos, tendencia, autorregresivo y COVID)** (ΔBIC de 4,1 frente al siguiente, 3; mayor que 2, así que no entra la cláusula del más simple).
 - **Sensibilidad del Ljung-Box a la muestra:** con los 72 meses de D97, los modelos 2 y 3 daban p = 0,020 y 0,037 a 12 rezagos (fallaban); con los 71 meses sin enero de 2020 dan p = 0,271 y 0,177 (pasan). Quitar un solo mes cambia la conclusión de autocorrelación en esos modelos, lo que indica que ese supuesto está cerca del umbral y que el resultado de D97 y el de aquí son frágiles.
 - Errores estándar de Newey-West (Bartlett, rezago 3, T = 71) frente a los del modelo de verosimilitud en los coeficientes de 2b y 3b:
 
@@ -386,3 +386,10 @@ Todos los modelos se ajustan a los mismos 71 meses (febrero de 2020 a diciembre 
 | 3b | indicadora jul–sep 2020 | 0,338 | 0,152 | 0,097 | 0,0256 | 0,0005 |
 
 - La indicadora de julio a septiembre de 2020 y el término autorregresivo tienen p de Newey-West de 0,0005 a 0,0008 y de 0,030 a 0,049, respectivamente. Gráfico de las autocorrelaciones: `graficos/patrones/estacionalidad_d98_acf.png`.
+
+### Limitaciones del análisis exploratorio
+
+- Los tres análisis se decidieron después de ver los resultados de D97; son exploratorios y no sustituyen a los de D97.
+- **Valor:** los intervalos de la mediana por bootstrap agrupado son anchos en las categorías con pocos contratos (otras entidades, otras modalidades, operación de cementerio); los de Wald del gamma son los más angostos porque son del modelo y no robustos; «cambia de signo» incluye coeficientes cercanos a cero, cuyo signo no es informativo; la regresión por cuantiles describe la mediana del log del valor y no la media, de modo que no es comparable en magnitud con el gamma.
+- **Tipología:** `poLCA` con covariables no convergió a soluciones útiles a partir de 5 clases (clases vacías y BIC creciente), y sin covariables el único modelo con BVR ≤ 10 (10 clases) no reproduce su mejor ajuste; no se probó más de 100 arranques ni otro programa. Los mayores residuos bivariados están entre componentes (traslado con atención a vulnerables, inhumación con plan exequial, ataúdes con operación de cementerio), que `poLCA` no logra explicar con clases. El ACM + HCPC es descriptivo, sin modelo probabilístico.
+- **Estacionalidad:** la indicadora de julio a septiembre de 2020 es una aproximación sin verificar con la serie mensual del INS; el Ljung-Box de los modelos 2 y 3 cambia de conclusión al quitar enero de 2020 (con 72 meses fallaban, con 71 pasan), de modo que el supuesto está cerca del umbral y la elección del modelo 3b es frágil; con 71 observaciones los errores de Newey-West tienen poca precisión.

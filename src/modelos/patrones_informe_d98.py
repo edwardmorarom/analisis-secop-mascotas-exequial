@@ -124,8 +124,7 @@ def md_d98():
     elif tabla_polca is not None:
         partes.append(seccion_cumplen(tabla_polca))
     partes.append(seccion_estacionalidad())
-    partes.append("
-".join(["### Limitaciones del análisis exploratorio", "",
+    partes.append(chr(10).join(["### Limitaciones del análisis exploratorio", "",
                              "- Los tres análisis se decidieron después de ver los resultados de D97; son exploratorios y no sustituyen a los de D97.",
                              "- **Valor:** los intervalos de la mediana por bootstrap agrupado son anchos en las categorías con pocos contratos (otras entidades, otras modalidades, operación de cementerio); los de Wald del gamma son los más angostos porque son del modelo y no robustos; "
                              "«cambia de signo» incluye coeficientes cercanos a cero, cuyo signo no es informativo; la regresión por cuantiles describe la mediana del log del valor y no la media, de modo que no es comparable en magnitud con el gamma.",
