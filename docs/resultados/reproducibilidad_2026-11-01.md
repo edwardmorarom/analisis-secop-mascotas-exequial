@@ -25,7 +25,7 @@ Se regeneró todo desde `data/processed` con los comandos documentados: `python 
 
 - **Efecto de V046 (D92, 2026-10-29):** pasar SSF-013 a `no_funerario` bajó el mercado de 4.993 a 4.992 contratos y de 230,7 a 230,6 (D96 lo anota en D93); D84, D85, D86 y D89 conservan las cifras del momento. También cambian el HHI y el CR4 de 2023 y el conteo de contratos del patrón de D92 con etiqueta `funerario` (5 a 4).
 - **Etiquetas posteriores:** D84 cita 542 contratos con etiqueta humana (400, 60, 30, 2 y 50); los lotes de D91 y D93 suman 190 (40 y 150) y hoy son 732. El rango C0–C1 de D90 se calculó con 296 contratos humanitarios sin etiqueta; al regenerar quedan 256 y el rango es 245,8–260,1.
-- **Hilos de XGBoost (D71):** la validación cruzada de XGBoost da F1 0,887 con los hilos por defecto (coincide con D71) y 0,890 si se fija `OMP_NUM_THREADS=1`; el resto de las cifras no depende de los hilos. El código no fija el número de hilos de la suma de gradientes; se documenta, no se corrige.
+- **Hilos de XGBoost (D71):** la validación cruzada de XGBoost dependía del número de hilos (0,887 con `n_jobs=4`, el texto original de D71). Desde el 2026-11-01 `robustez.py` y `robustez_revisada.py` fijan `n_jobs=1` y `OMP_NUM_THREADS=1` y la cifra reproducible es 0,890 (nota en D71; prueba `tests/test_reproducibilidad_xgboost.py`); el resto de las cifras no depende de los hilos.
 - **Arranques de clases latentes (D97):** el modelo de fuente y año con 5 clases repite su mejor log-verosimilitud en 3 de 20 arranques en la corrida original y en 2 de 20 al regenerar con hilo único, porque la tolerancia de 0,001 en la log-verosimilitud queda en el borde (la diferencia es de 0,001 en 52.639 de BIC). Ninguna conclusión de D97 cambia (ese modelo ya fallaba la independencia local).
 
 ## Código y pruebas
@@ -112,7 +112,7 @@ Se regeneró todo desde `data/processed` con los comandos documentados: `python 
 | D71 | F1 validación cruzada de 392, e5 | 0,946 | 0,946 | -0,000 |
 | D71 | F1 validación cruzada de 392, DeepSeek | 0,979 | 0,979 | 0,000 |
 | D71 | F1 validación cruzada de 392, SVM | 0,932 | 0,932 | 0,000 |
-| D71 | F1 validación cruzada de 392, XGBoost | 0,887 | 0,887 | -0,000 |
+| D71 | F1 validación cruzada de 392, XGBoost | 0,890 | 0,890 | 0,000 |
 | D54 | κ global de etiqueta (n = 400) | 0,683 | 0,683 | -0,000 |
 | D86 | precisión TF-IDF en los 50 por valor | 0,900 | 0,900 | 0,000 |
 | D86 | precisión por valor TF-IDF | 0,780 | 0,780 | 0,000 |

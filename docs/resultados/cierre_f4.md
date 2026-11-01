@@ -1,6 +1,6 @@
 # Cierre de F4: mercado público funerario (SECOP 2020–2025)
 
-Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. La rama `modelos` no está integrada en `main`: F4 se considera cerrada solo cuando Edward lo apruebe (ver «Decisiones pendientes»).
+Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. La rama `modelos` no está integrada en `main`: D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta; falta solo el merge (ver «Decisiones pendientes»).
 
 ## 1. Cobertura y universo
 
@@ -73,7 +73,7 @@ El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departament
 
 ## 5. Patrones de compra
 
-Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y está sujeto a la aprobación de D99. Universo: 4.992 contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.
+Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: 4.992 contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.
 
 **Valor** (log del valor constante de 2025; solo se reportan los tres efectos significativos en los tres modelos: regresión por cuantiles en la mediana, lineal mixto y gamma mixto; D99):
 
@@ -87,7 +87,7 @@ Los otros 18 coeficientes son no concluyentes. Archivos: `valor_d98_cuantiles.cs
 
 **Tipología.** No hay tipología latente que cumpla independencia local: ninguno de los 18 modelos de D97 (residuo bivariado máximo de 36,5 a 535) ni de los 27 de `poLCA` de D98 (mínimo 9,4) cumple a la vez BVR ≤ 10 y mejor ajuste en al menos 5 de 100 arranques (0 cumplen; `lca_comparacion.csv`, `polca_comparacion.csv`). Como descripción se reportan los grupos de ACM + HCPC con Jaccard medio ≥ 0,75 y al menos 1 % de los contratos (criterio de la enmienda de D99): 8 de 11, con 4.910 contratos (98,4 %): grupo 1 (1.278, Jaccard 0,96); grupo 2 (280, Jaccard 0,87); grupo 3 (253, Jaccard 0,87); grupo 4 (362, Jaccard 0,91); grupo 5 (2.314, Jaccard 0,96); grupo 7 (206, Jaccard 0,77); grupo 9 (121, Jaccard 0,91); grupo 10 (96, Jaccard 0,93). Sus categorías características (prueba v) están en `patrones_compra.md` y `hcpc_d98_vtest.csv`; no se les da interpretación de negocio.
 
-**Estacionalidad: indicio, no hallazgo.** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, 143.125 fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran 184.393; los 25 meses sin registro son faltantes, no ceros): la señal estacional se mantiene en todos los modelos (Wald con Newey-West p < 0,0001; amplitud de 12 meses de 0,43 a 0,55); pasan los supuestos los modelos 2, 2c, 2e; el de menor BIC entre ellos es el 2e (420,1). Los meses de mayor contratación del año son marzo, febrero y abril, con ambas series. Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.
+**Estacionalidad: resultado en cuanto a los meses de mayor contratación; la forma exacta del modelo es una limitación (D99, ajuste de Edward).** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, 143.125 fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran 184.393; los 25 meses sin registro son faltantes, no ceros): la señal estacional se mantiene en todos los modelos (Wald con Newey-West p < 0,0001; amplitud de 12 meses de 0,43 a 0,55); pasan los supuestos los modelos 2, 2c, 2e; el de menor BIC entre ellos es el 2e (420,1). **Resultado:** los meses de mayor contratación del año son febrero, marzo y abril, con ambas series (Wald con Newey-West p < 0,0001 en las 12 especificaciones con la serie filtrada). **Limitación:** el 2e y el 2c empatan en BIC y los modelos con armónicos no pasan el Ljung-Box. La serie filtrada es coherente con la cifra oficial (OPS, Informe de situación 293, 14 de marzo de 2023: 142.639 muertes al 8 de marzo de 2023; la serie suma 142.651 hasta febrero de 2023). Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.
 
 ## 6. Tratamiento de faltantes
 
@@ -111,14 +111,12 @@ Los otros 18 coeficientes son no concluyentes. Archivos: `valor_d98_cuantiles.cs
 - El total es una cota inferior respecto de lo que la consulta no recupera (D22) y excluye `mixto` y `forense` (D89).
 - La ubicación es la de la entidad compradora, no la de ejecución (D66); las entidades nacionales con sede en Bogotá se ubican en Bogotá aunque el servicio se ejecute en otro lugar.
 - SECOP I y SECOP II no son equivalentes (SECOP I solo con contrato firmado y estado de ejecución, D42); el efecto de la fuente aparece como uno de los tres efectos robustos de valor.
-- Los patrones de compra son exploratorios; ninguna tipología latente cumple los supuestos; la estacionalidad es un indicio y depende de la especificación de la serie de COVID-19 (143.125 fallecidos frente a unos 142.000 oficiales, cifra no verificada contra una publicación en esta sesión).
+- Los patrones de compra son exploratorios; ninguna tipología latente cumple los supuestos; de la estacionalidad se reportan los meses de mayor contratación, pero la forma exacta del modelo es una limitación (empate de BIC entre 2e y 2c; los modelos con armónicos no pasan el Ljung-Box).
 - La cifra de XGBoost de D71 depende del número de hilos (0,887 original; 0,890 reproducible con un hilo).
 - Mortalidad de mascotas: vacío documentado; no se estiman escenarios de defunciones (decisión cerrada).
 
 ## 8. Decisiones pendientes de Edward
 
-- **Aprobar o rechazar D99** (estado: propuesta): efectos de valor, tipología, criterio de grupos de HCPC, estacionalidad como indicio, serie de COVID filtrada y modelo principal 2e.
-- Integrar `modelos` en `main` con `git merge --no-ff` y el resumen de la fase (D55–D99), si se da por cerrada F4.
-- D69 (proveedores) y D68 (patrones) siguen como borrador/propuesta; D95 y D96 tienen seguimientos abiertos (variables derivadas y componentes).
+- Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D95 y D96 resueltas (2026-11-01). Solo el mes de firma de D68 no tiene validación humana (es la fecha de firma sin transformación).
+- Integrar `modelos` en `main` con `git merge --no-ff` y un mensaje que resuma la fase y liste sus decisiones (D55–D99).
 - Recalcular el tamaño efectivo de la robustez de D71/D79 con las etiquetas vigentes, si se quiere citar.
-- Verificar la cifra oficial de muertes por COVID-19 del INS contra una publicación (el valor de unos 142.000 viene de Edward).

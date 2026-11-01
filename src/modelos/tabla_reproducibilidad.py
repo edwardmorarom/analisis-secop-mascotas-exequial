@@ -121,10 +121,10 @@ def clasificadores():
         x = rb[(rb["version"] == v) & (rb["modelo"].str.contains(m)) & (rb["escala"] == "ponderado")].iloc[0]
         fila("D71", f"F1 ponderado validación de 60, {m}, {v}", rep, x["f1"], 0.0005)
     ro = leer_csv(p(), "tabla_robustez.csv")
-    for m, rep in (("TF-IDF + regresión", 0.932), ("e5", 0.946), ("DeepSeek", 0.979), ("SVM", 0.932), ("XGBoost", 0.887)):
+    for m, rep in (("TF-IDF + regresión", 0.932), ("e5", 0.946), ("DeepSeek", 0.979), ("SVM", 0.932), ("XGBoost", 0.890)):
         x = ro[ro["modelo"].str.contains(m, regex=False)].iloc[0]
         fila("D71", f"F1 validación cruzada de 392, {m}", rep, x["cv392_f1"], 0.0005,
-             "XGBoost cambia con el número de hilos (0,887 con los hilos por defecto; 0,890 con OMP_NUM_THREADS=1)" if m == "XGBoost" else "")
+             "cifra reproducible con un hilo (D71, nota del 2026-11-01); el texto original dice 0,887 con n_jobs=4" if m == "XGBoost" else "")
     if KAPPA is not None and (KAPPA / "kappa_etiquetado.csv").exists():
         k = pd.read_csv(KAPPA / "kappa_etiquetado.csv")
         fila("D54", "κ global de etiqueta (n = 400)", 0.683, k.loc[k["grupo"] == "global", "kappa_etiqueta"].iloc[0], 0.0005)
@@ -238,7 +238,7 @@ def escribir(t, vista):
          "## Diferencias y su causa", "", tabla(dif[["decisión", "cifra", "reportada", "regenerada", "diferencia", "nota"]]), "",
          "- **Efecto de V046 (D92, 2026-10-29):** pasar SSF-013 a `no_funerario` bajó el mercado de 4.993 a 4.992 contratos y de 230,7 a 230,6 (D96 lo anota en D93); D84, D85, D86 y D89 conservan las cifras del momento. También cambian el HHI y el CR4 de 2023 y el conteo de contratos del patrón de D92 con etiqueta `funerario` (5 a 4).",
          "- **Etiquetas posteriores:** D84 cita 542 contratos con etiqueta humana (400, 60, 30, 2 y 50); los lotes de D91 y D93 suman 190 (40 y 150) y hoy son 732. El rango C0–C1 de D90 se calculó con 296 contratos humanitarios sin etiqueta; al regenerar quedan 256 y el rango es 245,8–260,1.",
-         "- **Hilos de XGBoost (D71):** la validación cruzada de XGBoost da F1 0,887 con los hilos por defecto (coincide con D71) y 0,890 si se fija `OMP_NUM_THREADS=1`; el resto de las cifras no depende de los hilos. El código no fija el número de hilos de la suma de gradientes; se documenta, no se corrige.",
+         "- **Hilos de XGBoost (D71):** la validación cruzada de XGBoost dependía del número de hilos (0,887 con `n_jobs=4`, el texto original de D71). Desde el 2026-11-01 `robustez.py` y `robustez_revisada.py` fijan `n_jobs=1` y `OMP_NUM_THREADS=1` y la cifra reproducible es 0,890 (nota en D71; prueba `tests/test_reproducibilidad_xgboost.py`); el resto de las cifras no depende de los hilos.",
          "- **Arranques de clases latentes (D97):** el modelo de fuente y año con 5 clases repite su mejor log-verosimilitud en 3 de 20 arranques en la corrida original y en 2 de 20 al regenerar con hilo único, porque la tolerancia de 0,001 en la log-verosimilitud queda en el borde (la diferencia es de 0,001 en 52.639 de BIC). Ninguna conclusión de D97 cambia (ese modelo ya fallaba la independencia local).", "",
          "## Código y pruebas", "",
          "- No se encontró ningún error evidente de código. Se hizo un refactor sin cambio de comportamiento en `src/modelos/etiquetas_humanas.py` (`fusionar`, `aplicar_correccion_d92` y `corregir_validacion_d92` salen de `construir`, `lote` y `validacion_60`) para poder probar la jerarquía de D84 y la regla D92; las cifras regeneradas después del refactor coinciden con las anteriores.",

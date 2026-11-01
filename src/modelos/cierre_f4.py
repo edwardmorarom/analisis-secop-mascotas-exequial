@@ -100,7 +100,7 @@ def construir():
     L = ["# Cierre de F4: mercado público funerario (SECOP 2020–2025)", "",
          "Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). "
          "Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. "
-         "La rama `modelos` no está integrada en `main`: F4 se considera cerrada solo cuando Edward lo apruebe (ver «Decisiones pendientes»).", "",
+         "La rama `modelos` no está integrada en `main`: D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta; falta solo el merge (ver «Decisiones pendientes»).", "",
          "## 1. Cobertura y universo", "",
          tabla([["Candidatos SECOP I y II, 2020–2025", "39.870", "D73 (34.790 + 5.080 de SECOP I 2023–2025)", "`data/interim/*_senales.parquet`"],
                 ["SECOP II (conjunto `jbjy-vk9h`)", "19.306", "D16, D17", "`data/raw/secop/`"],
@@ -146,7 +146,7 @@ def construir():
                ["Año", "Proveedores", "HHI nacional", "CR4 nacional (%)", "HHI departamental, mediana", "Departamentos con HHI > 2.500"]), "",
          "El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 sigue marcada como propuesta.", "",
          "## 5. Patrones de compra", "",
-         "Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y está sujeto a la aprobación de D99. Universo: " + fm(n_mercado, 0) + " contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.", "",
+         "Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: " + fm(n_mercado, 0) + " contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.", "",
          "**Valor** (log del valor constante de 2025; solo se reportan los tres efectos significativos en los tres modelos: regresión por cuantiles en la mediana, lineal mixto y gamma mixto; D99):", "",
          tabla([[n, fm(ef.loc[t, "qr_estimador"], 3), fm(ef.loc[t, "lmm_estimador"], 3), fm(ef.loc[t, "gamma_estimador"], 3)] for n, t in
                 (("Selección abreviada frente a mínima cuantía", "modalidad_gruposeleccion_abreviada"), ("Gobernación o departamento frente a alcaldía o municipio", "tipo_entidadgobernacion_departamento"), ("Fuente SECOP II frente a SECOP I", "fuentesecop2"))],
@@ -155,9 +155,9 @@ def construir():
          f"**Tipología.** No hay tipología latente que cumpla independencia local: ninguno de los {c['lca_n']} modelos de D97 (residuo bivariado máximo de {fm(c['lca_bvr_min'], 1)} a {fm(c['lca_bvr_max'], 0)}) ni de los {c['polca_n']} de `poLCA` de D98 (mínimo {fm(c['polca_bvr_min'], 1)}) cumple a la vez BVR ≤ 10 y mejor ajuste en al menos 5 de 100 arranques ({c['polca_cumple']} cumplen; `lca_comparacion.csv`, `polca_comparacion.csv`). "
          f"Como descripción se reportan los grupos de ACM + HCPC con Jaccard medio ≥ 0,75 y al menos 1 % de los contratos (criterio de la enmienda de D99): {len(ok)} de {len(h)}, con {fm(ok['contratos'].sum(), 0)} contratos ({fm(100 * ok['contratos'].sum() / n_mercado, 1)} %): "
          + "; ".join(f"grupo {int(r.grupo)} ({fm(r.contratos, 0)}, Jaccard {fm(r.jaccard_medio, 2)})" for r in ok.itertuples()) + ". Sus categorías características (prueba v) están en `patrones_compra.md` y `hcpc_d98_vtest.csv`; no se les da interpretación de negocio.", "",
-         f"**Estacionalidad: indicio, no hallazgo.** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, {fm(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran {fm(reg_s.sum(), 0)}; los 25 meses sin registro son faltantes, no ceros): "
+         f"**Estacionalidad: resultado en cuanto a los meses de mayor contratación; la forma exacta del modelo es una limitación (D99, ajuste de Edward).** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, {fm(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran {fm(reg_s.sum(), 0)}; los 25 meses sin registro son faltantes, no ceros): "
          f"la señal estacional se mantiene en todos los modelos (Wald con Newey-West p < 0,0001; amplitud de 12 meses de {fm(cm['amplitud_12'].min(), 2)} a {fm(cm['amplitud_12'].max(), 2)}); pasan los supuestos los modelos {', '.join(pasan.index)}; el de menor BIC entre ellos es el {menor} ({fm(pasan.loc[menor, 'BIC'], 1)}). "
-         "Los meses de mayor contratación del año son marzo, febrero y abril, con ambas series. Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.", "",
+         "**Resultado:** los meses de mayor contratación del año son febrero, marzo y abril, con ambas series (Wald con Newey-West p < 0,0001 en las 12 especificaciones con la serie filtrada). **Limitación:** el 2e y el 2c empatan en BIC y los modelos con armónicos no pasan el Ljung-Box. La serie filtrada es coherente con la cifra oficial (OPS, Informe de situación 293, 14 de marzo de 2023: 142.639 muertes al 8 de marzo de 2023; la serie suma 142.651 hasta febrero de 2023). Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.", "",
          "## 6. Tratamiento de faltantes", "",
          tabla([["Contratos con valor 0 (valor no positivo)", f"{sin_valor} contratos: excluidos de la regresión del log del valor; incluidos en los totales (suman 0)", "D99 (enmienda)"],
                 ["`forense` de Harold sin dato en 59 filas", "Se completó con 0 (imputación); no afecta el mercado; todo conteo de `forense = 1` es un mínimo", "D54 (nota)"],
@@ -176,15 +176,13 @@ def construir():
          "- El total es una cota inferior respecto de lo que la consulta no recupera (D22) y excluye `mixto` y `forense` (D89).",
          "- La ubicación es la de la entidad compradora, no la de ejecución (D66); las entidades nacionales con sede en Bogotá se ubican en Bogotá aunque el servicio se ejecute en otro lugar.",
          "- SECOP I y SECOP II no son equivalentes (SECOP I solo con contrato firmado y estado de ejecución, D42); el efecto de la fuente aparece como uno de los tres efectos robustos de valor.",
-         "- Los patrones de compra son exploratorios; ninguna tipología latente cumple los supuestos; la estacionalidad es un indicio y depende de la especificación de la serie de COVID-19 (143.125 fallecidos frente a unos 142.000 oficiales, cifra no verificada contra una publicación en esta sesión).",
+         "- Los patrones de compra son exploratorios; ninguna tipología latente cumple los supuestos; de la estacionalidad se reportan los meses de mayor contratación, pero la forma exacta del modelo es una limitación (empate de BIC entre 2e y 2c; los modelos con armónicos no pasan el Ljung-Box).",
          "- La cifra de XGBoost de D71 depende del número de hilos (0,887 original; 0,890 reproducible con un hilo).",
          "- Mortalidad de mascotas: vacío documentado; no se estiman escenarios de defunciones (decisión cerrada).", "",
          "## 8. Decisiones pendientes de Edward", "",
-         "- **Aprobar o rechazar D99** (estado: propuesta): efectos de valor, tipología, criterio de grupos de HCPC, estacionalidad como indicio, serie de COVID filtrada y modelo principal 2e.",
-         "- Integrar `modelos` en `main` con `git merge --no-ff` y el resumen de la fase (D55–D99), si se da por cerrada F4.",
-         "- D69 (proveedores) y D68 (patrones) siguen como borrador/propuesta; D95 y D96 tienen seguimientos abiertos (variables derivadas y componentes).",
-         "- Recalcular el tamaño efectivo de la robustez de D71/D79 con las etiquetas vigentes, si se quiere citar.",
-         "- Verificar la cifra oficial de muertes por COVID-19 del INS contra una publicación (el valor de unos 142.000 viene de Edward).", ""]
+         "- Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D95 y D96 resueltas (2026-11-01). Solo el mes de firma de D68 no tiene validación humana (es la fecha de firma sin transformación).",
+         "- Integrar `modelos` en `main` con `git merge --no-ff` y un mensaje que resuma la fase y liste sus decisiones (D55–D99).",
+         "- Recalcular el tamaño efectivo de la robustez de D71/D79 con las etiquetas vigentes, si se quiere citar.", ""]
     return "\n".join(L)
 
 
