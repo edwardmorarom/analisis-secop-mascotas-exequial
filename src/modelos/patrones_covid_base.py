@@ -14,21 +14,21 @@ def serie_mensual():
     d["fallecidos"] = d["fallecidos"].astype(int)
     m = d.groupby("mes")["fallecidos"].sum()
     m.index = pd.PeriodIndex(m.index, freq="M")
-    return m.reindex(MESES, fill_value=0), d
+    return m.reindex(MESES), d
 
 
 def main():
     m, d = serie_mensual()
-    p75 = float(np.percentile(m.to_numpy(), 75))
-    out = pd.DataFrame({"mes_txt": m.index.strftime("%Y-%m"), "fallecidos": m.to_numpy()})
+    p75 = float(np.nanpercentile(m.to_numpy(dtype=float), 75))
+    out = pd.DataFrame({"mes_txt": m.index.strftime("%Y-%m"), "fallecidos": m.to_numpy(dtype=float)})
     out["log1p_fallecidos"] = np.log1p(out["fallecidos"])
-    out["sobre_p75"] = (out["fallecidos"] > p75).astype(int)
+    out["sobre_p75"] = (out["fallecidos"] > p75).astype(float).where(out["fallecidos"].notna())
     destino = ruta(config := cargar_config(), "processed") / "resultados_secop" / "patrones" / "covid_muertes_mensual.csv"
     out.to_csv(destino, index=False)
     print(destino)
-    print(f"meses: {len(out)} | meses con 0 (sin muertes registradas): {int((out['fallecidos'] == 0).sum())} | total: {int(out['fallecidos'].sum())} | p75: {p75:.1f} | meses sobre el p75: {int(out['sobre_p75'].sum())}")
+    print(f"meses: {len(out)} | con registro: {int(out['fallecidos'].notna().sum())} | meses sin registro (faltantes): {int(out['fallecidos'].isna().sum())} | total: {int(out['fallecidos'].sum())} | p75: {p75:.1f} | meses sobre el p75: {int(out['sobre_p75'].sum())}")
     print("meses sobre el p75:", out.loc[out["sobre_p75"] == 1, "mes_txt"].tolist())
-    print("departamentos:", d["departamento"].nunique(), "| último mes con muertes:", m[m > 0].index.max(), "| pico:", m.idxmax(), int(m.max()))
+    print("departamentos:", d["departamento"].nunique(), "| último mes con muertes:", m.dropna()[m.dropna() > 0].index.max(), "| pico:", m.idxmax(), int(m.max()))
 
 
 if __name__ == "__main__":

@@ -102,20 +102,26 @@ def seccion_covid():
                             "EE del modelo": claves["se_modelo"].map(lambda v: f(v, 3)), "EE Newey-West": claves["se_newey_west"].map(lambda v: f(v, 3)),
                             "p Newey-West": claves["p_newey_west"].map(lambda v: f(v, 4))})
     sobre = cv[cv["sobre_p75"] == 1]["mes_txt"].tolist()
-    pasan72 = m[(m["muestra"] == "72 meses") & ~m["falla_autocorrelacion"] & ~m["falla_normalidad_rq"]]["modelo"].tolist()
+    reg = cv["fallecidos"].dropna()
+    c47 = m[m["muestra"] == "meses con registro de COVID"].set_index(m[m["muestra"] == "meses con registro de COVID"]["modelo"].str.split().str[0])
+    s72 = m[m["muestra"].str.startswith("72")].set_index(m[m["muestra"].str.startswith("72")]["modelo"].str.split().str[0])
+    lcov = c[c["termino"] == "lcovid"]
+    alto = c[c["termino"] == "alto"]
+    pasan = c47[~c47["falla_autocorrelacion"] & ~c47["falla_normalidad_rq"]]
+    mejor = c47["BIC"].idxmin()
     return chr(10).join(["### 4. Muertes COVID mensuales en lugar de la indicadora de julio a septiembre de 2020 (D99, exploratorio)", "",
                       f"Fuente: conteo de fallecidos por mes de fecha de muerte del conjunto de casos positivos de COVID-19 del INS (datos.gov.co `gt2j-8ykr`), una consulta agregada guardada en `data/raw/covid/` con su SHA-256 en el manifiesto (D99). "
-                      f"La serie tiene {f(cv['fallecidos'].sum(), 0)} fallecidos de marzo de 2020 a enero de 2024 (pico de {f(cv['fallecidos'].max(), 0)} en {cv.loc[cv['fallecidos'].idxmax(), 'mes_txt']}); los {int((cv['fallecidos'] == 0).sum())} meses sin registro (enero y febrero de 2020 y desde febrero de 2024) se toman como cero. "
-                      f"El percentil 75 de los 72 meses es {f(float(np.percentile(cv['fallecidos'], 75)), 0)} muertes y {len(sobre)} meses lo superan: {', '.join(sobre)}. Correlación entre el log de las muertes y la indicadora del percentil 75: {f(cor.iloc[0, 0], 2)}.", "",
+                      f"La serie tiene {f(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024 (pico de {f(reg.max(), 0)} en {cv.loc[cv['fallecidos'].idxmax(), 'mes_txt']}). Los {int(cv['fallecidos'].isna().sum())} meses sin registro (enero y febrero de 2020 y desde febrero de 2024) son **faltantes, no ceros**: los modelos con términos de COVID se ajustan solo a los {len(reg)} meses con registro (marzo de 2020 a enero de 2024, contiguos), y los modelos 2 y 3 de D97 se muestran además con los 72 meses. "
+                      f"El percentil 75 se calcula sobre los {len(reg)} meses con registro: {f(float(np.percentile(reg, 75)), 0)} muertes; {len(sobre)} meses lo superan: {', '.join(sobre)}. Correlación entre el log de las muertes y la indicadora del percentil 75: {f(cor.iloc[0, 0], 2)}.", "",
                       "Modelos (binomial negativa): el 2 y el 3 de D97; 2b y 3b de D98 (autorregresivo e indicadora de julio a septiembre de 2020); 2c y 3c con las muertes (log + 1) y la indicadora del percentil 75 sin autorregresivo; 2d y 3d con autorregresivo y esos dos términos. "
-                      "Primero con los 72 meses (solo modelos sin autorregresivo) y luego sin enero de 2020 (71 meses, donde caben los ocho).", "", tabla(tabla_m), "",
+                      "Los ocho se comparan en los mismos meses; el BIC solo es comparable dentro de una muestra.", "", tabla(tabla_m), "",
                       "Coeficientes de los términos de COVID y del autorregresivo, con errores estándar de Newey-West:", "", tabla(tabla_c), "",
-                      f"- Con los 72 meses, los modelos sin términos de COVID fallan el Ljung-Box a 12 rezagos (p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('2 ')]['ljung_box_12_p'].iloc[0], 3)} y {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('3 ')]['ljung_box_12_p'].iloc[0], 3)}), "
-                      f"y los de COVID lo pasan sin necesidad del autorregresivo ni de quitar el primer mes (2c, p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('2c')]['ljung_box_12_p'].iloc[0], 3)}; 3c, p = {f(m[(m['muestra'] == '72 meses') & m['modelo'].str.startswith('3c')]['ljung_box_12_p'].iloc[0], 3)}): "
-                      "es decir, las muertes mensuales reducen la autocorrelación residual sin depender de perder un mes.",
+                      f"- Con los {len(reg)} meses con registro, el Ljung-Box a 12 rezagos da p = {f(c47.loc['2', 'ljung_box_12_p'], 3)} (modelo 2), {f(c47.loc['3', 'ljung_box_12_p'], 3)} (3), {f(c47.loc['2c', 'ljung_box_12_p'], 3)} (2c), {f(c47.loc['3c', 'ljung_box_12_p'], 3)} (3c), {f(c47.loc['2d', 'ljung_box_12_p'], 3)} (2d) y {f(c47.loc['3d', 'ljung_box_12_p'], 3)} (3d); con los modelos de D98 con indicadora de julio a septiembre de 2020, {f(c47.loc['2b', 'ljung_box_12_p'], 3)} (2b) y {f(c47.loc['3b', 'ljung_box_12_p'], 3)} (3b). "
+                      f"Pasan ambos supuestos: {', '.join(pasan.index) or 'ninguno'}. Con los 72 meses, los modelos 2 y 3 sin COVID fallan (p = {f(s72.loc['2', 'ljung_box_12_p'], 3)} y {f(s72.loc['3', 'ljung_box_12_p'], 3)}).",
                       f"- **La señal estacional se mantiene** en todos los modelos: el contraste conjunto de la parte estacional con errores de Newey-West da p < 0,0001 en las {len(m)} especificaciones y la amplitud del armónico de 12 meses queda entre {f(m['amplitud_12'].min(), 2)} y {f(m['amplitud_12'].max(), 2)}.",
-                      "- En los modelos con armónicos (3c y 3d) la que aparece asociada con el conteo de contratos es la indicadora del percentil 75 y el log de las muertes aporta poco; en los de mes y año (2c y 2d) ocurre lo contrario: el log de las muertes es significativo (0,07 a 0,08) y la indicadora no (ver tabla). La asociación es descriptiva y no se interpreta como causal.",
-                      f"- Entre los modelos que pasan los supuestos con 72 meses ({', '.join(x.split()[0] for x in pasan72)}) y con 71, el de menor BIC es el que muestra la tabla; el 3b de D98 y el 3c quedan a menos de 2 puntos de BIC con 71 meses.", ""])
+                      f"- El log de las muertes queda asociado con más contratos en todos los modelos (coeficiente {f(lcov['estimador'].min(), 2)} a {f(lcov['estimador'].max(), 2)}; p de Newey-West ≤ {f(lcov['p_newey_west'].max(), 4)}). La indicadora del percentil 75 sale con signo negativo ({f(alto['estimador'].min(), 2)} a {f(alto['estimador'].max(), 2)}) y solo es significativa en los modelos de mes y año; está correlacionada con el log de las muertes ({f(cor.iloc[0, 0], 2)}), de modo que sus coeficientes no se interpretan por separado. La asociación es descriptiva y no se interpreta como causal.",
+                      f"- El menor BIC entre los modelos con registro es el {mejor} ({f(c47.loc[mejor, 'BIC'], 1)}); los que quedan a menos de 2 puntos: {', '.join(k for k in c47.index if k != mejor and c47.loc[k, 'dBIC'] < 2) or 'ninguno'}.", ""])
+
 
 
 def seccion_tipologia():

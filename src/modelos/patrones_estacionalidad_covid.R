@@ -1,4 +1,4 @@
-# D99 (exploratorio, continúa D98): estacionalidad con muertes COVID mensuales (log + 1) e indicadora sobre el percentil 75, con y sin el primer mes.
+# D99 (exploratorio, continúa D98): estacionalidad con muertes COVID mensuales (log + 1) e indicadora sobre el percentil 75, los meses sin registro de COVID son faltantes (no cero): los modelos con COVID se ajustan a los meses con registro.
 suppressMessages(library(MASS))
 set.seed(2034)
 raiz <- normalizePath(file.path(dirname(sub("--file=", "", grep("--file=", commandArgs(FALSE), value = TRUE))), "..", ".."))
@@ -51,7 +51,9 @@ formulas <- list(
   "2d mes, año, AR y COVID" = y ~ mes + anio + lagy + lcovid + alto,
   "3d armónicos, tendencia, AR y COVID" = y ~ s12 + c12 + s6 + c6 + t + lagy + lcovid + alto)
 # Muestras: 72 meses (sin término autorregresivo) y 71 meses (sin el primer mes), donde caben todos los modelos
-panel <- list("72 meses" = list(datos = d, modelos = c(1, 2, 5, 6)), "71 meses (sin enero de 2020)" = list(datos = d[-1, ], modelos = 1:8))
+con <- d[!is.na(d$lcovid), ]
+stopifnot(all(diff(con$t) == 1))
+panel <- list("72 meses (sin términos de COVID)" = list(datos = d, modelos = 1:2), "meses con registro de COVID" = list(datos = con, modelos = 1:8))
 
 resultados <- list(); coefs <- list()
 for (nm in names(panel)) {
@@ -77,7 +79,7 @@ res$falla_autocorrelacion <- res$ljung_box_12_p < 0.05
 res$falla_normalidad_rq <- abs(res$asimetria_rq) > 1 | res$exceso_curtosis_rq > 3
 cf <- do.call(rbind, coefs)
 # correlación entre los dos términos COVID
-cor_cov <- data.frame(correlacion_log_muertes_e_indicadora = cor(d$lcovid, d$alto), correlacion_log_muertes_con_jul_sep_2020 = cor(d$lcovid, d$jas2020))
+cor_cov <- data.frame(correlacion_log_muertes_e_indicadora = cor(con$lcovid, con$alto), correlacion_log_muertes_con_jul_sep_2020 = cor(con$lcovid, con$jas2020))
 write.csv(res, file.path(dir_out, "estacionalidad_covid_modelos.csv"), row.names = FALSE, fileEncoding = "UTF-8")
 write.csv(cf, file.path(dir_out, "estacionalidad_covid_coeficientes.csv"), row.names = FALSE, fileEncoding = "UTF-8")
 write.csv(cor_cov, file.path(dir_out, "estacionalidad_covid_correlacion.csv"), row.names = FALSE, fileEncoding = "UTF-8")
