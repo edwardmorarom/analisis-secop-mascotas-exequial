@@ -1,6 +1,6 @@
 # Cierre de F4: mercado público funerario (SECOP 2020–2025)
 
-Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. La rama `modelos` no está integrada en `main`: D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta; falta solo el merge (ver «Decisiones pendientes»).
+Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. F4 está integrada en `main` con el merge `4d48d28` y la etiqueta `f4-cerrada`. D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta.
 
 ## 1. Cobertura y universo
 
@@ -69,7 +69,7 @@ Concentración de proveedores (`proveedores_hhi_cr4_anual.csv`, `proveedores_hhi
 | 2024 | 425 | 417 | 33,9 | 2.034 | 7 |
 | 2025 | 438 | 651 | 33,3 | 1.832 | 9 |
 
-El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 sigue marcada como propuesta.
+El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 está resuelta (D77 y D86).
 
 ## 5. Patrones de compra
 
@@ -115,7 +115,7 @@ Los otros 18 coeficientes son no concluyentes. Archivos: `valor_d98_cuantiles.cs
 - La cifra de XGBoost de D71 depende del número de hilos (0,887 original; 0,890 reproducible con un hilo).
 - Mortalidad de mascotas: vacío documentado; no se estiman escenarios de defunciones (decisión cerrada).
 
-## 8. Decisiones pendientes de Edward
+## 8. Pendientes de F4
 
 - Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D74, D83, D95 y D96 resueltas (2026-11-01); el mes de firma se usa sin validación humana porque es la fecha original de SECOP (D68).
-- Integrar `modelos` en `main` con `git merge --no-ff` y un mensaje que resuma la fase y liste sus decisiones (D55–D99).
+- Ninguno: F4 está integrada en `main` (merge `4d48d28`, etiqueta `f4-cerrada`).

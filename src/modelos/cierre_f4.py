@@ -100,7 +100,7 @@ def construir():
     L = ["# Cierre de F4: mercado público funerario (SECOP 2020–2025)", "",
          "Documento de una sola lectura para el informe final. Cada cifra lleva la decisión que la fija (`docs/decisiones.md`) y el archivo de donde sale (`data/processed/`, sin versionar). "
          "Las cifras de este documento se generan con `src/modelos/cierre_f4.py` a partir de los CSV de resultados y una prueba (`tests/test_cierre_f4.py`) verifica que coinciden. Valores monetarios en miles de millones de pesos de 2025. "
-         "La rama `modelos` no está integrada en `main`: D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta; falta solo el merge (ver «Decisiones pendientes»).", "",
+         "F4 está integrada en `main` con el merge `4d48d28` y la etiqueta `f4-cerrada`. D99 fue aprobada por Edward el 2026-11-01 y no queda ninguna decisión de F4 abierta.", "",
          "## 1. Cobertura y universo", "",
          tabla([["Candidatos SECOP I y II, 2020–2025", "39.870", "D73 (34.790 + 5.080 de SECOP I 2023–2025)", "`data/interim/*_senales.parquet`"],
                 ["SECOP II (conjunto `jbjy-vk9h`)", "19.306", "D16, D17", "`data/raw/secop/`"],
@@ -144,7 +144,7 @@ def construir():
          "Concentración de proveedores (`proveedores_hhi_cr4_anual.csv`, `proveedores_hhi_departamento_resumen_anual.csv`; D69, D77):", "",
          tabla([[int(a), fm(hhi.loc[a, "proveedores"], 0), fm(hhi.loc[a, "HHI"], 0), fm(hhi.loc[a, "CR4"], 1), fm(hd.loc[a, "HHI_mediana"], 0), int(hd.loc[a, "departamentos_HHI_mayor_2500"])] for a in hhi.index],
                ["Año", "Proveedores", "HHI nacional", "CR4 nacional (%)", "HHI departamental, mediana", "Departamentos con HHI > 2.500"]), "",
-         "El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 sigue marcada como propuesta.", "",
+         "El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 está resuelta (D77 y D86).", "",
          "## 5. Patrones de compra", "",
          "Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: " + fm(n_mercado, 0) + " contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.", "",
          "**Valor** (log del valor constante de 2025; solo se reportan los tres efectos significativos en los tres modelos: regresión por cuantiles en la mediana, lineal mixto y gamma mixto; D99):", "",
@@ -179,9 +179,9 @@ def construir():
          "- Los patrones de compra son exploratorios; ninguna tipología latente cumple los supuestos; de la estacionalidad se reportan los meses de mayor contratación, pero la forma exacta del modelo es una limitación (empate de BIC entre 2e y 2c; los modelos con armónicos no pasan el Ljung-Box).",
          "- La cifra de XGBoost de D71 depende del número de hilos (0,887 original; 0,890 reproducible con un hilo).",
          "- Mortalidad de mascotas: vacío documentado; no se estiman escenarios de defunciones (decisión cerrada).", "",
-         "## 8. Decisiones pendientes de Edward", "",
+         "## 8. Pendientes de F4", "",
          "- Ninguna decisión de F4 queda abierta: D99 aprobada (2026-11-01); D68, D69, D74, D83, D95 y D96 resueltas (2026-11-01); el mes de firma se usa sin validación humana porque es la fecha original de SECOP (D68).",
-         "- Integrar `modelos` en `main` con `git merge --no-ff` y un mensaje que resuma la fase y liste sus decisiones (D55–D99).",
+         "- Ninguno: F4 está integrada en `main` (merge `4d48d28`, etiqueta `f4-cerrada`).",
          ""]
     return "\n".join(L)
 
