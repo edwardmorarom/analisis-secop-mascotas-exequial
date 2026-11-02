@@ -1,9 +1,14 @@
 ﻿# Verifica el entorno del agente en Windows. Solo lee: no instala ni modifica nada.
 # Uso (desde la raiz del repositorio):  powershell -ExecutionPolicy Bypass -File src\agentes\verificar_entorno.ps1
 
+param([string]$LangfuseHost = "")
+
 $ErrorActionPreference = "Continue"
 $raiz = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$versionLangfuseEsperada = "4.72.0"
+# Versiones fijadas en A05 (docs/decisiones_agente.md); una prueba comprueba que coinciden con A05, requirements.txt y LEEME_EQUIPO.md
+$versionServidorFijada = "4.72.0"
+$servidorMinimoSdk = "4.59.0"
+$versionSdkMayor = 5
 $variablesNecesarias = @("DEEPSEEK_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST")
 
 $resultados = New-Object System.Collections.ArrayList
@@ -88,12 +93,18 @@ if (-not (Test-Path $envRuta)) {
 # 5. Langfuse
 $host_ = "http://localhost:3000"
 if ($valores.ContainsKey("LANGFUSE_HOST") -and $valores["LANGFUSE_HOST"]) { $host_ = $valores["LANGFUSE_HOST"].TrimEnd("/") }
+if ($LangfuseHost) { $host_ = $LangfuseHost.TrimEnd("/") }
 try {
     $r = Invoke-WebRequest -Uri "$host_/api/public/health" -UseBasicParsing -TimeoutSec 8
     $info = $r.Content | ConvertFrom-Json
     if ($info.status -eq "OK") {
-        if ($info.version -and $info.version -ne $versionLangfuseEsperada) {
-            Registrar "AVISO" "Langfuse" "responde en $host_ con la version $($info.version); la fijada es $versionLangfuseEsperada (A05)" ""
+        $numerica = if ("$($info.version)" -match "^(\d+\.\d+\.\d+)") { [version]$Matches[1] } else { $null }
+        if (-not $numerica) {
+            Registrar "AVISO" "Langfuse" "responde en $host_ pero no informa su version; la fijada es $versionServidorFijada (A05)" ""
+        } elseif ($numerica -lt [version]$servidorMinimoSdk) {
+            Registrar "FALTA" "Langfuse" "responde con la version $($info.version); el SDK $versionSdkMayor exige $servidorMinimoSdk o superior" "levante el servidor $versionServidorFijada (LEEME_EQUIPO.md, paso 5)"
+        } elseif ($numerica -ne [version]$versionServidorFijada) {
+            Registrar "AVISO" "Langfuse" "responde en $host_ con la version $($info.version); la fijada es $versionServidorFijada (A05)" ""
         } else {
             Registrar "OK" "Langfuse" "responde en $host_ (version $($info.version))" ""
         }
@@ -118,10 +129,10 @@ if (-not (Test-Path $py)) {
     $v = (& $py -c "import langfuse; print(langfuse.__version__)" 2>$null | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or -not $v) {
         Registrar "FALTA" "SDK langfuse" "no se pudo importar" "pip install -r requirements.txt"
-    } elseif ($v -match "^5\.") {
+    } elseif ($v -match "^$versionSdkMayor\.") {
         Registrar "OK" "SDK langfuse" "version $v (A05)" ""
     } else {
-        Registrar "FALTA" "SDK langfuse" "version $v; A05 exige 5.x (compatible con el servidor v4.59.0 o superior)" "pip install -r requirements.txt"
+        Registrar "FALTA" "SDK langfuse" "version $v; A05 exige $versionSdkMayor.x (servidor $servidorMinimoSdk o superior)" "pip install -r requirements.txt"
     }
 }
 
