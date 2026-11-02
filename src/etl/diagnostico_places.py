@@ -19,7 +19,8 @@ GENERICAS = {"FUNERARIA", "FUNERARIAS", "FUNERALES", "MASCOTAS", "MASCOTA", "PAR
              "SAS", "S", "A", "LTDA", "SA", "CIA", "EN", "SERVICIOS", "SERVICIO", "EXEQUIALES", "CEMENTERIO", "JARDIN",
              "JARDINES", "PARQUE", "CREMACION", "SEDE", "ADMINISTRATIVA", "OFICINAS", "EL", "DEL"}
 VOCABULARIO = re.compile(r"mascota|pet|funer|crema|cement|jard|veterin|clinic|centro|parque|club|oficina|eps|ltda|sas|s\.a|"
-                         r"concentrado|osario|memori|hospital|huella|animal|previs|exequ", re.I)
+                         r"concentrado|osario|memori|hospital|huella|animal|previs|exequ|velaci|casa|alma|bosque|santuario|grupo|recordar|"
+                         r"silencio|cielo|capilla|paz|sendero|patit|celest|guarderia|procuradur|compost|lealtad|lado|hotel|incimas", re.I)
 
 
 def normalizar(texto):
@@ -32,8 +33,10 @@ def nucleo(texto):
 
 
 def parece_persona(nombre):
-    palabras = nombre.split()
-    return 2 <= len(palabras) <= 4 and all(w.isalpha() for w in palabras) and not VOCABULARIO.search(nombre)
+    n = unicodedata.normalize("NFKC", nombre)
+    sin_tildes = unicodedata.normalize("NFKD", n).encode("ascii", "ignore").decode()
+    palabras = n.split()
+    return 2 <= len(palabras) <= 4 and all(w.isalpha() for w in palabras) and not VOCABULARIO.search(sin_tildes)
 
 
 def leer_crudo():

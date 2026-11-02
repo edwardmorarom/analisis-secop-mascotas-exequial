@@ -1,5 +1,6 @@
 import json
 import re
+import shutil
 import unicodedata
 
 import geopandas as gpd
@@ -21,11 +22,12 @@ TIPOS_NO_PRESTADOR = {"veterinary_care", "pet_store", "hospital", "corporate_off
 TIPOS_HUMANOS = {"funeral_home", "cemetery"}
 CLASES = ["prestador_mascotas", "no_prestador", "mixto"]
 MAESTRA = RAIZ / "data/interim/places_clasificacion_reglas.parquet"
-LIBRO = RAIZ / "docs/revision_f5/places_revision.xlsx"
+LIBROS = [RAIZ / "docs/revision_f5/places_revision_edward.xlsx", RAIZ / "docs/revision_f5/places_revision_segunda_revisora.xlsx"]
 
 
 def plano(texto):
-    return unicodedata.normalize("NFKD", str(texto)).encode("ascii", "ignore").decode().lower()
+    t = unicodedata.normalize("NFKC", str(texto))
+    return unicodedata.normalize("NFKD", t).encode("ascii", "ignore").decode().lower()
 
 
 def regla(nombre, tipo_principal):
@@ -141,11 +143,17 @@ def main():
     d, llamadas, busquedas = leer_corrida(directorio)
     u = aplicar_reglas(consolidar(d, places.poligonos(), places.divipola()))
     sel = seleccion(u, config["seed"])
-    ids, guardado = escribir_libro(sel, config["seed"], LIBRO)
+    ids, guardado = escribir_libro(sel, config["seed"], LIBROS[0])
+    if guardado:
+        shutil.copyfile(LIBROS[0], LIBROS[1])
     sel = sel.merge(ids, on="place_id", how="left")
     sel.to_parquet(MAESTRA, index=False)
     print(f"llamadas={llamadas} busquedas={len(busquedas)} filas={len(d)} unicos={len(u)} libro_nuevo={guardado}")
     print(u.groupby(["regla", "clase_regla"]).size().to_string())
+    print(f"fuera_del_buscado={int(u['fuera_del_buscado'].sum())} sin_municipio={int(u['sin_municipio'].sum())} personas={int(u['nombre_persona'].sum())}")
+    print(u["departamento"].fillna("(sin municipio)").value_counts().to_string())
+    print(u["tipo_principal"].fillna("(sin tipo principal)").value_counts().to_string())
+    print(pd.Series([t for ts in u["tipos"] for t in ts]).value_counts().head(15).to_string())
     print("no operativos:", int(u["no_operativo"].sum()), "| incluidos en el libro:", int(sel["incluido"].sum()))
 
 
