@@ -33,6 +33,8 @@ def test_libro_a_ciegas(tmp_path):
     ids, guardado = escribir_libro(u, 2026, tmp_path / "libro.xlsx")
     assert guardado and len(ids) == 5
     ws = load_workbook(tmp_path / "libro.xlsx")["revision"]
-    assert [c.value for c in ws[1]] == ["id_revision", "nombre", "direccion", "municipio", "tipos", "clase"]
-    assert all(ws.cell(row=r, column=6).value is None for r in range(2, 7))
+    assert [c.value for c in ws[1]] == ["id_revision", "ronda", "nombre", "direccion", "municipio", "tipos", "clase", "verificado_en", "nota"]
+    assert all(ws.cell(row=r, column=c).value is None for r in range(2, 7) for c in (7, 8, 9))
+    assert [ws.cell(row=r, column=2).value for r in range(2, 7)] == ["calibracion"] * 5
+    assert "no_determinable" in ws.data_validations.dataValidation[0].formula1
     assert "R1" not in str([[c.value for c in f] for f in ws.iter_rows()])

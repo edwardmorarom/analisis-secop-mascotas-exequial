@@ -20,9 +20,11 @@ FUNERARIA = re.compile(r"funerar|crema|crematorio|cementerio|memorial|exequial|b
 NO_FUNERARIA = re.compile(r"\beps\b|clinic|concentrado|supermercado")
 TIPOS_NO_PRESTADOR = {"veterinary_care", "pet_store", "hospital", "corporate_office"}
 TIPOS_HUMANOS = {"funeral_home", "cemetery"}
-CLASES = ["prestador_mascotas", "no_prestador", "mixto"]
+CLASES = ["prestador_mascotas", "no_prestador", "mixto", "no_determinable"]
+VERIFICADO_EN = ["solo_nombre", "google_maps", "sitio_web", "red_social"]
+CALIBRACION = 25
 MAESTRA = RAIZ / "data/interim/places_clasificacion_reglas.parquet"
-LIBROS = [RAIZ / "docs/revision_f5/places_revision_edward.xlsx", RAIZ / "docs/revision_f5/places_revision_segunda_revisora.xlsx"]
+LIBROS = {n: RAIZ / f"docs/revision_f5/places_revision_{n}.xlsx" for n in ("edward", "harold")}
 
 
 def plano(texto):
@@ -102,39 +104,40 @@ def seleccion(u, semilla, limite=300, n_estrato=60):
 def escribir_libro(sel, semilla, destino):
     orden = sel[sel["incluido"]].sample(frac=1, random_state=semilla).reset_index(drop=True)
     orden["id_revision"] = [f"L{i + 1:03d}" for i in range(len(orden))]
+    orden["ronda"] = ["calibracion" if i < CALIBRACION else "" for i in range(len(orden))]
     wb = Workbook()
     ws = wb.active
     ws.title = "revision"
-    cab = ["id_revision", "nombre", "direccion", "municipio", "tipos", "clase"]
+    cab = ["id_revision", "ronda", "nombre", "direccion", "municipio", "tipos", "clase", "verificado_en", "nota"]
     ws.append(cab)
     for r in orden.itertuples():
-        ws.append([r.id_revision, r.nombre, r.direccion, f"{r.municipio} ({r.departamento})" if pd.notna(r.municipio) else "(sin municipio)",
-                   ", ".join(r.tipos), None])
+        ws.append([r.id_revision, r.ronda or None, r.nombre, r.direccion, f"{r.municipio} ({r.departamento})" if pd.notna(r.municipio) else "(sin municipio)",
+                   ", ".join(r.tipos), None, None, None])
     for c in ws[1]:
         c.font, c.fill = Font(bold=True, color="FFFFFF"), PatternFill("solid", fgColor="305496")
-    for col, ancho in zip("ABCDEF", (12, 45, 55, 32, 50, 22)):
+    for col, ancho in zip("ABCDEFGHI", (12, 13, 45, 55, 32, 50, 22, 16, 50)):
         ws.column_dimensions[col].width = ancho
     for fila in ws.iter_rows(min_row=2):
         for c in fila:
             c.alignment = Alignment(wrap_text=True, vertical="top")
     ws.freeze_panes = "A2"
-    validacion = DataValidation(type="list", formula1='"' + ",".join(CLASES) + '"', allow_blank=True)
-    ws.add_data_validation(validacion)
-    validacion.add(f"F2:F{len(orden) + 1}")
+    for col, opciones in (("G", CLASES), ("H", VERIFICADO_EN)):
+        validacion = DataValidation(type="list", formula1='"' + ",".join(opciones) + '"', allow_blank=True)
+        ws.add_data_validation(validacion)
+        validacion.add(f"{col}2:{col}{len(orden) + 1}")
     guia = wb.create_sheet("instrucciones")
     for linea in [
-        "Clasifique cada lugar en la columna «clase» (lista desplegable) sin consultar al otro revisor.",
-        "prestador_mascotas: ofrece cremación, inhumación u otros servicios funerarios para mascotas.",
-        "mixto: funeraria o cementerio de personas que declara atender también mascotas.",
-        "no_prestador: cualquier otro lugar (veterinaria sin servicio funerario, tienda, oficina, funeraria solo de personas).",
-        "Si el nombre no basta, busque el lugar en Google Maps o en su sitio web, pero no guarde datos de personas.",
-        "Guarde su copia como places_revision_<iniciales>.xlsx.",
+        "Lea primero la guía (docs/oferta/guia_places.md o guia_places.docx). Se etiqueta por lo que el negocio ofrece.",
+        "Clasifique cada lugar en «clase» (lista: prestador_mascotas, no_prestador, mixto, no_determinable) sin consultar a la otra persona.",
+        "En «verificado_en» anote la fuente que decidió la etiqueta (solo_nombre, google_maps, sitio_web, red_social) y en «nota» una frase corta.",
+        "Las filas con ronda = calibracion (las 25 primeras) se entregan primero; no siga con las demás hasta recibir indicaciones.",
+        "No guarde reseñas ni su texto, ni nombres, teléfonos o correos de personas.",
     ]:
         guia.append([linea])
     guia.column_dimensions["A"].width = 120
     destino.parent.mkdir(parents=True, exist_ok=True)
     guardado = guardar_libro(wb, destino)
-    return orden[["id_revision", "place_id"]], guardado
+    return orden[["id_revision", "place_id", "ronda"]], guardado
 
 
 def main():
@@ -143,9 +146,9 @@ def main():
     d, llamadas, busquedas = leer_corrida(directorio)
     u = aplicar_reglas(consolidar(d, places.poligonos(), places.divipola()))
     sel = seleccion(u, config["seed"])
-    ids, guardado = escribir_libro(sel, config["seed"], LIBROS[0])
+    ids, guardado = escribir_libro(sel, config["seed"], LIBROS["edward"])
     if guardado:
-        shutil.copyfile(LIBROS[0], LIBROS[1])
+        shutil.copyfile(LIBROS["edward"], LIBROS["harold"])
     sel = sel.merge(ids, on="place_id", how="left")
     sel.to_parquet(MAESTRA, index=False)
     print(f"llamadas={llamadas} busquedas={len(busquedas)} filas={len(d)} unicos={len(u)} libro_nuevo={guardado}")
