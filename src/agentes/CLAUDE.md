@@ -5,7 +5,8 @@ Claude Code carga este archivo al trabajar en esta carpeta. Se aplica además de
 ## Antes de escribir código
 
 1. Lee, en este orden: `docs/agente/ESPECIFICACION.md`, el `CLAUDE.md` de la raíz y `docs/decisiones_agente.md`.
-2. Propón el plan de la fase (F6 o F7) y espera la aprobación de la persona que te lo pide antes de escribir código.
+2. Lee `docs/agente/HOJA_DE_RUTA.md`: **sigue la hoja de ruta; no empieces un hito sin aprobación del anterior.**
+3. Propón el plan del hito y espera la aprobación de la persona que te lo pide antes de escribir código. Al terminar el hito, pide revisión a Edward (punto de control) antes de pasar al siguiente.
 
 ## Reglas
 

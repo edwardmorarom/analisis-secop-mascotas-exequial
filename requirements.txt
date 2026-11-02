@@ -20,8 +20,9 @@ geopandas
 matplotlib
 openai
 langgraph
+langchain>=1,<2
 langchain-core
-langfuse
+langfuse>=4,<5
 streamlit
 plotly
 python-docx

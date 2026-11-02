@@ -2,6 +2,8 @@
 
 Contrato que debe seguir cualquier persona o IA que trabaje en la rama `agentes`. Si algo de este documento choca con lo que parece conveniente, no se ajusta por cuenta propia: se registra una enmienda en `docs/decisiones_agente.md` (A-números) y se avisa a Edward. Las decisiones de origen son D25, D26, D27 y D100 de `docs/decisiones.md`; los umbrales y la arquitectura quedan fijados en A01 y el tope de costo en A02.
 
+**Sigue la hoja de ruta (`docs/agente/HOJA_DE_RUTA.md`); no empieces un hito sin aprobación del anterior.** El orden de trabajo, las pruebas de cada hito y los puntos de control con Edward están ahí.
+
 ## 1. Intención
 
 El agente automatiza lo que en F2 y F3 se hizo a mano y con supervisión:
