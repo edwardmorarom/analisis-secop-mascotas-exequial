@@ -3,7 +3,7 @@
 
 $ErrorActionPreference = "Continue"
 $raiz = Resolve-Path (Join-Path $PSScriptRoot "..\..")
-$versionLangfuseEsperada = "3.225.15"
+$versionLangfuseEsperada = "4.72.0"
 $variablesNecesarias = @("DEEPSEEK_API_KEY", "LANGFUSE_PUBLIC_KEY", "LANGFUSE_SECRET_KEY", "LANGFUSE_HOST")
 
 $resultados = New-Object System.Collections.ArrayList
@@ -93,7 +93,7 @@ try {
     $info = $r.Content | ConvertFrom-Json
     if ($info.status -eq "OK") {
         if ($info.version -and $info.version -ne $versionLangfuseEsperada) {
-            Registrar "AVISO" "Langfuse" "responde en $host_ con la version $($info.version); la fijada es $versionLangfuseEsperada (A04)" ""
+            Registrar "AVISO" "Langfuse" "responde en $host_ con la version $($info.version); la fijada es $versionLangfuseEsperada (A05)" ""
         } else {
             Registrar "OK" "Langfuse" "responde en $host_ (version $($info.version))" ""
         }
@@ -104,18 +104,24 @@ try {
     Registrar "FALTA" "Langfuse" "no responde en $host_" "en la carpeta de langfuse ejecute docker compose up -d y espere 2 o 3 minutos"
 }
 
-# 6. SDK de Langfuse del entorno virtual (A04: debe ser 4.x)
+# 6. Python y SDK de Langfuse del entorno virtual (A05: Python 3.11 o superior y SDK 5.x)
 $py = Join-Path $raiz ".venv\Scripts\python.exe"
 if (-not (Test-Path $py)) {
     Registrar "FALTA" "Entorno Python" ".venv no existe" "python -m venv .venv y pip install -r requirements.txt"
 } else {
+    $pv = (& $py -c "import sys; print('%d.%d' % sys.version_info[:2])" 2>$null | Out-String).Trim()
+    if ($pv -match "^(\d+)\.(\d+)$" -and ([int]$Matches[1] -gt 3 -or ([int]$Matches[1] -eq 3 -and [int]$Matches[2] -ge 11))) {
+        Registrar "OK" "Python (.venv)" "version $pv" ""
+    } else {
+        Registrar "FALTA" "Python (.venv)" "version '$pv'; el SDK 5 exige 3.11 o superior" "cree el entorno con Python 3.11 o superior"
+    }
     $v = (& $py -c "import langfuse; print(langfuse.__version__)" 2>$null | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or -not $v) {
         Registrar "FALTA" "SDK langfuse" "no se pudo importar" "pip install -r requirements.txt"
-    } elseif ($v -match "^4\.") {
-        Registrar "OK" "SDK langfuse" "version $v (A04)" ""
+    } elseif ($v -match "^5\.") {
+        Registrar "OK" "SDK langfuse" "version $v (A05)" ""
     } else {
-        Registrar "FALTA" "SDK langfuse" "version $v; A04 exige 4.x (la 5 no funciona con el servidor v3)" "pip install -r requirements.txt"
+        Registrar "FALTA" "SDK langfuse" "version $v; A05 exige 5.x (compatible con el servidor v4.59.0 o superior)" "pip install -r requirements.txt"
     }
 }
 

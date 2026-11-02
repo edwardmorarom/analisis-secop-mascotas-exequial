@@ -5,7 +5,7 @@ La secuencia que sigue el equipo, en hitos pequeños. **No empieces un hito sin 
 ## Cómo se trabaja cada hito
 
 1. Propón el plan del hito (archivos, funciones, pruebas) y espera el visto bueno antes de escribir código.
-2. Implementa con sus pruebas. Toda decisión de método va a `docs/decisiones_agente.md` (A05, A06…), **en el mismo commit** que la implementa.
+2. Implementa con sus pruebas. Toda decisión de método va a `docs/decisiones_agente.md` (A06, A07…), **en el mismo commit** que la implementa.
 3. Al terminar: `pytest` en verde, `git status` limpio (sin `data/`, `.env`, claves ni trazas con datos) y `git push` de `agentes`.
 4. **Punto de control: pedir revisión a Edward.** Envía el hash del último commit, la salida de `pytest` y las decisiones nuevas. Edward aprueba por escrito (mensaje o comentario en el pull request); anota la aprobación en la tabla de avance, al final de este archivo, en el commit siguiente.
 5. Recién entonces empieza el hito siguiente. Si algo bloquea, no lo saltes: anótalo en `docs/agente/solicitudes.md` y avisa.
@@ -14,8 +14,8 @@ Formato de commit: `tipo(alcance): resumen`, con Qué, Por qué, Fuentes, Valida
 
 ## H1. Entorno verificado
 
-- **Entregable:** entorno reproducible en cada máquina del equipo: `.venv` con `pip install -r requirements.txt`, Docker Desktop con WSL2 comprobado, Langfuse 3.225.15 en marcha (A04), `.env` completo y paquete de datos verificado. Script `python -m src.agentes.traza_prueba` que envía una traza mínima a Langfuse.
-- **Pruebas que lo verifican:** `pytest` en verde; `python -m src.agentes.verificar_paquete` termina con `faltantes: 0 | con otra huella: 0`; `http://localhost:3000/api/public/health` responde; `traza_prueba` imprime el identificador de la traza y la traza aparece en la interfaz de Langfuse; `python -c "import langfuse; print(langfuse.__version__)"` muestra una versión 4.x. Una prueba (`tests/test_entorno.py`) comprueba que la versión instalada de `langfuse` es 4.x.
+- **Entregable:** entorno reproducible en cada máquina del equipo: `.venv` con `pip install -r requirements.txt`, Docker Desktop con WSL2 comprobado, Langfuse 4.72.0 en marcha (A05), `.env` completo y paquete de datos verificado. Script `python -m src.agentes.traza_prueba` que envía una traza mínima a Langfuse.
+- **Pruebas que lo verifican:** `pytest` en verde; `python -m src.agentes.verificar_paquete` termina con `faltantes: 0 | con otra huella: 0`; `http://localhost:3000/api/public/health` responde; `traza_prueba` imprime el identificador de la traza y la traza aparece en la interfaz de Langfuse; `python -c "import langfuse; print(langfuse.__version__)"` muestra una versión 5.x. Una prueba (`tests/test_entorno.py`) comprueba que la versión instalada de `langfuse` es 5.x.
 - **Commit esperado:** `chore(agentes): entorno verificado y traza de prueba` (script, prueba y, si hace falta, ajustes menores a `LEEME_EQUIPO.md`).
 - **Punto de control:** pedir revisión a Edward con la captura de la traza de prueba en Langfuse (sin claves visibles).
 

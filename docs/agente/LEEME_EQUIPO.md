@@ -24,7 +24,7 @@ pip install -r requirements.txt
 python -c "import langfuse; print(langfuse.__version__)"
 ```
 
-La última línea debe mostrar una versión **4.x** (A04). Si muestra 5.x, el servidor de Langfuse de esta guía no es compatible: corran `pip install -r requirements.txt` de nuevo (el archivo fija `langfuse>=4,<5`).
+Se necesita **Python 3.11 o superior** (el proyecto usa 3.12; compruébenlo con `python --version`). La última línea debe mostrar una versión **5.x** (A05). Si muestra otra, corran `pip install -r requirements.txt` de nuevo (el archivo fija `langfuse>=5,<6`).
 
 `camelot` necesita Ghostscript instalado en el sistema (https://ghostscript.com/releases/gsdnld.html).
 
@@ -55,31 +55,58 @@ Debe cumplirse:
 
 Si algo falla: en Docker Desktop, *Settings → General* debe tener activada la opción *Use the WSL 2 based engine*; actualicen WSL con `wsl --update`; y verifiquen que la virtualización esté habilitada en la BIOS. No sigan al paso 5 hasta que `hello-world` funcione.
 
-## 5. Langfuse local con Docker (versión fijada, A04)
+## 5. Langfuse local con Docker (versión fijada, A05)
 
-Se usa el servidor **Langfuse v3, etiqueta `v3.225.15`**, y el SDK de Python **4.x** (`langfuse>=4,<5`). No usen el SDK 5 ni el servidor v4 sin una enmienda de Edward: el SDK 5 exige servidor 4.59.0 o superior.
+Se usa el servidor **Langfuse v4, etiqueta `v4.72.0`** (29 de octubre de 2026) y el SDK de Python **5.x** (`langfuse>=5,<6`), que exige servidor 4.59.0 o superior. No cambien de versión sin una enmienda de Edward. (La versión 3 de A04 quedó reemplazada.)
+
+El compose levanta **6 contenedores**: `langfuse-web`, `langfuse-worker`, ClickHouse, MinIO, Redis y Postgres. La documentación oficial recomienda 4 núcleos y 16 GiB de memoria para un servidor y no da un mínimo para uso local; como criterio del equipo, dejen a Docker Desktop (WSL2) **al menos 8 GiB**. Para fijarlo, creen o editen `%UserProfile%\.wslconfig` con
+
+```
+[wsl2]
+memory=8GB
+```
+
+y ejecuten `wsl --shutdown` (Docker Desktop se reinicia solo).
 
 Fuera de la carpeta del repositorio:
 
 ```powershell
 git clone https://github.com/langfuse/langfuse.git
 cd langfuse
-git checkout v3.225.15
+git checkout v4.72.0
 ```
 
-Abran `docker-compose.yml` y hagan estos dos cambios (el archivo trae la etiqueta flotante `:3`, que cambiaría entre máquinas):
+### Cambios a mano en `docker-compose.yml`
 
-- `image: docker.io/langfuse/langfuse:3` → `image: docker.io/langfuse/langfuse:3.225.15`
-- `image: docker.io/langfuse/langfuse-worker:3` → `image: docker.io/langfuse/langfuse-worker:3.225.15`
+1. **Imágenes** (el archivo apunta a `docker.langfuse.com` con la etiqueta flotante `:4`; se fijan las de Docker Hub, que están verificadas):
+   - `image: docker.langfuse.com/langfuse/langfuse:4` → `image: docker.io/langfuse/langfuse:4.72.0`
+   - `image: docker.langfuse.com/langfuse/langfuse-worker:4` → `image: docker.io/langfuse/langfuse-worker:4.72.0`
+2. **Puertos** (por defecto quedan abiertos a toda la red): en `langfuse-web` cambien `3000:3000` por `127.0.0.1:3000:3000`, y en `minio` cambien `9090:9000` por `127.0.0.1:9090:9000`.
+3. **Valores `# CHANGEME`.** Generen un secreto aleatorio para cada fila con esta función de PowerShell (solo caracteres hexadecimales, que no rompen las direcciones de conexión):
 
-Cambien también los valores marcados `# CHANGEME` (al menos `SALT`, `NEXTAUTH_SECRET` y `ENCRYPTION_KEY`; esta última se genera con `openssl rand -hex 32` o, sin OpenSSL, en PowerShell con `$b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | ForEach-Object { $_.ToString('x2') })`). No expongan los puertos fuera de su equipo.
+   ```powershell
+   function Nuevo-Secreto { $b = New-Object byte[] 32; [Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($b); -join ($b | ForEach-Object { $_.ToString('x2') }) }
+   Nuevo-Secreto
+   ```
+
+   | Variable (servicio) | Qué poner |
+   |---|---|
+   | `SALT` (langfuse-worker) | un secreto nuevo |
+   | `NEXTAUTH_SECRET` (langfuse-web) | un secreto nuevo |
+   | `ENCRYPTION_KEY` (langfuse-worker) | 64 caracteres hexadecimales (salida de `Nuevo-Secreto` o de `openssl rand -hex 32`) |
+   | `POSTGRES_PASSWORD` (postgres) y `DATABASE_URL` (langfuse-worker) | la **misma** contraseña en las dos: `postgresql://postgres:<contraseña>@postgres:5432/postgres` |
+   | `CLICKHOUSE_PASSWORD` (langfuse-worker y clickhouse) | la **misma** contraseña en los dos |
+   | `MINIO_ROOT_PASSWORD` (minio) y `LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY`, `LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY`, `LANGFUSE_S3_BATCH_EXPORT_SECRET_ACCESS_KEY` (langfuse-worker) | el **mismo** valor en las cuatro |
+   | `REDIS_AUTH` (langfuse-worker) y la contraseña de `--requirepass` (redis) | el **mismo** valor en las dos |
+
+   Hagan estos cambios **antes** del primer `docker compose up`: los volúmenes guardan las contraseñas con las que se crearon, y cambiarlas después exige `docker compose down -v`, que borra los datos y las trazas.
 
 ```powershell
 docker compose up -d
 docker compose logs -f langfuse-web
 ```
 
-Esperen 2 o 3 minutos hasta ver `Ready` en el registro (salgan con Ctrl+C). Abran http://localhost:3000, creen un usuario, una organización y un proyecto, generen las claves del proyecto y cópienlas a `.env` (`LANGFUSE_HOST=http://localhost:3000`). Comprobación rápida: http://localhost:3000/api/public/health debe responder con el estado `OK`. Para apagarlo: `docker compose down`.
+Esperen 2 o 3 minutos hasta ver `Ready` en el registro (salgan con Ctrl+C). Abran http://localhost:3000, creen un usuario, una organización y un proyecto, generen las claves del proyecto y cópienlas a `.env` (`LANGFUSE_HOST=http://localhost:3000`). Comprobación rápida: http://localhost:3000/api/public/health debe responder con el estado `OK`. Para apagarlo: `docker compose down` (sin `-v`).
 
 ## 6. Paquete de datos
 
