@@ -54,7 +54,7 @@ En `verificado_en` anote la fuente que **decidió** la etiqueta; `solo_nombre` s
 
 ## 6. Rondas de calibración
 
-- **Ronda 1 (`calibracion`, 25 filas, guía v1).** κ de Cohen ≈ 0,07 sobre 24 pares (acuerdo 0,21). Los desacuerdos vinieron de decidir solo por el nombre (Edward infirió la clase; Harold marcó `no_determinable`) sin verificar. Esta guía v2 corrige eso. Las etiquetas de la ronda 1 no se modifican.
+- **Ronda 1 (`calibracion`, 25 filas, guía v1).** κ de Cohen = 0,064 sobre 25 pares (acuerdo 0,20). Los desacuerdos vinieron de decidir solo por el nombre (Edward infirió la clase; Harold marcó `no_determinable`) sin verificar. Esta guía v2 corrige eso. Las etiquetas de la ronda 1 no se modifican.
 - **Ronda 2 (`calibracion_2`, 25 filas elegidas al azar entre las 230 sin etiquetar, semilla 2027, las mismas en ambos libros).** Cada revisor las etiqueta **con la guía v2**, sin consultar al otro, y las entrega. Se calcula el κ (umbral de referencia 0,70). **No se continúa con las 205 restantes** hasta que el equipo lo comunique.
 
 ## 7. Ejemplos de esta corrida
