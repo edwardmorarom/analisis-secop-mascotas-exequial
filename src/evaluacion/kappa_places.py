@@ -20,9 +20,12 @@ def leer(path, ronda="calibracion"):
     return d.set_index("id_revision")
 
 
-def comparar(a, b):
+def comparar(a, b, omitir_sin_clase=False):
     """κ de Cohen sobre las filas de la ronda, matriz de confusión y lista de desacuerdos."""
     faltan = [i for i in a.index if pd.isna(a.loc[i, "clase"]) or pd.isna(b.loc[i, "clase"])]
+    if omitir_sin_clase and faltan:
+        a, b = a.drop(index=faltan), b.drop(index=faltan)
+        faltan = []
     invalidas = sorted((set(a["clase"].dropna()) | set(b["clase"].dropna())) - set(CLASES))
     if faltan or invalidas:
         raise ValueError(f"entrega incompleta o con clases inválidas: sin clase {faltan}; inválidas {invalidas}")
@@ -38,9 +41,14 @@ def comparar(a, b):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--a", default=str(CARPETA / "places_revision_edward.xlsx"))
+    ap.add_argument("--omitir-sin-clase", action="store_true", help="excluye las filas sin clase en alguno de los libros y las informa")
     ap.add_argument("--b", default=str(CARPETA / "places_revision_harold.xlsx"))
     args = ap.parse_args()
-    r = comparar(leer(args.a), leer(args.b))
+    a, b = leer(args.a), leer(args.b)
+    if args.omitir_sin_clase:
+        sin = [i for i in a.index if pd.isna(a.loc[i, "clase"]) or pd.isna(b.loc[i, "clase"])]
+        print(f"filas omitidas por no tener clase en algún libro: {sin}")
+    r = comparar(a, b, omitir_sin_clase=args.omitir_sin_clase)
     print(f"filas de calibración: {r['n']} | acuerdo observado: {r['acuerdo']:.3f} | κ de Cohen: {r['kappa']:.3f}")
     print(r["confusion"].to_string())
     destino = CARPETA / "desacuerdos_calibracion.csv"

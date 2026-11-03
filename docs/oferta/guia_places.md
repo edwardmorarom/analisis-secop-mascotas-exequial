@@ -1,6 +1,6 @@
 # Guía de revisión de lugares de Google Places (F5)
 
-Versión 1 · 2026-11-02 · Revisan: Edward y Harold, cada quien por separado · Decisión de origen: D102.
+Versión 2 · 2026-11-02 (v1 reemplazada tras la primera ronda de calibración) · Revisan: Edward y Harold, cada quien por separado · Decisión de origen: D102.
 
 ## 1. Qué se hace
 
@@ -23,9 +23,11 @@ La clase depende de **lo que el negocio ofrece al público**, no de su nombre ni
 | `prestador_mascotas` | Ofrece servicios funerarios de mascotas (sección 2) y no es una funeraria o cementerio de personas. |
 | `mixto` | Funeraria o cementerio **de personas** que además ofrece servicios funerarios de mascotas (plan, servicio o sección explícita). |
 | `no_prestador` | No ofrece servicios funerarios de mascotas: funeraria o cementerio solo de personas, veterinaria sin ese servicio, tienda, oficina, iglesia, entidad pública, etc. |
-| `no_determinable` | Tras revisar las fuentes de la sección 4 no se puede saber qué ofrece el negocio (ficha sin descripción, sin sitio ni red social, nombre ambiguo). No se adivina: se usa esta clase. |
+| `no_determinable` | **Solo después de revisar al menos dos fuentes** de la sección 4 (además del nombre) sin poder saber qué ofrece el negocio (ficha sin descripción, sin sitio ni red social, nombre ambiguo). Las fuentes revisadas se anotan en `nota`. No se usa por no haber mirado. |
 
 ## 4. Cómo verificar y qué anotar
+
+**Regla de verificación (v2).** El nombre y los tipos **bastan solo** si el nombre dice explícitamente funeraria, crematorio o cementerio **de mascotas** (por ejemplo «Funeraria de mascotas», «Crematorio de mascotas»). En cualquier otro caso es **obligatorio** revisar la ficha de Google Maps o el sitio web **antes** de decidir. Un nombre que solo sugiere mascotas («Mascopaz», «Pets») o un nombre de funeraria sin más **no basta**.
 
 Revise en este orden y deténgase cuando pueda decidir:
 
@@ -34,7 +36,7 @@ Revise en este orden y deténgase cuando pueda decidir:
 3. **Sitio web** del negocio → `sitio_web`.
 4. **Red social** del negocio (Facebook o Instagram) → `red_social`.
 
-En `verificado_en` anote la fuente que **decidió** la etiqueta. Si dos fuentes se contradicen, manda la más formal: sitio web antes que red social. En `nota` escriba una frase corta con el motivo (por ejemplo: «cremación individual según su sitio web»).
+En `verificado_en` anote la fuente que **decidió** la etiqueta; `solo_nombre` solo es válido cuando se aplica la regla de verificación de arriba. Si dos fuentes se contradicen, manda la más formal: sitio web antes que red social. En `nota` escriba una frase corta con el motivo (por ejemplo: «cremación individual según su sitio web»).
 
 **No se guardan:** reseñas ni su texto, nombres de personas (dueños, empleados, clientes), teléfonos ni correos. Si la ficha muestra un dato personal, no lo copie.
 
@@ -43,20 +45,21 @@ En `verificado_en` anote la fuente que **decidió** la etiqueta. Si dos fuentes 
 | Caso | Qué hacer |
 |---|---|
 | Veterinaria que ofrece cremación | `prestador_mascotas`: la cremación es un servicio funerario aunque el negocio sea veterinario. Si no ofrece el servicio, o solo remite a otro negocio, `no_prestador`. |
-| Funeraria de personas con plan o servicio para mascotas | `mixto`. Si no menciona mascotas en lo que ofrece, `no_prestador`, aunque el nombre del lugar diga «mascotas». |
-| Cementerio de personas | `no_prestador`. Si tiene una sección o servicio de mascotas explícito, `mixto`. |
+| Funeraria de personas con plan o servicio para mascotas | **Toda funeraria o cementerio de personas se verifica**; nunca se decide por el nombre ni por el tipo. Con servicio o plan para mascotas verificado → `mixto`. Verificado sin servicio para mascotas → `no_prestador`, aunque el nombre del lugar diga «mascotas». Si tras dos fuentes no se sabe → `no_determinable`. |
+| Cementerio de personas | Se verifica igual que la funeraria: sección o servicio de mascotas explícito → `mixto`; verificado sin ese servicio → `no_prestador`. |
 | Oficina o sede administrativa de una empresa de previsión | Se etiqueta por lo que **ofrece la empresa**, no por la oficina: solo mascotas → `prestador_mascotas`; personas y mascotas → `mixto`; solo personas → `no_prestador`. Escriba «oficina» en `nota`. |
 | Hotel, guardería, tienda, venta de compost de residuos orgánicos | `no_prestador`, salvo que preste un servicio funerario de mascotas. |
-| Mismo negocio con varias fichas o sedes | Etiquete cada fila por separado; los duplicados se resuelven después. |
+| Cadena con varias sedes o fichas | Se decide **a nivel de empresa**, con la **misma clase en todas las sedes**. Si el sitio de la empresa muestra el servicio para mascotas, todas las sedes son `mixto` (o `prestador_mascotas`); no se separan por lo que diga la ficha de cada sede. Anote «cadena» en `nota`. |
 | Negocio cerrado | Etiquete por lo que ofrecía y escriba «cerrado» en `nota`. |
 
-## 6. Ronda de calibración
+## 6. Rondas de calibración
 
-Las **25 primeras filas** de ambos libros llevan `ronda = calibracion`. Cada revisor las etiqueta y las entrega primero. Con ellas se calcula el κ de Cohen, se listan los desacuerdos y se ajusta esta guía. **No se continúa con las 230 restantes** hasta que el equipo comunique la guía ajustada.
+- **Ronda 1 (`calibracion`, 25 filas, guía v1).** κ de Cohen ≈ 0,07 sobre 24 pares (acuerdo 0,21). Los desacuerdos vinieron de decidir solo por el nombre (Edward infirió la clase; Harold marcó `no_determinable`) sin verificar. Esta guía v2 corrige eso. Las etiquetas de la ronda 1 no se modifican.
+- **Ronda 2 (`calibracion_2`, 25 filas elegidas al azar entre las 230 sin etiquetar, semilla 2027, las mismas en ambos libros).** Cada revisor las etiqueta **con la guía v2**, sin consultar al otro, y las entrega. Se calcula el κ (umbral de referencia 0,70). **No se continúa con las 205 restantes** hasta que el equipo lo comunique.
 
 ## 7. Ejemplos de esta corrida
 
-Son ilustrativos: se eligieron por lo que dicen el nombre y la ficha, y ninguno está entre las 25 filas de calibración. Cada revisor verifica por su cuenta antes de etiquetar.
+Los dos primeros bloques son ilustrativos (se eligieron por lo que dicen el nombre y la ficha; cada revisor verifica por su cuenta). Los tres últimos (`L018`, `L023`, `L011`) son filas de la ronda 1 **resueltas con verificación**, que muestran cómo se aplica la v2.
 
 | Clase | Lugar | Municipio | Por qué |
 |---|---|---|---|
@@ -68,6 +71,12 @@ Son ilustrativos: se eligieron por lo que dicen el nombre y la ficha, y ninguno 
 | `no_prestador` | Funeraria La Valvanera | Chía | Funeraria de personas; verifique que no ofrezca plan para mascotas. |
 | `no_determinable` | Grupo Recordar | Tunja | Nombre genérico, sin tipo principal y con tipos genéricos: la ficha no dice qué ofrece. |
 | `no_determinable` | siempre a tu lado | Santiago de Cali | Tipo de hotel y cuidado de mascotas con nombre ambiguo: puede ser guardería o despedida; decida solo si las fuentes lo aclaran. |
+
+| Resuelto | Lugar | Municipio | Cómo se decide |
+|---|---|---|---|
+| `mixto` (`L018`) | La Aurora Funerales y Capillas | Manizales | Por el nombre es una funeraria de personas. Su sitio ofrece servicios exequiales humanos y un plan de mascotas con cremación → `mixto`. Anotar «sitio web» en `verificado_en`. |
+| `prestador_mascotas` (`L023`) | Garritas De AMOR - Funeraria de mascotas | Neiva | El nombre dice explícitamente «Funeraria de mascotas»: basta `solo_nombre`, aunque el tipo de Google sea `cemetery`. |
+| `prestador_mascotas` (`L011`) | Ambiental Pets | Dosquebradas | El nombre es ambiguo y el tipo `pet_care` no aclara. En su sitio web (sección de servicios) ofrece cremación y traslado de mascotas → `prestador_mascotas`, `verificado_en = sitio_web`. |
 
 ## 8. Dudas
 

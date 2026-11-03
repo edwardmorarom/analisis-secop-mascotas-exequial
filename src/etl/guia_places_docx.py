@@ -5,7 +5,7 @@ from docx import Document
 from src.etl.comun import RAIZ
 
 FUENTE = RAIZ / "docs/oferta/guia_places.md"
-DESTINO = RAIZ / "docs/revision_f5/guia_places.docx"
+DESTINO = RAIZ / "docs/revision_f5/guia_places_v2.docx"
 
 
 def con_formato(parrafo, texto):
