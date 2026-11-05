@@ -6,7 +6,8 @@ import pandas as pd
 
 from src.etl.comun import RAIZ, cargar_config
 from src.etl.anonimizar import anonimizar
-from src.modelos.grupos_hcpc import MARCA_DIAGNOSTICO, PATRONES, fmt, grupos_reportados, recortar
+from src.modelos.etiquetas_humanas import construir
+from src.modelos.grupos_hcpc import MARCA_DIAGNOSTICO, PATRONES, fmt, grupos_reportados, recortar, universo_d98
 from src.modelos.perfil_variables import cargar, homologar
 
 SENAL = re.compile(r"FUNERA|EXEQU|INHUMA|CREMACI|SEPEL|SEPULT|ATAUD|COFRE|CADAVER|BOVEDA|\bOSARIOS?\b")
@@ -19,14 +20,18 @@ def plano(texto):
 
 
 def cargar_contratos():
-    f = homologar(cargar(cargar_config())).reset_index(drop=True)
+    config = cargar_config()
+    f = homologar(cargar(config, universo_d98(config))).reset_index(drop=True)
     b = pd.read_csv(RAIZ / "data/processed/resultados_secop/patrones_base.csv", dtype={"entidad_id": str})
     g = pd.read_csv(PATRONES / "hcpc_d98_grupos.csv")["grupo"]
-    if not (len(f) == len(b) == len(g)) or not (f["fuente"].values == b["fuente"].values).all():
+    if not (len(f) == len(b) == len(g)) or not (f["fuente"].values == b["fuente"].values).all() or not np.allclose(f["valor_constante_2025"].values, b["valor_constante_2025"].values):
         raise ValueError("las tablas no están alineadas fila a fila")
     texto = f["objeto"].map(plano)
     d = pd.DataFrame({"grupo_hcpc": g, "fuente": f["fuente"], "llave": f["llave"], "anio": f["anio"].astype(int), "valor": f["valor_constante_2025"],
-                      "objeto": f["objeto"], "clase_final": f["clase_final"], "etiqueta_humana": f["etiqueta_humana_mercado"],
+                      "objeto": f["objeto"], "clase_final": f["clase_final"],
+                      "etiqueta_humana": f["etiqueta_humana_mercado"].where(f["origen_etiqueta_humana"] != "grupo5_revision"),
+                      "etiqueta_grupo5": f["etiqueta_humana_mercado"].where(f["origen_etiqueta_humana"] == "grupo5_revision"),
+                      "forense_grupo5": f["forense_humano"].where(f["origen_etiqueta_humana"] == "grupo5_revision"),
                       "departamento": f["departamento_entidad"], "entidad": f["entidad"], "tipo_entidad": f["tipo_entidad"],
                       "con_senal": texto.str.contains(SENAL), "con_afin": texto.str.contains(AFIN)})
     d["categoria"] = np.where(d["con_senal"], "con señal", np.where(d["con_afin"], "sin señal, con palabra afín", "sin señal ni palabra afín"))
@@ -102,6 +107,22 @@ def coeficiente(tabla, termino="modalidad_gruposeleccion_abreviada"):
     return r
 
 
+def cambio_rasgos(d):
+    """Mayor cambio, en puntos porcentuales, del porcentaje del grupo en cada categoría descriptiva al quitar los contratos sin señal ni palabra afín."""
+    from src.modelos.grupos_hcpc import COMPONENTES, DESCRIPCIONES
+
+    b = pd.read_csv(RAIZ / "data/processed/resultados_secop/patrones_base.csv", dtype={"entidad_id": str})
+    fuera = (~d["con_senal"] & ~d["con_afin"]).to_numpy()
+    cambio = 0.0
+    for grupo, rasgos in DESCRIPCIONES.items():
+        en_grupo = (d["grupo_hcpc"] == grupo).to_numpy()
+        for categoria, _ in rasgos:
+            variable, nivel = categoria.split(": ")
+            col = (b[variable] == (1 if nivel == "sí" else 0)) if variable in COMPONENTES else (b[variable] == nivel)
+            cambio = max(cambio, abs(col[en_grupo].mean() - col[en_grupo & ~fuera].mean()) * 100)
+    return cambio
+
+
 def seccion(d, reportados, base, sens):
     g = d[d["grupo_hcpc"] == GRUPO5].sort_values("valor", ascending=False)
     sin = g[~g["con_senal"]]
@@ -109,7 +130,7 @@ def seccion(d, reportados, base, sens):
     por_grupo = resumen_por_grupo(d, reportados)
     sin_hum = sin[sin["etiqueta_humana"].isna()]
     L = [MARCA_DIAGNOSTICO, "", "## Diagnóstico del Grupo 5: contratos sin señal funeraria en el objeto (2026-11-05)", "",
-         "Solo diagnóstico: no se cambió ninguna etiqueta ni se recalculó el mercado. Señal funeraria = alguna de las raíces FUNERA, EXEQU, INHUMA, CREMACI, SEPEL, SEPULT, ATAUD, COFRE, CADAVER, BOVEDA u OSARIO (como palabra) en el objeto, sin tildes ni distinción de mayúsculas. Como control, los contratos sin señal se separan en los que tienen otra palabra afín (FÚNEBRE, MORTUORIO, FALLECIDO, DIFUNTO, OCCISO, CEMENTERIO, NICHO, ENTIERRO, DEFUNCIÓN, RESTOS HUMANOS, MUERTE) y los que no tienen ninguna.", "",
+         "El diagnóstico (secciones 1 a 4) describe los contratos antes de la revisión de Edward: la columna «etiqueta humana» no cuenta los 11 que él etiquetó después (sección 5). Señal funeraria = alguna de las raíces FUNERA, EXEQU, INHUMA, CREMACI, SEPEL, SEPULT, ATAUD, COFRE, CADAVER, BOVEDA u OSARIO (como palabra) en el objeto, sin tildes ni distinción de mayúsculas. Como control, los contratos sin señal se separan en los que tienen otra palabra afín (FÚNEBRE, MORTUORIO, FALLECIDO, DIFUNTO, OCCISO, CEMENTERIO, NICHO, ENTIERRO, DEFUNCIÓN, RESTOS HUMANOS, MUERTE) y los que no tienen ninguna.", "",
          "**La clase final es «funerario» para los 4.992 contratos del análisis**; solo 244 tienen etiqueta humana y el resto toma la clase del modelo. Por eso «sin señal» no significa «sin etiqueta».", "",
          "### 1. Grupo 5: contratos sin señal", "",
          f"- El Grupo 5 tiene {fmt(len(g), 0)} contratos; **{len(sin)} ({fmt(len(sin) / len(g) * 100)} %) no tienen señal** y suman **{millones(sin['valor'].sum())}** ({fmt(sin['valor'].sum() / g['valor'].sum() * 100)} % de su valor de {millones(g['valor'].sum())}).",
@@ -145,11 +166,24 @@ def seccion(d, reportados, base, sens):
     r1 = coeficiente(sens["sin_senal"][0])
     contiene = r1["ic_bajo"] <= r0["qr_estimador"] <= r1["ic_alto"] and r0["qr_ic_bajo"] > 0 and r1["ic_bajo"] > 0
     L += ["", "### 4. Conclusión", "",
-          f"- **Errores claros:** en el Grupo 5 hay {len(ni_afin)} contratos ({millones(ni_afin['valor'].sum())}, {fmt(ni_afin['valor'].sum() / g['valor'].sum() * 100)} % del valor del grupo) que por su objeto no parecen servicios funerarios. Hasta que Edward los etiquete son candidatos, no errores confirmados. Los otros contratos sin señal del grupo son servicios funerarios que la lista de señales no reconoce (honras fúnebres, cajas mortuorias).",
+          f"- **Errores claros:** en el Grupo 5 hay {len(ni_afin)} contratos ({millones(ni_afin['valor'].sum())}, {fmt(ni_afin['valor'].sum() / g['valor'].sum() * 100)} % del valor del grupo) que por su objeto no parecen servicios funerarios. La revisión de Edward (sección 5) los confirmó. Los otros contratos sin señal del grupo son servicios funerarios que la lista de señales no reconoce (honras fúnebres, cajas mortuorias).",
           f"- **Efecto de selección abreviada (D99):** {'se mantiene' if contiene else 'cambia'}. El coeficiente de la mediana pasa de {fmt(r0['qr_estimador'], 3)} a {fmt(r1['estimador'], 3)} al excluir los {fmt(base['n'] - sens['sin_senal'][1], 0)} contratos sin señal (de todos los grupos), con el intervalo de 95 % por encima de cero y la estimación original dentro del nuevo intervalo. Con tan pocos contratos dudosos en el Grupo 5 y un efecto de esta magnitud (×5), el resultado no depende de ellos.",
           "- **Límites:** solo se repitió la regresión por cuantiles; este diagnóstico no audita los contratos con señal (falsos positivos); y la lectura de los 7 contratos es del texto del objeto, sin etiqueta humana.",
           "- **Fuera del Grupo 5:** hay contratos sin señal ni palabra afín en otros grupos (el Grupo 1 suma 54 y el Grupo 8, 14, que son todos sus contratos sin señal). No se revisaron porque este diagnóstico se limitó al Grupo 5; son candidatos a un lote de revisión aparte.",
-          f"- **Libro de revisión:** `docs/revision_f4/grupo5_revision.xlsx` (no versionado, formato a ciegas) con los {len(sin_hum)} contratos del Grupo 5 sin señal y sin etiqueta humana: los 7 candidatos y {len(sin_hum) - len(ni_afin)} de control que por su texto parecen funerarios. La llave de cada fila está en `data/processed/grupo5_revision_maestra.parquet`."]
+          f"- **Libro de revisión:** `docs/revision_f4/grupo5_revision.xlsx` (no versionado, formato a ciegas), etiquetado por Edward, con los {len(sin_hum)} contratos del Grupo 5 sin señal y sin etiqueta humana: los 7 candidatos y {len(sin_hum) - len(ni_afin)} de control que por su texto parecen funerarios. La llave de cada fila está en `data/processed/grupo5_revision_maestra.parquet`."]
+    c = construir()
+    c = c[c["origen"] == "grupo5_revision"][["fuente", "llave", "etiqueta", "forense"]]
+    r = sin_hum.merge(c, on=["fuente", "llave"], how="left")
+    cand = r[~r["con_afin"]]
+    ctrl = r[r["con_afin"]]
+    L += ["", "### 5. Resultado de la revisión de Edward", "",
+          f"Edward etiquetó los {len(r)} contratos del libro. **De los {len(cand)} candidatos sin ninguna palabra afín, {int((cand['etiqueta'] == 'no_funerario').sum())} resultaron `no_funerario`** ({int((cand['forense'] == '1').sum())} con la marca forense) y suman {millones(cand['valor'].sum())}; de los {len(ctrl)} de control, {int((ctrl['etiqueta'] == 'funerario').sum())} resultaron `funerario`. Los 11 entraron a la jerarquía de D84 (D105): la cifra principal del mercado no cambia y la suma con etiquetas baja de 230,6 a 229,6 (de 4.992 a 4.985 contratos).", "",
+          "| Categoría de control | Etiqueta | Forense | Valor | Objeto (recortado, anonimizado) |", "|---|---|---|---|---|"]
+    for x in r.sort_values("valor", ascending=False).itertuples():
+        L.append(f"| {x.categoria} | `{x.etiqueta}` | {'sí' if x.forense == '1' else 'no'} | {millones(x.valor)} | {recortar(anonimizar(x.objeto), 100)} |")
+    L += ["", "### 6. Limitación: contratos sin palabra afín que no se etiquetan", "",
+          f"**{tot_ni} contratos ({fmt(tot_ni / len(d) * 100)} %) clasificados `funerario` por el modelo no tienen ninguna palabra afín** en el objeto; los {len(cand)} del Grupo 5 ya revisados resultaron todos `no_funerario`, de modo que ese conjunto contiene errores del modelo. Los {tot_ni - len(cand)} restantes no se etiquetan, por dos razones: el estimador de diferencia ya corrige ese error en la cifra principal, y en los grupos no cambia sus rasgos.",
+          f"Para lo segundo: al quitar esos {tot_ni} contratos, ninguna de las categorías características que describen a los grupos cambia en más de {fmt(cambio_rasgos(d), 1)} puntos porcentuales dentro de su grupo (`cambio_rasgos`).", ""]
     return L
 
 

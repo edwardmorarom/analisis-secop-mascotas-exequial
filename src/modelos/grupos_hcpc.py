@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 from src.etl.anonimizar import anonimizar
-from src.etl.comun import RAIZ, cargar_config
+from src.etl.comun import RAIZ, cargar_config, ruta
 from src.modelos.perfil_variables import cargar, homologar
 
 PATRONES = RAIZ / "data/processed/resultados_secop/patrones"
@@ -14,8 +14,16 @@ MARCA_DIAGNOSTICO = "<!-- diagnostico-grupo5 -->"
 COMPONENTES = ["inhumacion_cremacion", "traslado", "ataudes_bienes", "plan_exequial", "operacion_cementerio", "atencion_vulnerables_NN"]
 
 
+def universo_d98(config):
+    """Universo de D97 a D99 (4.992 contratos): devuelve a `funerario` los 7 que la revisión del Grupo 5 (D105) pasó a `no_funerario`, para que el análisis de grupos siga alineado con `patrones_base.csv`."""
+    d = pd.read_parquet(ruta(config, "processed") / "resultados_secop" / "universo_mercado.parquet")
+    d.loc[d["origen_etiqueta_humana"].eq("grupo5_revision"), "clase_final"] = "funerario"
+    return d
+
+
 def cargar_todo():
-    f = homologar(cargar(cargar_config())).reset_index(drop=True)
+    config = cargar_config()
+    f = homologar(cargar(config, universo_d98(config))).reset_index(drop=True)
     b = pd.read_csv(RAIZ / "data/processed/resultados_secop/patrones_base.csv", dtype={"entidad_id": str})
     g = pd.read_csv(PATRONES / "hcpc_d98_grupos.csv")["grupo"]
     if not (len(f) == len(b) == len(g)) or not (f["fuente"].values == b["fuente"].values).all():
@@ -157,7 +165,7 @@ def escribir(d, reportados, vtest, estab, tamanos):
     fichas = {r["grupo"]: ficha(d, r["grupo"], vtest, estab) for _, r in reportados.iterrows()}
     L = ["# Descripción de los grupos estables de HCPC (D99)", "",
          "> **Descripción exploratoria. Ningún modelo de clases latentes cumplió los supuestos (D97, D98), así que estos grupos describen el mercado y no son una tipología confirmada.**", "",
-         "Estado: propuesta, pendiente de revisión de Edward. No se recalculó ningún resultado de D97 a D99; este documento solo describe lo que ya existe.", "",
+         "Estado de las descripciones: revisadas por Edward. No se recalculó ningún resultado de D97 a D99; este documento solo describe lo que ya existe.", "",
          "## Cómo leerlo", "",
          f"- **Grupos:** los 11 de HCPC de D98 ({fmt(len(d), 0)} contratos de SECOP I y II, 2020 a 2025). Se describen los {len(reportados)} que cumplen el criterio de D99: Jaccard medio de bootstrap ≥ {fmt(UMBRAL_JACCARD, 2)} y al menos {UMBRAL_PCT:.0f} % de los contratos. Quedan fuera los grupos 6 (47 contratos), 8 (34) y 11 (1), todos por debajo del 1 %.",
          "- **Nombres:** «Grupo 1» a «Grupo 8» en orden de tamaño (nombres neutros). La tabla resumen da la equivalencia con el número de grupo de HCPC de D98.",

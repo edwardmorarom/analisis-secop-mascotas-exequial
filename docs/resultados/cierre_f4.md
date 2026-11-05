@@ -37,7 +37,7 @@ Tres clases (`funerario`, `no_funerario`, `mixto`) más la marca `forense` (D20,
 | Misma estimación con e5 (sensibilidad) | 221,9 (215,4 a 228,2) | D93 | `estimador_principal.csv` |
 | Caso A: estimador de D85 sin los lotes posteriores | 198,4 (79,2 a 284,3) | D85 | `estimador_diferencia.csv` |
 | Total del modelo sin corregir (TF-IDF) | 262,9 | D93 | `estimador_principal.csv` |
-| **Suma con etiquetas** (jerarquía completa de D84, sin `mixto`) | 230,6 en 4.992 contratos | D84, D89, D92, D96 | `mercado_con_y_sin_revision.csv` |
+| **Suma con etiquetas** (jerarquía completa de D84, sin `mixto`) | 229,6 en 4.985 contratos | D84, D89, D92, D96 | `mercado_con_y_sin_revision.csv` |
 | `mixto`, aparte (fuera de la cifra principal) | 111 contratos, 157,4 | D89 | `mixtos_aparte.csv` |
 | Cota del estrato D (sin señal): funerarios en los etiquetados | 0 de 208; proporción < 1,44 % (regla del tres), como máximo 381 contratos ocultos | D93 | `cota_estrato_d.csv` |
 
@@ -47,33 +47,33 @@ La estimación principal es mayor que la suma con etiquetas porque estima tambi�
 
 | Año | Contratos | Valor corriente | Valor constante de 2025 |
 |---|---|---|---|
-| 2020 | 1.066 | 31,4 | 44,8 |
-| 2021 | 973 | 30,3 | 41,9 |
-| 2022 | 809 | 28,9 | 36,6 |
-| 2023 | 765 | 30,4 | 34,2 |
+| 2020 | 1.064 | 31,3 | 44,6 |
+| 2021 | 971 | 30,1 | 41,7 |
+| 2022 | 808 | 28,8 | 36,4 |
+| 2023 | 764 | 30,2 | 34,0 |
 | 2024 | 690 | 33,4 | 35,0 |
-| 2025 | 689 | 38,2 | 38,2 |
+| 2025 | 688 | 37,9 | 37,9 |
 
 ## 4. Territorio y concentración
 
-Valor por departamento (ubicación de la entidad compradora, cruce con DIVIPOLA, D66; `departamento_resumen.csv`): 4.985 de 4.992 contratos tienen departamento. Mayores valores: Bogotá, D.C. 58,3 (150 contratos); Antioquia 17,5 (446 contratos); Valle Del Cauca 16,3 (320 contratos); Bolívar 11,9 (213 contratos); Nariño 10,6 (416 contratos). La tasa por 100.000 habitantes (DANE, D66) se publica en el mismo archivo y en `municipio_resumen.csv`.
+Valor por departamento (ubicación de la entidad compradora, cruce con DIVIPOLA, D66; `departamento_resumen.csv`): 4.978 de 4.985 contratos tienen departamento. Mayores valores: Bogotá, D.C. 58,3 (150 contratos); Antioquia 17,5 (446 contratos); Valle Del Cauca 16,3 (320 contratos); Bolívar 11,5 (212 contratos); Nariño 10,6 (415 contratos). La tasa por 100.000 habitantes (DANE, D66) se publica en el mismo archivo y en `municipio_resumen.csv`.
 
 Concentración de proveedores (`proveedores_hhi_cr4_anual.csv`, `proveedores_hhi_departamento_resumen_anual.csv`; D69, D77):
 
 | Año | Proveedores | HHI nacional | CR4 nacional (%) | HHI departamental, mediana | Departamentos con HHI > 2.500 |
 |---|---|---|---|---|---|
-| 2020 | 604 | 240 | 24,1 | 1.297 | 4 |
-| 2021 | 532 | 228 | 22,9 | 1.495 | 6 |
-| 2022 | 477 | 292 | 25,2 | 1.826 | 4 |
-| 2023 | 471 | 268 | 26,6 | 1.716 | 5 |
+| 2020 | 604 | 242 | 24,2 | 1.297 | 4 |
+| 2021 | 531 | 230 | 23,0 | 1.495 | 6 |
+| 2022 | 476 | 294 | 25,3 | 1.826 | 4 |
+| 2023 | 470 | 271 | 26,8 | 1.716 | 5 |
 | 2024 | 425 | 417 | 33,9 | 2.034 | 7 |
-| 2025 | 438 | 651 | 33,3 | 1.832 | 9 |
+| 2025 | 437 | 662 | 33,7 | 2.003 | 9 |
 
 El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 está resuelta (D77 y D86).
 
 ## 5. Patrones de compra
 
-Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: 4.992 contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.
+Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: 4.992 contratos `funerario` de D97 a D99 (el mercado vigente tiene 4.985 tras la revisión del Grupo 5, D105: los 7 contratos que pasaron a `no_funerario` no se sacaron de estos análisis). Informe: `docs/resultados/patrones_compra.md`.
 
 **Valor** (log del valor constante de 2025; solo se reportan los tres efectos significativos en los tres modelos: regresión por cuantiles en la mediana, lineal mixto y gamma mixto; D99):
 
@@ -85,7 +85,11 @@ Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D9
 
 Los otros 18 coeficientes son no concluyentes. Archivos: `valor_d98_cuantiles.csv`, `valor_d98_lmm_gamma.csv`. La regresión usa 4.985 contratos (se excluyen 7 con valor 0, D99).
 
-**Tipología.** No hay tipología latente que cumpla independencia local: ninguno de los 18 modelos de D97 (residuo bivariado máximo de 36,5 a 535) ni de los 27 de `poLCA` de D98 (mínimo 9,4) cumple a la vez BVR ≤ 10 y mejor ajuste en al menos 5 de 100 arranques (0 cumplen; `lca_comparacion.csv`, `polca_comparacion.csv`). Como descripción se reportan los grupos de ACM + HCPC con Jaccard medio ≥ 0,75 y al menos 1 % de los contratos (criterio de la enmienda de D99): 8 de 11, con 4.910 contratos (98,4 %): grupo 1 (1.278, Jaccard 0,96); grupo 2 (280, Jaccard 0,87); grupo 3 (253, Jaccard 0,87); grupo 4 (362, Jaccard 0,91); grupo 5 (2.314, Jaccard 0,96); grupo 7 (206, Jaccard 0,77); grupo 9 (121, Jaccard 0,91); grupo 10 (96, Jaccard 0,93). Sus categorías características (prueba v) están en `patrones_compra.md` y `hcpc_d98_vtest.csv`; no se les da interpretación de negocio.
+**Tipología.** No hay tipología latente que cumpla independencia local: ninguno de los 18 modelos de D97 (residuo bivariado máximo de 36,5 a 535) ni de los 27 de `poLCA` de D98 (mínimo 9,4) cumple a la vez BVR ≤ 10 y mejor ajuste en al menos 5 de 100 arranques (0 cumplen; `lca_comparacion.csv`, `polca_comparacion.csv`). Como descripción se reportan los grupos de ACM + HCPC con Jaccard medio ≥ 0,75 y al menos 1 % de los contratos (criterio de la enmienda de D99): 8 de 11, con 4.910 contratos (98,5 %): grupo 1 (1.278, Jaccard 0,96); grupo 2 (280, Jaccard 0,87); grupo 3 (253, Jaccard 0,87); grupo 4 (362, Jaccard 0,91); grupo 5 (2.314, Jaccard 0,96); grupo 7 (206, Jaccard 0,77); grupo 9 (121, Jaccard 0,91); grupo 10 (96, Jaccard 0,93). Sus categorías características (prueba v) están en `patrones_compra.md` y `hcpc_d98_vtest.csv`; no se les da interpretación de negocio.
+
+**Descripción de los grupos y diagnóstico del Grupo 5.** `docs/resultados/grupos_hcpc.md` describe los ocho grupos (descripciones revisadas por Edward) y diagnostica los contratos sin señal funeraria del Grupo 5: de los 11 que Edward etiquetó, 7 resultaron `no_funerario` y 4 `funerario` (D105); la cifra principal no cambia y la suma con etiquetas pasa a 229,6 en 4.985 contratos. El efecto de selección abreviada se mantiene al excluir los contratos sin señal (D99).
+
+**Limitación (D99):** 125 contratos (2,5 %) clasificados `funerario` por el modelo no tienen ninguna palabra afín en el objeto (7 de ellos, del Grupo 5, ya revisados); los demás no se etiquetan, porque el estimador de diferencia ya corrige ese error en la cifra principal y en los grupos no cambia sus rasgos.
 
 **Estacionalidad: resultado en cuanto a los meses de mayor contratación; la forma exacta del modelo es una limitación (D99, ajuste de Edward).** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, 143.125 fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran 184.393; los 25 meses sin registro son faltantes, no ceros): la señal estacional se mantiene en todos los modelos (Wald con Newey-West p < 0,0001; amplitud de 12 meses de 0,43 a 0,55); pasan los supuestos los modelos 2, 2c, 2e; el de menor BIC entre ellos es el 2e (420,1). **Resultado:** los meses de mayor contratación del año son febrero, marzo y abril, con ambas series (Wald con Newey-West p < 0,0001 en las 12 especificaciones con la serie filtrada). **Limitación:** el 2e y el 2c empatan en BIC y los modelos con armónicos no pasan el Ljung-Box. La serie filtrada es coherente con la cifra oficial (OPS, Informe de situación 293, 14 de marzo de 2023: 142.639 muertes al 8 de marzo de 2023; la serie suma 142.651 hasta febrero de 2023). Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.
 

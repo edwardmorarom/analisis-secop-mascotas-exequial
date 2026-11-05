@@ -3,9 +3,10 @@ import pandas as pd
 from src.etl.comun import RAIZ, cargar_config, ruta
 from src.modelos.datos_clasificacion import CLASES
 
-ORDEN_PRECEDENCIA = ["top_valor", "adicionales_d81", "secop1_nuevos", "humanitarios_40", "estrato_d_150", "validacion_60_revisada", "muestra_400"]
+ORDEN_PRECEDENCIA = ["top_valor", "adicionales_d81", "secop1_nuevos", "humanitarios_40", "estrato_d_150", "grupo5_revision", "validacion_60_revisada", "muestra_400"]
 RUTA_LOTES = {"humanitarios_40": ("humanitarios_40.xlsx", "humanitarios_40_maestra.parquet"),
-              "estrato_d_150": ("estrato_d_150.xlsx", "estrato_d_150_maestra.parquet")}
+              "estrato_d_150": ("estrato_d_150.xlsx", "estrato_d_150_maestra.parquet"),
+              "grupo5_revision": ("grupo5_revision.xlsx", "grupo5_revision_maestra.parquet")}
 # D92: servicios profesionales o de apoyo a la gestión que apoyan asistencia funeraria son no_funerario (el Excel de Edward los trae como mixto).
 CORRECCION_D92 = {"humanitarios_40": {"H005", "H009", "H028", "H030", "H031"}}
 # D92: V046 (SSF-013, personal de la Subdirección de Servicios Funerarios) pasa de funerario a no_funerario por decisión de Edward.
@@ -80,7 +81,8 @@ def construir(config=None, incluir_top_valor=True):
     config = config or cargar_config()
     procesado = ruta(config, "processed")
     partes = [muestra_400(procesado), validacion_60(procesado), desde_excel(procesado, SECOP1, "secop1_nuevos_maestra.parquet", "secop1_nuevos"),
-              adicionales(procesado), lote(procesado, "humanitarios_40"), lote(procesado, "estrato_d_150")]
+              adicionales(procesado), lote(procesado, "humanitarios_40"), lote(procesado, "estrato_d_150"),
+              lote(procesado, "grupo5_revision")]
     if incluir_top_valor:
         partes.append(desde_excel(procesado, TOP, "top_valor_maestra.parquet", "top_valor"))
     return fusionar(partes)

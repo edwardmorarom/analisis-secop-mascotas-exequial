@@ -80,6 +80,9 @@ def cifras():
 
 def construir():
     c = cifras()
+    from src.modelos.diagnostico_grupo5 import cargar_contratos
+    contratos, _ = cargar_contratos()
+    sin_afin = int((~contratos["con_senal"] & ~contratos["con_afin"]).sum())
     s = c["serie"]
     dep = c["dep"].sort_values("valor_constante_2025", ascending=False)
     hhi, hd = c["hhi"], c["hhi_dep"]
@@ -146,7 +149,7 @@ def construir():
                ["Año", "Proveedores", "HHI nacional", "CR4 nacional (%)", "HHI departamental, mediana", "Departamentos con HHI > 2.500"]), "",
          "El HHI nacional es bajo (menos de 700) y sube desde 2022; la mediana departamental es de 1.297 a 2.034, es decir, los mercados departamentales están bastante más concentrados que el nacional (D86, D77). D69 está resuelta (D77 y D86).", "",
          "## 5. Patrones de compra", "",
-         "Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: " + fm(n_mercado, 0) + " contratos `funerario` (D84). Informe: `docs/resultados/patrones_compra.md`.", "",
+         "Todo lo de esta sección es **exploratorio** (D98 se decidió después de ver D97) y D99 (aprobada por Edward el 2026-11-01) fija qué se reporta. Universo: " + fm(len(c["base"]), 0) + " contratos `funerario` de D97 a D99 (el mercado vigente tiene " + fm(n_mercado, 0) + " tras la revisión del Grupo 5, D105: los 7 contratos que pasaron a `no_funerario` no se sacaron de estos análisis). Informe: `docs/resultados/patrones_compra.md`.", "",
          "**Valor** (log del valor constante de 2025; solo se reportan los tres efectos significativos en los tres modelos: regresión por cuantiles en la mediana, lineal mixto y gamma mixto; D99):", "",
          tabla([[n, fm(ef.loc[t, "qr_estimador"], 3), fm(ef.loc[t, "lmm_estimador"], 3), fm(ef.loc[t, "gamma_estimador"], 3)] for n, t in
                 (("Selección abreviada frente a mínima cuantía", "modalidad_gruposeleccion_abreviada"), ("Gobernación o departamento frente a alcaldía o municipio", "tipo_entidadgobernacion_departamento"), ("Fuente SECOP II frente a SECOP I", "fuentesecop2"))],
@@ -155,6 +158,8 @@ def construir():
          f"**Tipología.** No hay tipología latente que cumpla independencia local: ninguno de los {c['lca_n']} modelos de D97 (residuo bivariado máximo de {fm(c['lca_bvr_min'], 1)} a {fm(c['lca_bvr_max'], 0)}) ni de los {c['polca_n']} de `poLCA` de D98 (mínimo {fm(c['polca_bvr_min'], 1)}) cumple a la vez BVR ≤ 10 y mejor ajuste en al menos 5 de 100 arranques ({c['polca_cumple']} cumplen; `lca_comparacion.csv`, `polca_comparacion.csv`). "
          f"Como descripción se reportan los grupos de ACM + HCPC con Jaccard medio ≥ 0,75 y al menos 1 % de los contratos (criterio de la enmienda de D99): {len(ok)} de {len(h)}, con {fm(ok['contratos'].sum(), 0)} contratos ({fm(100 * ok['contratos'].sum() / n_mercado, 1)} %): "
          + "; ".join(f"grupo {int(r.grupo)} ({fm(r.contratos, 0)}, Jaccard {fm(r.jaccard_medio, 2)})" for r in ok.itertuples()) + ". Sus categorías características (prueba v) están en `patrones_compra.md` y `hcpc_d98_vtest.csv`; no se les da interpretación de negocio.", "",
+         "**Descripción de los grupos y diagnóstico del Grupo 5.** `docs/resultados/grupos_hcpc.md` describe los ocho grupos (descripciones revisadas por Edward) y diagnostica los contratos sin señal funeraria del Grupo 5: de los 11 que Edward etiquetó, 7 resultaron `no_funerario` y 4 `funerario` (D105); la cifra principal no cambia y la suma con etiquetas pasa a " + fm(c["etiquetas_valor"], 1) + " en " + fm(c["etiquetas_contratos"], 0) + " contratos. El efecto de selección abreviada se mantiene al excluir los contratos sin señal (D99).", "",
+         f"**Limitación (D99):** {fm(sin_afin, 0)} contratos ({fm(sin_afin / len(contratos) * 100, 1)} %) clasificados `funerario` por el modelo no tienen ninguna palabra afín en el objeto (7 de ellos, del Grupo 5, ya revisados); los demás no se etiquetan, porque el estimador de diferencia ya corrige ese error en la cifra principal y en los grupos no cambia sus rasgos.", "",
          f"**Estacionalidad: resultado en cuanto a los meses de mayor contratación; la forma exacta del modelo es una limitación (D99, ajuste de Edward).** Modelos de binomial negativa sobre el conteo mensual de contratos firmados. Con la serie de fallecidos de COVID-19 del INS filtrada por estado «Fallecido» (`gt2j-8ykr`, {fm(reg.sum(), 0)} fallecidos de marzo de 2020 a enero de 2024; sin filtrar eran {fm(reg_s.sum(), 0)}; los 25 meses sin registro son faltantes, no ceros): "
          f"la señal estacional se mantiene en todos los modelos (Wald con Newey-West p < 0,0001; amplitud de 12 meses de {fm(cm['amplitud_12'].min(), 2)} a {fm(cm['amplitud_12'].max(), 2)}); pasan los supuestos los modelos {', '.join(pasan.index)}; el de menor BIC entre ellos es el {menor} ({fm(pasan.loc[menor, 'BIC'], 1)}). "
          "**Resultado:** los meses de mayor contratación del año son febrero, marzo y abril, con ambas series (Wald con Newey-West p < 0,0001 en las 12 especificaciones con la serie filtrada). **Limitación:** el 2e y el 2c empatan en BIC y los modelos con armónicos no pasan el Ljung-Box. La serie filtrada es coherente con la cifra oficial (OPS, Informe de situación 293, 14 de marzo de 2023: 142.639 muertes al 8 de marzo de 2023; la serie suma 142.651 hasta febrero de 2023). Archivos: `estacionalidad_covid_modelos.csv`, `perfil_mensual_2e.csv`; decisiones D97, D98, D99.", "",

@@ -31,4 +31,4 @@ def test_cifras_clave_coinciden_con_los_csv():
 def test_cifras_publicadas_de_la_estimacion_principal():
     d = documento()
     assert "**254,0** (IC 95 %: 225,4 a 304,5)" in d
-    assert "230,6 en 4.992 contratos" in d
+    assert "229,6 en 4.985 contratos" in d

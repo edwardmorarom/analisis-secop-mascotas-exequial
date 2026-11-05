@@ -2,7 +2,7 @@
 
 > **Descripción exploratoria. Ningún modelo de clases latentes cumplió los supuestos (D97, D98), así que estos grupos describen el mercado y no son una tipología confirmada.**
 
-Estado: propuesta, pendiente de revisión de Edward. No se recalculó ningún resultado de D97 a D99; este documento solo describe lo que ya existe.
+Estado de las descripciones: revisadas por Edward. No se recalculó ningún resultado de D97 a D99; este documento solo describe lo que ya existe.
 
 ## Cómo leerlo
 
@@ -389,7 +389,7 @@ Objetos de ejemplo (azar, semilla 2026):
 
 ## Diagnóstico del Grupo 5: contratos sin señal funeraria en el objeto (2026-11-05)
 
-Solo diagnóstico: no se cambió ninguna etiqueta ni se recalculó el mercado. Señal funeraria = alguna de las raíces FUNERA, EXEQU, INHUMA, CREMACI, SEPEL, SEPULT, ATAUD, COFRE, CADAVER, BOVEDA u OSARIO (como palabra) en el objeto, sin tildes ni distinción de mayúsculas. Como control, los contratos sin señal se separan en los que tienen otra palabra afín (FÚNEBRE, MORTUORIO, FALLECIDO, DIFUNTO, OCCISO, CEMENTERIO, NICHO, ENTIERRO, DEFUNCIÓN, RESTOS HUMANOS, MUERTE) y los que no tienen ninguna.
+El diagnóstico (secciones 1 a 4) describe los contratos antes de la revisión de Edward: la columna «etiqueta humana» no cuenta los 11 que él etiquetó después (sección 5). Señal funeraria = alguna de las raíces FUNERA, EXEQU, INHUMA, CREMACI, SEPEL, SEPULT, ATAUD, COFRE, CADAVER, BOVEDA u OSARIO (como palabra) en el objeto, sin tildes ni distinción de mayúsculas. Como control, los contratos sin señal se separan en los que tienen otra palabra afín (FÚNEBRE, MORTUORIO, FALLECIDO, DIFUNTO, OCCISO, CEMENTERIO, NICHO, ENTIERRO, DEFUNCIÓN, RESTOS HUMANOS, MUERTE) y los que no tienen ninguna.
 
 **La clase final es «funerario» para los 4.992 contratos del análisis**; solo 244 tienen etiqueta humana y el resto toma la clase del modelo. Por eso «sin señal» no significa «sin etiqueta».
 
@@ -477,8 +477,32 @@ Misma especificación y bootstrap por entidad de D98 (500 remuestreos, semilla 2
 
 ### 4. Conclusión
 
-- **Errores claros:** en el Grupo 5 hay 7 contratos ($1.047 millones, 1,7 % del valor del grupo) que por su objeto no parecen servicios funerarios. Hasta que Edward los etiquete son candidatos, no errores confirmados. Los otros contratos sin señal del grupo son servicios funerarios que la lista de señales no reconoce (honras fúnebres, cajas mortuorias).
+- **Errores claros:** en el Grupo 5 hay 7 contratos ($1.047 millones, 1,7 % del valor del grupo) que por su objeto no parecen servicios funerarios. La revisión de Edward (sección 5) los confirmó. Los otros contratos sin señal del grupo son servicios funerarios que la lista de señales no reconoce (honras fúnebres, cajas mortuorias).
 - **Efecto de selección abreviada (D99):** se mantiene. El coeficiente de la mediana pasa de 1,603 a 1,612 al excluir los 542 contratos sin señal (de todos los grupos), con el intervalo de 95 % por encima de cero y la estimación original dentro del nuevo intervalo. Con tan pocos contratos dudosos en el Grupo 5 y un efecto de esta magnitud (×5), el resultado no depende de ellos.
 - **Límites:** solo se repitió la regresión por cuantiles; este diagnóstico no audita los contratos con señal (falsos positivos); y la lectura de los 7 contratos es del texto del objeto, sin etiqueta humana.
 - **Fuera del Grupo 5:** hay contratos sin señal ni palabra afín en otros grupos (el Grupo 1 suma 54 y el Grupo 8, 14, que son todos sus contratos sin señal). No se revisaron porque este diagnóstico se limitó al Grupo 5; son candidatos a un lote de revisión aparte.
-- **Libro de revisión:** `docs/revision_f4/grupo5_revision.xlsx` (no versionado, formato a ciegas) con los 11 contratos del Grupo 5 sin señal y sin etiqueta humana: los 7 candidatos y 4 de control que por su texto parecen funerarios. La llave de cada fila está en `data/processed/grupo5_revision_maestra.parquet`.
+- **Libro de revisión:** `docs/revision_f4/grupo5_revision.xlsx` (no versionado, formato a ciegas), etiquetado por Edward, con los 11 contratos del Grupo 5 sin señal y sin etiqueta humana: los 7 candidatos y 4 de control que por su texto parecen funerarios. La llave de cada fila está en `data/processed/grupo5_revision_maestra.parquet`.
+
+### 5. Resultado de la revisión de Edward
+
+Edward etiquetó los 11 contratos del libro. **De los 7 candidatos sin ninguna palabra afín, 7 resultaron `no_funerario`** (3 con la marca forense) y suman $1.047 millones; de los 4 de control, 4 resultaron `funerario`. Los 11 entraron a la jerarquía de D84 (D105): la cifra principal del mercado no cambia y la suma con etiquetas baja de 230,6 a 229,6 (de 4.992 a 4.985 contratos).
+
+| Categoría de control | Etiqueta | Forense | Valor | Objeto (recortado, anonimizado) |
+|---|---|---|---|---|
+| sin señal ni palabra afín | `no_funerario` | no | $355 millones | PRESTACIÓN DE SERVICIOS PARA EL DESARROLLO DEL PROGRAMA DE ATENCIÓN INTEGRAL Y PREVENTIVO A LA POBLA… |
+| sin señal ni palabra afín | `no_funerario` | no | $236 millones | SUMINISTRO DE ALIMENTOS PARA EL CUIDADO DE LOS ADULTOS MAYORES DEL HOGAR GERIÁTRICO EL ABUELO DE LAS… |
+| sin señal, con palabra afín | `funerario` | no | $217 millones | BRINDAR EL SERVICIO DE HONRAS FÚNEBRES A PERSONAS MAYORES EN CONDICIONES DE VULNERABILIDAD Y ABANDON… |
+| sin señal, con palabra afín | `funerario` | no | $195 millones | SUMINISTRO DE CAJAS MORTUORIAS; ARREGLOS FLORALES Y PRESTACIÓN DE SERVICIOS FÚNEBRES PARA BRINDAR AY… |
+| sin señal ni palabra afín | `no_funerario` | sí | $121 millones | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES PARA A LA POBLACIÓN VULNERABLE DE… |
+| sin señal, con palabra afín | `funerario` | no | $107 millones | SUMINISTRO DE CAJAS MORTUORIAS; ARREGLOS FLORALES Y PRESTACIÓN DE SERVICIOS FÚNEBRES PARA BRINDAR AY… |
+| sin señal ni palabra afín | `no_funerario` | no | $104 millones | SUMINISTRO DE AYUDAS ALIMENTICIAS PARA LOS ADULTOS MAYORES DEL CENTRO DIA NUESTRA SEÑORA DEL ROSARIO… |
+| sin señal ni palabra afín | `no_funerario` | sí | $96 millones | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES PARA LA POBLACIÓN VULNERABLE DEL… |
+| sin señal, con palabra afín | `funerario` | no | $90 millones | APOYO PARA LOS GASTOS FUNEBRES A LA POBLACION EN CONDICIONES VICTIMAS DEL CONFLICTO ARMADO; VULNERAB… |
+| sin señal ni palabra afín | `no_funerario` | sí | $81 millones | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES A LA POBLACIÓN DE FLORENCIA |
+| sin señal ni palabra afín | `no_funerario` | no | $55 millones | SUMINISTRO DE KITS ESCOLARES PARA POBLACION ESTUDIANTIL DEL MUNICIPIO DE EL ROSARIO 2020 |
+
+### 6. Limitación: contratos sin palabra afín que no se etiquetan
+
+**125 contratos (2,5 %) clasificados `funerario` por el modelo no tienen ninguna palabra afín** en el objeto; los 7 del Grupo 5 ya revisados resultaron todos `no_funerario`, de modo que ese conjunto contiene errores del modelo. Los 118 restantes no se etiquetan, por dos razones: el estimador de diferencia ya corrige ese error en la cifra principal, y en los grupos no cambia sus rasgos.
+Para lo segundo: al quitar esos 125 contratos, ninguna de las categorías características que describen a los grupos cambia en más de 2,4 puntos porcentuales dentro de su grupo (`cambio_rasgos`).
+

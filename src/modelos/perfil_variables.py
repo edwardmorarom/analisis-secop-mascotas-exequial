@@ -83,8 +83,8 @@ def tabla(df, cols=None):
     return "\n".join(filas)
 
 
-def cargar(config):
-    d = pd.read_parquet(ruta(config, "processed") / "resultados_secop" / "universo_mercado.parquet")
+def cargar(config, universo=None):
+    d = universo if universo is not None else pd.read_parquet(ruta(config, "processed") / "resultados_secop" / "universo_mercado.parquet")
     f = mp.preparar(d).reset_index(drop=True)
     interim = ruta(config, "interim")
     partes = []
