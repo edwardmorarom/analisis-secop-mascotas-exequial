@@ -42,16 +42,18 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--a", default=str(CARPETA / "places_revision_edward.xlsx"))
     ap.add_argument("--omitir-sin-clase", action="store_true", help="excluye las filas sin clase en alguno de los libros y las informa")
+    ap.add_argument("--ronda", default="calibracion")
+    ap.add_argument("--salida", default="desacuerdos_calibracion.csv")
     ap.add_argument("--b", default=str(CARPETA / "places_revision_harold.xlsx"))
     args = ap.parse_args()
-    a, b = leer(args.a), leer(args.b)
+    a, b = leer(args.a, args.ronda), leer(args.b, args.ronda)
     if args.omitir_sin_clase:
         sin = [i for i in a.index if pd.isna(a.loc[i, "clase"]) or pd.isna(b.loc[i, "clase"])]
         print(f"filas omitidas por no tener clase en algún libro: {sin}")
     r = comparar(a, b, omitir_sin_clase=args.omitir_sin_clase)
     print(f"filas de calibración: {r['n']} | acuerdo observado: {r['acuerdo']:.3f} | κ de Cohen: {r['kappa']:.3f}")
     print(r["confusion"].to_string())
-    destino = CARPETA / "desacuerdos_calibracion.csv"
+    destino = CARPETA / args.salida
     r["desacuerdos"].to_csv(destino, index=False, encoding="utf-8-sig")
     print(f"{len(r['desacuerdos'])} desacuerdos en {destino}")
 
