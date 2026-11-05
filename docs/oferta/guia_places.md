@@ -81,3 +81,22 @@ Los dos primeros bloques son ilustrativos (se eligieron por lo que dicen el nomb
 ## 8. Dudas
 
 Si un caso no encaja, anótelo en `nota`, etiquete según el criterio de la sección 2 y avise al equipo: los casos nuevos se agregan a la sección 5 en la ronda de calibración.
+
+## 9. Qué cuenta como mixto
+
+**PENDIENTE DE CONFIRMACIÓN DE EDWARD.** Las notas de `calibracion_2` están vacías, así que esta definición se dedujo de sus **etiquetas** y de la fuente que anotó en `verificado_en` (D103). No es una regla aprobada.
+
+**Lo observado (`calibracion_2` y filas ya etiquetadas del libro final).**
+- De unas 112 filas (agrupadas por palabras del nombre y tipos de Google, sin revisión una a una) cuyo nombre o tipo es de funeraria, capilla, sala de velación, cementerio, parque cementerio o crematorio y que no dicen «mascotas», Edward etiquetó **102 `mixto`**, 9 `prestador_mascotas` y 1 `no_prestador`.
+- En `calibracion_2`, 11 de 11 lugares de ese tipo son `mixto`, verificados en Google Maps (7) o en el sitio web (4). En 10 de ellos la segunda revisora, con la misma fuente, no encontró servicio de mascotas y puso `no_prestador`.
+
+**Definición operativa deducida.** Es `mixto` el negocio que cumple **las dos** condiciones:
+1. Es funeraria, capilla o sala de velación, cementerio o parque cementerio, o crematorio **de personas** (lo confirma la ficha de Google Maps o el sitio web).
+2. Tras revisar esa fuente, **no se descarta** que atienda mascotas: la ficha o el sitio no dicen que solo atiende personas, y ofrece cremación, inhumación o un servicio funerario general que podría extenderse a animales.
+
+**Conflicto con la regla de la sección 5.** La regla escrita dice que una funeraria de personas **verificada sin servicio de mascotas** es `no_prestador`; la definición deducida pone `mixto` salvo evidencia en contra. Son criterios distintos y cambian la oferta que se reporta (D103: con y sin `mixto`). Edward debe elegir una:
+
+- **A. Evidencia explícita (regla actual).** `mixto` solo si la fuente menciona mascotas; si no, `no_prestador`.
+- **B. Sin evidencia en contra (deducida).** `mixto` si es funeraria o cementerio de personas con cremación o servicio funerario general y la fuente no excluye a las mascotas.
+
+Con cualquiera de las dos, la `nota` debe llevar la fuente o la URL consultada.
