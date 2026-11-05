@@ -384,3 +384,101 @@ Objetos de ejemplo (azar, semilla 2026):
 1. PRESTACIÓN DE SERVICIOS DE PLANES EXEQUIALES PARA VEINTICUATRO (24) EMPLEADOS DE PLANTA DE LA ESE MUNICIPAL MANUEL CASTRO TOVAR
 2. CPS 310 DE 2020 QUE TIENE COMO OBJETO CONTRATACIÓN SERVICIOS EXEQUIALES PARA EL NUEVO PERSONAL DE PLANTA DURANTE DIEZ MESES DIECISIETE DÍAS.
 3. PRESTACION DE SERVICIOS FUNERARIOS A LOS EMPLEADOS DE PLANTA DE LA ESE HOSPITAL REGIONAL NORTE.
+
+<!-- diagnostico-grupo5 -->
+
+## Diagnóstico del Grupo 5: contratos sin señal funeraria en el objeto (2026-11-05)
+
+Solo diagnóstico: no se cambió ninguna etiqueta ni se recalculó el mercado. Señal funeraria = alguna de las raíces FUNERA, EXEQU, INHUMA, CREMACI, SEPEL, SEPULT, ATAUD, COFRE, CADAVER, BOVEDA u OSARIO (como palabra) en el objeto, sin tildes ni distinción de mayúsculas. Como control, los contratos sin señal se separan en los que tienen otra palabra afín (FÚNEBRE, MORTUORIO, FALLECIDO, DIFUNTO, OCCISO, CEMENTERIO, NICHO, ENTIERRO, DEFUNCIÓN, RESTOS HUMANOS, MUERTE) y los que no tienen ninguna.
+
+**La clase final es «funerario» para los 4.992 contratos del análisis**; solo 244 tienen etiqueta humana y el resto toma la clase del modelo. Por eso «sin señal» no significa «sin etiqueta».
+
+### 1. Grupo 5: contratos sin señal
+
+- El Grupo 5 tiene 253 contratos; **13 (5,1 %) no tienen señal** y suman **$1.830 millones** (3,0 % de su valor de $61.612 millones).
+- De los 13: 2 tienen etiqueta humana «funerario» (cajas mortuorias o fúnebres); 4 más tienen otra palabra afín y por su texto son servicios funerarios que la lista no cubre (honras fúnebres, cajas mortuorias); **7 no tienen ninguna palabra afín** y suman $1.047 millones (1,7 % del valor del grupo).
+- Por su objeto, esos 7 parecen programas sociales de adultos mayores, alimentos y kits escolares (4 contratos) y servicios de cava refrigerada, morgue y médico legales (3 contratos, que el libro de códigos trata como forenses y deja fuera del mercado). Es una lectura del texto, no una etiqueta.
+- Los 20 contratos de mayor valor del grupo **tienen todos señal** y suman el 40 % del valor del grupo; el mayor de los sin señal vale $355 millones.
+
+#### Los 20 contratos de mayor valor del Grupo 5
+
+| # | Fuente | Año | Valor | Clase final | Etiqueta humana | Señal | Objeto (recortado, anonimizado) |
+|---|---|---|---|---|---|---|---|
+| 1 | SECOP II | 2020 | $2.221 millones | funerario | funerario | sí | PRESTAR LOS SERVICIOS FUNERARIOS PARA LA POBLACIÓN DEL DISTRITO CAPITAL QUE SE ENCUENTRE EN SITUACIÓN DE EMER… |
+| 2 | SECOP II | 2022 | $2.079 millones | funerario | funerario | sí | PRESTAR LOS SERVICIOS FUNERARIOS PARA LA POBLACION DEL DISTRITO CAPITAL QUE SE ENCUENTRE EN SITUACION DE EMERG… |
+| 3 | SECOP II | 2025 | $1.969 millones | funerario | funerario | sí | CONTRATAR EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO NACIONAL |
+| 4 | SECOP II | 2021 | $1.899 millones | funerario | funerario | sí | PRESTAR LOS SERVICIOS FUNERARIOS PARA LA POBLACIÓN DEL DISTRITO CAPITAL QUE SE ENCUENTRE EN SITUACIÓN DE EMERG… |
+| 5 | SECOP II | 2025 | $1.769 millones | funerario | funerario | sí | SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO A EJECUTAR EN LA VIGENCIA 2025 Y VIGEN… |
+| 6 | SECOP II | 2024 | $1.736 millones | funerario | funerario | sí | PRESTAR LOS SERVICIOS FUNERARIOS PARA LA POBLACIÓN DEL DISTRITO CAPITAL QUE SE ENCUENTRE EN SITUACIÓN DE EMERG… |
+| 7 | SECOP II | 2023 | $1.535 millones | funerario | funerario | sí | EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO NACIONAL |
+| 8 | SECOP II | 2024 | $1.247 millones | funerario | funerario | sí | EL CONTRATISTA se obliga con el MDN - EJÉRCITO NACIONAL -CENTRAL ADMINISTRATIVA Y CONTABLE ESPECIALIZADA DE PE… |
+| 9 | SECOP II | 2021 | $1.207 millones | funerario | funerario | sí | SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO NACIONAL. |
+| 10 | SECOP II | 2020 | $1.117 millones | funerario | funerario | sí | PRESTACION DE SERVICIOS FUNERARIOS DIRIGIDO AL PERSONAL PERTENENCIENTE AL EJÉRCITO NACIONAL |
+| 11 | SECOP II | 2024 | $1.040 millones | funerario | funerario | sí | EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO |
+| 12 | SECOP II | 2023 | $928 millones | funerario | funerario | sí | EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO |
+| 13 | SECOP II | 2022 | $912 millones | funerario | funerario | sí | EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO NACIONAL PARA LA VIGENCIA 2022 |
+| 14 | SECOP II | 2025 | $783 millones | funerario | funerario | sí | SUMINISTRO DE ATAÚDES Y SERVICIOS FUNERARIOS PARA LOS POBRES DE SOLEMNIDAD; DENTRO DE LA JURISDICCIÓN DEL DIST… |
+| 15 | SECOP II | 2021 | $766 millones | funerario | funerario | sí | SUMINISTRO DE ATAÚDES Y SERVICIOS FUNERARIOS PARA LOS POBRES DE SOLEMNIDAD DENTRO DE LA JURISDICCIÓN DEL DISTR… |
+| 16 | SECOP II | 2023 | $739 millones | funerario | funerario | sí | PRESTAR LOS SERVICIOS FUNERARIOS PARA LA POBLACIÓN DEL DISTRITO CAPITAL QUE SE ENCUENTRE EN SITUACIÓN DE EMERG… |
+| 17 | SECOP II | 2022 | $674 millones | funerario | funerario | sí | EL SUMINISTRO DE ATAÚDES Y SERVICIOS FUNERARIOS PARA LOS POBRES DE SOLEMNIDAD DENTRO DE LA JURISDICCIÓN DEL DI… |
+| 18 | SECOP II | 2023 | $655 millones | funerario | funerario | sí | CONTRATAR EL SUMINISTRO DE ATAÚDES Y SERVICIOS FUNERARIOS PARA LOS POBRES DE SOLEMNIDAD DENTRO DE LA JURISDICC… |
+| 19 | SECOP II | 2022 | $643 millones | funerario | funerario | sí | EL SUMINISTRO DE SERVICIOS FUNERARIOS PARA EL PERSONAL ACTIVO DEL EJÉRCITO NACIONAL |
+| 20 | SECOP II | 2022 | $602 millones | funerario | no | sí | PRESTACIÓN DE SERVICIOS FUNERARIOS PARA LA ATENCIÓN A PERSONAS PERTENECIENTES A LAS POBLACIONES SIN IDENTIFICA… |
+
+#### Los 13 contratos del Grupo 5 sin señal
+
+| Fuente | Año | Valor | Etiqueta humana | Categoría de control | Objeto (recortado, anonimizado) |
+|---|---|---|---|---|---|
+| SECOP I | 2025 | $355 millones | no | sin señal ni palabra afín | PRESTACIÓN DE SERVICIOS PARA EL DESARROLLO DEL PROGRAMA DE ATENCIÓN INTEGRAL Y PREVENTIVO A LA POBLACIÓN DE AD… |
+| SECOP I | 2023 | $236 millones | no | sin señal ni palabra afín | SUMINISTRO DE ALIMENTOS PARA EL CUIDADO DE LOS ADULTOS MAYORES DEL HOGAR GERIÁTRICO EL ABUELO DE LAS BARBAS DE… |
+| SECOP II | 2021 | $217 millones | no | sin señal, con palabra afín | BRINDAR EL SERVICIO DE HONRAS FÚNEBRES A PERSONAS MAYORES EN CONDICIONES DE VULNERABILIDAD Y ABANDONO SOCIAL Q… |
+| SECOP I | 2021 | $195 millones | no | sin señal, con palabra afín | SUMINISTRO DE CAJAS MORTUORIAS; ARREGLOS FLORALES Y PRESTACIÓN DE SERVICIOS FÚNEBRES PARA BRINDAR AYUDA A FALL… |
+| SECOP II | 2022 | $121 millones | no | sin señal ni palabra afín | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES PARA A LA POBLACIÓN VULNERABLE DEL MUNICIPI… |
+| SECOP I | 2022 | $116 millones | funerario | sin señal, con palabra afín | SUMINISTRO DE CAJAS MORTUORIAS; ARREGLOS FLORALES Y PRESTACIÓN DE SERVICIOS FÚNEBRES PARA BRINDAR AYUDA A FALL… |
+| SECOP I | 2023 | $107 millones | no | sin señal, con palabra afín | SUMINISTRO DE CAJAS MORTUORIAS; ARREGLOS FLORALES Y PRESTACIÓN DE SERVICIOS FÚNEBRES PARA BRINDAR AYUDA A FALL… |
+| SECOP I | 2021 | $104 millones | no | sin señal ni palabra afín | SUMINISTRO DE AYUDAS ALIMENTICIAS PARA LOS ADULTOS MAYORES DEL CENTRO DIA NUESTRA SEÑORA DEL ROSARIO DEL MUNIC… |
+| SECOP II | 2021 | $96 millones | no | sin señal ni palabra afín | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES PARA LA POBLACIÓN VULNERABLE DEL MUNICIPIO… |
+| SECOP I | 2023 | $90 millones | no | sin señal, con palabra afín | APOYO PARA LOS GASTOS FUNEBRES A LA POBLACION EN CONDICIONES VICTIMAS DEL CONFLICTO ARMADO; VULNERABILIDAD Y C… |
+| SECOP I | 2020 | $81 millones | no | sin señal ni palabra afín | PRESTACIÓN DE SERVICIOS DE CAVA RED FRIO; MORGUE Y; MÉDICO LEGALES A LA POBLACIÓN DE FLORENCIA |
+| SECOP I | 2020 | $57 millones | funerario | sin señal, con palabra afín | ADQUISICIÓN DE CAJAS FÚNEBRES PARA POBLACIÓN VULNERABLE Y VICTIMAS; CAUSADOS POR HECHOS OCURRIDOS EN EL MARCO… |
+| SECOP I | 2020 | $55 millones | no | sin señal ni palabra afín | SUMINISTRO DE KITS ESCOLARES PARA POBLACION ESTUDIANTIL DEL MUNICIPIO DE EL ROSARIO 2020 |
+
+### 2. Los 8 grupos
+
+| Grupo | Contratos | Sin señal | % sin señal | Valor sin señal | % del valor del grupo | Sin señal ni palabra afín | Valor de esos |
+|---|---|---|---|---|---|---|---|
+| Grupo 1 | 2.314 | 222 | 9,6 % | $8.420 millones | 12,8 % | 54 | $2.898 millones |
+| Grupo 2 | 1.278 | 213 | 16,7 % | $4.317 millones | 15,0 % | 33 | $873 millones |
+| Grupo 3 | 362 | 21 | 5,8 % | $2.856 millones | 18,6 % | 10 | $2.014 millones |
+| Grupo 4 | 280 | 28 | 10,0 % | $718 millones | 12,7 % | 1 | $39 millones |
+| Grupo 5 | 253 | 13 | 5,1 % | $1.830 millones | 3,0 % | 7 | $1.047 millones |
+| Grupo 6 | 206 | 6 | 2,9 % | $143 millones | 1,5 % | 3 | $38 millones |
+| Grupo 7 | 121 | 11 | 9,1 % | $641 millones | 11,5 % | 0 | $0 millones |
+| Grupo 8 | 96 | 14 | 14,6 % | $1.725 millones | 27,5 % | 14 | $1.725 millones |
+
+En total, 544 de 4.992 contratos (10,9 %) no tienen señal y 125 (2,5 %) no tienen ni palabra afín. **El problema no se concentra en el Grupo 5:** su proporción de contratos sin señal (5,1 %) es de las más bajas; la más alta es la del Grupo 2 (16,7 %). Por valor, el Grupo 8 es el más afectado (27,5 % de su valor sin señal).
+
+### 3. Cuánto del valor del Grupo 5 podría ser error
+
+- **Cota superior** (todo contrato sin señal y sin etiqueta humana es un error): 11 contratos, $1.657 millones, 2,7 % del valor del grupo.
+- **Estimación central** (solo los 7 sin ninguna palabra afín): $1.047 millones, 1,7 % del valor del grupo y 2,8 % de sus contratos.
+- Los contratos con señal no se auditaron aquí: este diagnóstico solo mide los falsos negativos de la lista de señales, no los falsos positivos.
+- **Efecto sobre la selección abreviada (D99):** los contratos sin señal del Grupo 5 son 13 de 4.985 en la regresión; aun excluyéndolos todos, el resultado de abajo muestra si el efecto cambia.
+
+#### Sensibilidad: regresión por cuantiles de D98 (mediana) sin esos contratos
+
+Misma especificación y bootstrap por entidad de D98 (500 remuestreos, semilla 2034). Solo se repitió la regresión por cuantiles; los modelos mixtos de D98 no se repitieron. Coeficiente de modalidad de selección abreviada frente a mínima cuantía (log del valor constante de 2025):
+
+| Muestra | Contratos | Coeficiente | IC 95 % (bootstrap) | Razón multiplicativa |
+|---|---|---|---|---|
+| D98 (todos los contratos) | 4.985 | 1,603 | 1,384 a 1,824 | ×4,97 |
+| Sin los contratos sin señal funeraria | 4.443 | 1,612 | 1,387 a 1,876 | ×5,01 |
+| Sin los contratos sin señal ni palabra afín | 4.861 | 1,609 | 1,384 a 1,835 | ×5,00 |
+
+### 4. Conclusión
+
+- **Errores claros:** en el Grupo 5 hay 7 contratos ($1.047 millones, 1,7 % del valor del grupo) que por su objeto no parecen servicios funerarios. Hasta que Edward los etiquete son candidatos, no errores confirmados. Los otros contratos sin señal del grupo son servicios funerarios que la lista de señales no reconoce (honras fúnebres, cajas mortuorias).
+- **Efecto de selección abreviada (D99):** se mantiene. El coeficiente de la mediana pasa de 1,603 a 1,612 al excluir los 542 contratos sin señal (de todos los grupos), con el intervalo de 95 % por encima de cero y la estimación original dentro del nuevo intervalo. Con tan pocos contratos dudosos en el Grupo 5 y un efecto de esta magnitud (×5), el resultado no depende de ellos.
+- **Límites:** solo se repitió la regresión por cuantiles; este diagnóstico no audita los contratos con señal (falsos positivos); y la lectura de los 7 contratos es del texto del objeto, sin etiqueta humana.
+- **Fuera del Grupo 5:** hay contratos sin señal ni palabra afín en otros grupos (el Grupo 1 suma 54 y el Grupo 8, 14, que son todos sus contratos sin señal). No se revisaron porque este diagnóstico se limitó al Grupo 5; son candidatos a un lote de revisión aparte.
+- **Libro de revisión:** `docs/revision_f4/grupo5_revision.xlsx` (no versionado, formato a ciegas) con los 11 contratos del Grupo 5 sin señal y sin etiqueta humana: los 7 candidatos y 4 de control que por su texto parecen funerarios. La llave de cada fila está en `data/processed/grupo5_revision_maestra.parquet`.

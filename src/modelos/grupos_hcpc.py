@@ -10,6 +10,7 @@ SEMILLA = 2026
 UMBRAL_JACCARD = 0.75
 UMBRAL_PCT = 1.0
 UMBRAL_V = 2.0
+MARCA_DIAGNOSTICO = "<!-- diagnostico-grupo5 -->"
 COMPONENTES = ["inhumacion_cremacion", "traslado", "ataudes_bienes", "plan_exequial", "operacion_cementerio", "atencion_vulnerables_NN"]
 
 
@@ -190,7 +191,9 @@ def escribir(d, reportados, vtest, estab, tamanos):
         L += [f"| `{x.categoria}` | {fmt(x.pct_grupo)} | {fmt(x.pct_total)} | {fmt(x.pct_categoria_en_grupo)} | {fv(x.v_test)} |" for x in c.itertuples()]
         L += ["", "Objetos de ejemplo (azar, semilla 2026):", ""] + [f"{i}. {recortar(e)}" for i, e in enumerate(f["ejemplos"], 1)] + [""]
     destino = RAIZ / "docs/resultados/grupos_hcpc.md"
-    destino.write_text("\n".join(L).rstrip() + "\n", encoding="utf-8")
+    previo = destino.read_text(encoding="utf-8") if destino.exists() else ""
+    cola = "\n" + previo[previo.index(MARCA_DIAGNOSTICO):] if MARCA_DIAGNOSTICO in previo else ""
+    destino.write_text("\n".join(L).rstrip() + "\n" + cola, encoding="utf-8")
     return destino
 
 
