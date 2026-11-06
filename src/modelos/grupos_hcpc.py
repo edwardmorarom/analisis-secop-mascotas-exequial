@@ -11,6 +11,7 @@ UMBRAL_JACCARD = 0.75
 UMBRAL_PCT = 1.0
 UMBRAL_V = 2.0
 MARCA_DIAGNOSTICO = "<!-- diagnostico-grupo5 -->"
+MARCA_VALIDACION = "<!-- validacion-grupos -->"
 COMPONENTES = ["inhumacion_cremacion", "traslado", "ataudes_bienes", "plan_exequial", "operacion_cementerio", "atencion_vulnerables_NN"]
 
 
