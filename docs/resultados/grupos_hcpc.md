@@ -506,3 +506,164 @@ Edward etiquetó los 11 contratos del libro. **De los 7 candidatos sin ninguna p
 **125 contratos (2,5 %) clasificados `funerario` por el modelo no tienen ninguna palabra afín** en el objeto; los 7 del Grupo 5 ya revisados resultaron todos `no_funerario`, de modo que ese conjunto contiene errores del modelo. Los 118 restantes no se etiquetan, por dos razones: el estimador de diferencia ya corrige ese error en la cifra principal, y en los grupos no cambia sus rasgos.
 Para lo segundo: al quitar esos 125 contratos, ninguna de las categorías características que describen a los grupos cambia en más de 2,4 puntos porcentuales dentro de su grupo (`cambio_rasgos`).
 
+<!-- validacion-grupos -->
+
+## Validación de los grupos (D106, 2026-11-05)
+
+Todo lo de esta sección es validación: no cambia los grupos de D98 ni las etiquetas, y usa los mismos 4.992 contratos (los 8 grupos reportados suman 4.910). Semilla 2026 en lo que se muestrea (permutaciones) y 2034 en el ACM y el HCPC. Los criterios se fijaron en D106 antes de correr. Los valores p son orientativos: los contratos de una misma entidad no son independientes. Resultados completos en `data/processed/resultados_secop/patrones/validacion_*.csv` (no versionados).
+
+### 1. Plataforma (SECOP I frente a SECOP II)
+
+V de Cramér de grupo × fuente (8 grupos reportados):
+
+| Período | Contratos | χ² | gl | p | V | Lectura |
+|---|---|---|---|---|---|---|
+| Total 2020–2025 | 4.910 | 723,3 | 7 | < 0,001 | 0,38 | mediana |
+| 2020–2022 | 2.794 | 376,0 | 7 | < 0,001 | 0,37 | mediana |
+| 2023–2025 | 2.116 | 406,2 | 7 | < 0,001 | 0,44 | mediana |
+
+Porcentaje de SECOP II dentro de cada grupo: Grupo 1 26,7 %, Grupo 2 9,7 %, Grupo 3 34,5 %, Grupo 4 6,4 %, Grupo 5 50,2 %, Grupo 6 69,9 %, Grupo 7 81,0 %, Grupo 8 39,6 % (en todo el conjunto, SECOP II es 26,7 % de los contratos).
+
+Se repitió el ACM + HCPC con las mismas variables solo con los 1.333 contratos de SECOP II (`validacion_grupos.R`). El HCPC sugirió 11 grupos y forzar 11 da la misma partición. Comparación con los grupos de D98 restringidos a SECOP II:
+
+| Variante | ARI | Grupo 1: Jaccard (% de su grupo de D98 en un solo grupo nuevo) | Grupo 2: Jaccard (% de su grupo de D98 en un solo grupo nuevo) | Grupo 3: Jaccard (% de su grupo de D98 en un solo grupo nuevo) |
+|---|---|---|---|---|
+| SECOP II solo, k automático | 0,758 | 0,84 (85 %) | 0,54 (98 %) | 0,85 (88 %) |
+| SECOP II solo, k = 11 | 0,758 | 0,84 (85 %) | 0,54 (98 %) | 0,85 (88 %) |
+
+Con la fuente como variable suplementaria el ACM no cambia (una suplementaria no entra en los ejes) y el HCPC reproduce D98 exactamente (ARI = 1,000); es una comprobación y no una prueba independiente.
+
+Tabla de cruce (filas: grupos de D98; columnas: grupos del HCPC solo con SECOP II, numeración arbitraria):
+
+| D98 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Grupo 1 | 84 | · | · | 523 | · | · | · | · | · | 11 | · |
+| Grupo 2 | 122 | · | · | · | · | · | · | · | · | 2 | · |
+| Grupo 3 | 13 | · | 110 | · | · | · | · | · | · | 2 | · |
+| Grupo 4 | · | · | · | · | 18 | · | · | · | · | · | · |
+| Grupo 5 | · | 122 | 5 | · | · | · | · | · | · | · | · |
+| Grupo 6 | 3 | 1 | · | 2 | 3 | · | 57 | · | · | 77 | 1 |
+| Grupo 7 | · | · | · | · | · | · | · | · | 92 | 1 | 5 |
+| Grupo 8 | · | · | · | · | · | · | · | · | · | · | 38 |
+| HCPC 6 (no reportado) | · | · | · | 2 | · | 21 | · | · | 1 | · | · |
+| HCPC 8 (no reportado) | · | · | · | · | 1 | · | · | 16 | · | · | · |
+
+**Conclusión 1: se sostiene que los Grupos 1, 2 y 3 no son un efecto de la plataforma, con dos matices.** Con SECOP II solo el ARI es 0,76 (umbral 0,5) y los Grupos 1 y 3 se recuperan casi enteros (Jaccard 0,84 y 0,85). El Grupo 2 cumple el criterio por el ARI, pero su Jaccard es 0,54: casi todos sus contratos de SECOP II caen en un solo grupo nuevo que además absorbe contratos del Grupo 1, y solo 9,7 % del Grupo 2 es de SECOP II, así que la evidencia sobre él es delgada. **Matiz:** la composición por plataforma es muy desigual (V = 0,38, asociación mediana, también en cada período): los Grupos 2 y 4 son más del 90 % de SECOP I y los Grupos 6 y 7 son mayoritariamente de SECOP II. Los grupos describen perfiles de compra que aparecen en las dos plataformas, pero la frecuencia de cada uno depende de la plataforma (en parte porque las columnas de cada fuente se homologaron, D98).
+
+### 2. Territorio
+
+Ubicación de la entidad (`departamento_entidad`); se excluyen los 7 contratos sin departamento definido. Los departamentos pequeños se agrupan en «Otros» hasta cumplir la regla de Cochran (D106).
+
+| Tabla | Columnas | χ² | gl | p (χ²) | p (permutación, 9.999) | V de Cramér | Lectura |
+|---|---|---|---|---|---|---|---|
+| Grupo × departamento | 22 (33 sin agrupar) | 4.063,5 | 147 | < 0,001 | < 0,001 | 0,34 | mediana |
+| Grupo × región | 5 | 918,1 | 28 | < 0,001 | < 0,001 | 0,22 | pequeña |
+
+Departamentos que quedaron separados: Antioquia, Bogotá D.C., Bolívar, Boyacá, Caquetá, Casanare, Cauca, Cesar, Cundinamarca, Córdoba, Huila, Magdalena, Meta, Nariño, Norte de Santander, Quindío, Risaralda, Santander, Sucre, Tolima, Valle del Cauca; el resto está en «Otros». El valor p por permutación usa la tabla sin agrupar (el mínimo posible con 9.999 permutaciones es 0,0001).
+
+**Residuos estandarizados ajustados con |residuo| > 3** (entre paréntesis): 63 de 176 combinaciones grupo × departamento y 24 de 40 grupo × región. Con tantas celdas, el umbral de Bonferroni de 0,05 sería |z| ≈ 3,5.
+
+*Por departamento:*
+
+- **Grupo 1.** Más de lo esperado: Meta (+11,3), Boyacá (+10,9), Cundinamarca (+8,4), Casanare (+7,9), Quindío (+7,2), Antioquia (+5,7), Santander (+3,5). Menos de lo esperado: Magdalena (-3,0), Sucre (-3,5), Otros (-5,8), Córdoba (-6,4), Cauca (-7,1), Nariño (-11,0), Bogotá D.C. (-11,0).
+- **Grupo 2.** Más de lo esperado: Nariño (+16,7), Magdalena (+7,0), Sucre (+6,6), Cauca (+5,9), Bolívar (+4,7), Córdoba (+4,5). Menos de lo esperado: Cundinamarca (-4,5), Boyacá (-4,7), Casanare (-5,5), Santander (-5,7), Quindío (-5,9), Valle del Cauca (-6,4), Bogotá D.C. (-7,1), Meta (-8,2).
+- **Grupo 3.** Más de lo esperado: Norte de Santander (+5,8), Otros (+5,4), Risaralda (+3,8), Córdoba (+3,3). Menos de lo esperado: Cundinamarca (-3,0), Nariño (-3,4), Bogotá D.C. (-3,4).
+- **Grupo 4.** Más de lo esperado: Cauca (+9,4), Nariño (+6,5), Otros (+5,1), Norte de Santander (+4,4), Caquetá (+3,6). Menos de lo esperado: Córdoba (-3,1), Meta (-3,1), Boyacá (-3,6), Antioquia (-5,3).
+- **Grupo 5.** Más de lo esperado: Córdoba (+9,7), Cesar (+6,8), Santander (+5,6), Otros (+3,6), Bogotá D.C. (+3,0). Menos de lo esperado: Nariño (-3,7), Cauca (-4,0), Boyacá (-4,4).
+- **Grupo 6.** Más de lo esperado: Bogotá D.C. (+10,8), Valle del Cauca (+8,1), Huila (+3,6). Menos de lo esperado: Nariño (-4,1).
+- **Grupo 7.** Más de lo esperado: Bogotá D.C. (+45,8). Menos de lo esperado: Nariño (-3,0), Antioquia (-3,4), Otros (-3,9).
+- **Grupo 8.** Más de lo esperado: Valle del Cauca (+7,6), Risaralda (+4,8), Cesar (+4,1). Menos de lo esperado: ninguno.
+
+*Por región:*
+
+- **Grupo 1.** Más de lo esperado: Orinoquía (+12,4), Andina (+11,5). Menos de lo esperado: Amazonía (-6,9), Caribe e insular (-8,0), Pacífica (-10,2).
+- **Grupo 2.** Más de lo esperado: Pacífica (+11,3), Caribe e insular (+10,9). Menos de lo esperado: Orinoquía (-10,9), Andina (-13,7).
+- **Grupo 3.** Más de lo esperado: Amazonía (+5,9). Menos de lo esperado: ninguno.
+- **Grupo 4.** Más de lo esperado: Amazonía (+8,2), Pacífica (+7,8). Menos de lo esperado: Caribe e insular (-3,6), Andina (-7,7).
+- **Grupo 5.** Más de lo esperado: Caribe e insular (+7,3). Menos de lo esperado: Andina (-3,2), Pacífica (-4,0).
+- **Grupo 6.** Más de lo esperado: Andina (+6,8). Menos de lo esperado: Amazonía (-3,3), Orinoquía (-3,7), Caribe e insular (-5,2).
+- **Grupo 7.** Más de lo esperado: Andina (+9,2). Menos de lo esperado: Caribe e insular (-3,6), Pacífica (-4,6).
+
+![Grupo dominante por departamento](graficos/validacion_mapa_grupo_dominante.png)
+
+El grupo dominante es el que reúne más contratos en las entidades del departamento; el número dentro de cada departamento es el del grupo. Departamentos por grupo dominante: Grupo 1 (21), Grupo 2 (7), Grupo 4 (2), Grupo 3 (2), Grupo 7 (1). Rayados: 2 departamentos con menos de 20 contratos, donde el dominante es poco informativo. San Andrés y Providencia (1 contrato, Grupo 4) queda fuera del recuadro.
+
+**Conclusión 2: la asociación con el territorio se sostiene: mediana por departamento (V = 0,34) y pequeña por región (V = 0,22); los grupos no son independientes del territorio.** Hay combinaciones extremas, como el Grupo 7 en Bogotá D.C., el Grupo 2 en Nariño o el Grupo 1 en Meta. Los contratos de una misma entidad no son independientes, así que parte del efecto puede deberse a entidades concretas y no a un patrón regional (no se midió cuántas entidades hay detrás de cada combinación); por eso conviene leer los residuos más grandes y no cada |residuo| > 3. En el mapa domina el Grupo 1 en casi todo el país y el Grupo 2 en el suroccidente y el Caribe.
+
+### 3. Número de grupos y método
+
+![Ganancia de inercia y silueta](graficos/validacion_inercia_silueta.png)
+
+- **Ganancia de inercia (HCPC).** Pasar de 10 a 11 grupos aún gana 6,2 % de la inercia total; de 11 a 12, 3,6 %, y de 12 a 13, 3,3 %. Hay un quiebre después de 11 grupos, pero antes la ganancia ya había bajado de 9,0 % (8 a 9) a 6,6 %: el codo es moderado, no un corte nítido.
+- **Silueta (coordenadas del ACM, k = 4 a 12).** k = 4: 0,35, k = 5: 0,36, k = 6: 0,37, k = 7: 0,37, k = 8: 0,41, k = 9: 0,43, k = 10: 0,46, k = 11: 0,51, k = 12: 0,52. La silueta **sube con k** (no tiene máximo en 11) y desde k = 7 el grupo más pequeño tiene un solo contrato. Con variables categóricas, muchos contratos tienen exactamente el mismo perfil y forman grupos compactos que inflan la silueta, así que no sirve para elegir k.
+- **PAM sobre la distancia de Gower (k = 11).** ARI con D98 = 0,32 (0,32 entre los contratos de los 8 grupos reportados). Mejores emparejamientos: Grupo 1: Jaccard 0,48, 50 % del grupo en un grupo de PAM; Grupo 2: Jaccard 0,53, 55 % del grupo en un grupo de PAM; Grupo 3: Jaccard 0,09, 14 % del grupo en un grupo de PAM.
+
+Tabla de cruce (filas: grupos de D98; columnas: grupos de PAM):
+
+| D98 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| Grupo 1 | 221 | 67 | 3 | · | 94 | 105 | 341 | 172 | 1.156 | 155 | · |
+| Grupo 2 | 6 | 5 | · | 707 | 339 | 31 | · | 115 | · | · | 75 |
+| Grupo 3 | 28 | 33 | · | 41 | 62 | 14 | 23 | 35 | 70 | 52 | 4 |
+| Grupo 4 | · | 2 | · | · | · | 28 | 12 | · | · | 2 | 236 |
+| Grupo 5 | 117 | 27 | 2 | 14 | 42 | 5 | 26 | 17 | · | · | 3 |
+| Grupo 6 | 4 | 7 | 111 | · | · | 29 | 3 | 6 | 9 | 37 | · |
+| Grupo 7 | · | 91 | 23 | · | · | · | · | 2 | · | 5 | · |
+| Grupo 8 | 6 | 36 | 41 | · | 4 | · | · | 3 | · | 6 | · |
+| No reportado | 31 | 24 | 9 | · | 2 | · | 5 | 4 | 4 | 2 | 1 |
+
+**Conclusión 3: el número de grupos tiene un respaldo débil y la partición no se sostiene con otro método.** La ganancia de inercia da un quiebre moderado en 11, pero la silueta no discrimina y el ARI con PAM-Gower (0,32) queda por debajo del umbral de 0,5: con otro algoritmo los contratos se reparten distinto (el Grupo 3, por ejemplo, se dispersa). Los grupos son una descripción útil del ACM + HCPC (D98, D99), no una partición única de los datos; coincide con la conclusión exploratoria de D98.
+
+### 4. Validación externa: valor y tiempo
+
+**Valor.** Kruskal-Wallis del log del valor en pesos constantes de 2025 (n = 4.903; se excluyen 7 contratos con valor no positivo, como en D98): H = 701,0, p < 0,001, ε² = 0,143 (moderado). El valor no entró al ACM (D98 no lo usa). Medianas: Grupo 1 21,0 millones, Grupo 2 20,5 millones, Grupo 3 28,1 millones, Grupo 4 17,0 millones, Grupo 5 113,9 millones, Grupo 6 13,0 millones, Grupo 7 32,4 millones, Grupo 8 19,9 millones.
+
+Comparaciones de Dunn con corrección de Holm: 17 de 28 pares difieren (p ajustado < 0,05). No difieren: Grupo 1 y Grupo 2 (p ajustado 0,328); Grupo 1 y Grupo 8 (p ajustado 1,000); Grupo 2 y Grupo 4 (p ajustado 0,113); Grupo 2 y Grupo 6 (p ajustado 0,164); Grupo 2 y Grupo 8 (p ajustado 0,636); Grupo 3 y Grupo 7 (p ajustado 1,000); Grupo 3 y Grupo 8 (p ajustado 0,328); Grupo 4 y Grupo 6 (p ajustado 1,000); Grupo 4 y Grupo 8 (p ajustado 0,089); Grupo 6 y Grupo 8 (p ajustado 0,090); Grupo 7 y Grupo 8 (p ajustado 0,171).
+
+**Proporción de cada grupo por año** (% de los contratos del año):
+
+| Año | Grupo 1 | Grupo 2 | Grupo 3 | Grupo 4 | Grupo 5 | Grupo 6 | Grupo 7 | Grupo 8 | Contratos |
+|---|---|---|---|---|---|---|---|---|---|
+| 2020 | 45,6 | 28,7 | 9,6 | 5,9 | 2,4 | 3,5 | 1,6 | 2,6 | 1.045 |
+| 2021 | 43,1 | 29,3 | 7,8 | 4,9 | 5,1 | 4,7 | 2,0 | 3,0 | 952 |
+| 2022 | 45,2 | 26,2 | 7,0 | 6,0 | 6,9 | 4,1 | 2,6 | 1,9 | 797 |
+| 2023 | 51,9 | 22,6 | 6,1 | 6,5 | 6,5 | 3,7 | 1,7 | 1,1 | 757 |
+| 2024 | 49,0 | 26,1 | 5,9 | 5,3 | 5,6 | 4,5 | 2,3 | 1,3 | 682 |
+| 2025 | 50,2 | 20,8 | 6,8 | 5,6 | 5,5 | 4,7 | 5,2 | 1,2 | 677 |
+
+χ² de grupo × año: V = 0,07 (p < 0,001). χ² de tendencia (Cochran-Armitage, año como puntaje; p ajustado con Holm entre los 8 grupos), con todos los contratos y solo con SECOP II (SECOP I llega solo hasta 2022, así que la composición por plataforma cambia con los años):
+
+| Grupo | χ² de tendencia (signo) | p ajustado | Solo SECOP II: χ² (signo) | p ajustado |
+|---|---|---|---|---|
+| Grupo 1 | + 10,4 | 0,006 | + 3,2 | 0,303 |
+| Grupo 2 | − 17,1 | < 0,001 | + 10,1 | 0,012 |
+| Grupo 3 | − 8,5 | 0,011 | − 5,5 | 0,115 |
+| Grupo 4 | + 0,0 | 0,980 | + 1,4 | 0,715 |
+| Grupo 5 | + 9,0 | 0,011 | − 5,8 | 0,112 |
+| Grupo 6 | + 0,7 | 0,794 | − 3,8 | 0,260 |
+| Grupo 7 | + 14,0 | 0,001 | + 0,2 | 1,000 |
+| Grupo 8 | − 10,8 | 0,006 | − 0,1 | 1,000 |
+
+**Traslado (Grupo 3) en 2020.** 9,6 % de los 1.045 contratos de 2020 frente a 6,8 % en 2021–2025 (razón de momios 1,46; Fisher p = 0,003; residuo ajustado de 2020 = 3,1). No hay 2019 en el conjunto, así que se compara con los años siguientes y no se puede atribuir a la pandemia.
+
+**Conclusión 4: la separación por valor se sostiene (efecto moderado, ε² = 0,143); las tendencias anuales no se sostienen como resultado robusto.** El Grupo 5 (mediana de 114 millones) se separa de todos los demás y los Grupos 6 y 4 son los de menor valor; los pares sin diferencia están listados arriba. En el tiempo, con todos los contratos 6 de los 8 grupos tienen tendencia significativa tras Holm, pero con solo SECOP II el signo cambia en 3 grupos (Grupo 2, Grupo 5, Grupo 6) y solo 1 queda significativo (Grupo 2, con signo contrario al del conjunto): la composición por plataforma explica gran parte. Sí se sostiene, como hecho descriptivo, que el traslado pesa más en 2020 que en los años siguientes (9,6 % frente a 6,8 %), con un efecto modesto.
+
+### 5. Proveedores
+
+Concentración sobre el valor (pesos constantes de 2025, contratos con valor positivo) por identificador del proveedor; solo agregados, sin identificar proveedores. «HHI uniforme» es el HHI que tendría el grupo si todos sus proveedores tuvieran la misma participación (10.000 dividido por el número de proveedores), para leer el HHI observado frente al mínimo posible.
+
+| Grupo | Contratos | Proveedores | Contratos por proveedor | HHI | HHI uniforme | CR4 |
+|---|---|---|---|---|---|---|
+| Grupo 1 | 2.311 | 737 | 3,1 | 71 | 14 | 11,3 % |
+| Grupo 2 | 1.277 | 535 | 2,4 | 41 | 19 | 5,3 % |
+| Grupo 3 | 362 | 163 | 2,2 | 229 | 61 | 20,8 % |
+| Grupo 4 | 280 | 146 | 1,9 | 171 | 68 | 16,5 % |
+| Grupo 5 | 253 | 103 | 2,5 | 461 | 97 | 34,4 % |
+| Grupo 6 | 204 | 64 | 3,2 | 1.456 | 156 | 67,4 % |
+| Grupo 7 | 121 | 73 | 1,7 | 486 | 137 | 35,5 % |
+| Grupo 8 | 95 | 47 | 2,0 | 1.254 | 213 | 61,3 % |
+| Todos | 4.903 | 1.342 | 3,7 | 95 | 7 | 14,1 % |
+
+La fila «Todos» cuenta cada proveedor una vez aunque aparezca en varios grupos.
+
+**Conclusión 5: los grupos sí se distinguen por la estructura de proveedores, con la salvedad del tamaño.** Los Grupos 1 y 2 son los más fragmentados (HHI de 71 y 41; CR4 de 11,3 % y 5,3 %) y los Grupos 6 y 8 los más concentrados (HHI de 1.456 y 1.254; CR4 de 67,4 % y 61,3 %, con 64 y 47 proveedores). Ningún grupo supera un HHI de 1.800 (concentración alta) y los Grupos 6 y 8 quedan en concentración moderada, muy por encima del HHI uniforme. No se puede separar del tamaño del grupo: con menos proveedores el HHI sube por construcción.

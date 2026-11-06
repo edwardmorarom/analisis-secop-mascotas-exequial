@@ -7,7 +7,7 @@ import pandas as pd
 from src.etl.comun import RAIZ, cargar_config
 from src.etl.anonimizar import anonimizar
 from src.modelos.etiquetas_humanas import construir
-from src.modelos.grupos_hcpc import MARCA_DIAGNOSTICO, PATRONES, fmt, grupos_reportados, recortar, universo_d98
+from src.modelos.grupos_hcpc import MARCA_DIAGNOSTICO, MARCA_VALIDACION, PATRONES, fmt, grupos_reportados, recortar, universo_d98
 from src.modelos.perfil_variables import cargar, homologar
 
 SENAL = re.compile(r"FUNERA|EXEQU|INHUMA|CREMACI|SEPEL|SEPULT|ATAUD|COFRE|CADAVER|BOVEDA|\bOSARIOS?\b")
@@ -213,7 +213,8 @@ def escribir_seccion():
     previo = destino.read_text(encoding="utf-8")
     corte = previo.index(MARCA_DIAGNOSTICO) if MARCA_DIAGNOSTICO in previo else len(previo)
     salto = chr(10)
-    destino.write_text(previo[:corte].rstrip(salto) + salto + salto + salto.join(L) + salto + CONCLUSION, encoding="utf-8")
+    validacion = salto + previo[previo.index(MARCA_VALIDACION):] if MARCA_VALIDACION in previo else ""
+    destino.write_text(previo[:corte].rstrip(salto) + salto + salto + salto.join(L) + salto + CONCLUSION + validacion, encoding="utf-8")
     return destino
 
 
