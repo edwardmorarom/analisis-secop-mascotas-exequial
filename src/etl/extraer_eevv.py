@@ -30,10 +30,10 @@ def codigo_dpto(codigo_col0, etiqueta):
     return f"{int(m.group(1)):02d}" if m else f"{int(codigo_col0):02d}"
 
 
-def bloques_cuadro5(d):
-    """Genera (cod_dpto, codigo_causa o 'TOTAL', defunciones) solo de los bloques departamentales."""
+def filas_departamentales(d):
+    """Genera (cod_dpto, codigo_causa o 'TOTAL', posicion de la fila, nombre) solo de los bloques departamentales."""
     actual, modo = None, None
-    for c0, c2, c3, c4, c5 in d[[0, 1 + 1, 3, 4, 5]].itertuples(index=False):
+    for i, (c0, c2, c3, c4, c5) in zip(d.index, d[[0, 1 + 1, 3, 4, 5]].itertuples(index=False)):
         if isinstance(c2, str) and c2.strip().startswith("Fuente"):
             break
         if isinstance(c2, str) and pd.notna(c0):
@@ -45,11 +45,16 @@ def bloques_cuadro5(d):
             continue
         causa = c4.strip()
         if causa.upper().startswith("TOTAL"):
-            yield actual, "TOTAL", int(c5), nombre
+            yield actual, "TOTAL", i, nombre
         else:
             m = re.match(r"(\d{3})\b", causa)
             if m:
-                yield actual, int(m.group(1)), int(c5), nombre
+                yield actual, int(m.group(1)), i, nombre
+
+
+def bloques_cuadro5(d):
+    for dpto, causa, i, nombre in filas_departamentales(d):
+        yield dpto, causa, int(d.at[i, 5]), nombre
 
 
 def cuadro5(anio, x):
@@ -58,6 +63,34 @@ def cuadro5(anio, x):
     filas = pd.DataFrame(list(bloques_cuadro5(d)), columns=["cod_dpto", "causa", "defunciones", "nombre"])
     filas.insert(0, "anio", anio)
     return filas
+
+
+GRUPOS_EDAD = ["menor_1", "1_4", "5_14", "15_44", "45_64", "65_84", "85_99", "100_mas", "desconocida"]
+PRIMERA_COLUMNA_EDAD = 9
+
+
+def cuadro5_edad(anio, x):
+    """Defunciones por departamento, causa (lista 6/67) y grupo de edad, sumando hombres, mujeres e indeterminado; la fila TOTAL se conserva para verificar."""
+    d = pd.read_excel(x, sheet_name="Cuadro5", header=None).iloc[9:]
+    filas = []
+    for dpto, causa, i, _ in filas_departamentales(d):
+        v = pd.to_numeric(d.loc[i, PRIMERA_COLUMNA_EDAD:PRIMERA_COLUMNA_EDAD + 3 * len(GRUPOS_EDAD) - 1], errors="coerce").fillna(0).to_numpy().reshape(len(GRUPOS_EDAD), 3).sum(axis=1)
+        filas += [{"anio": anio, "cod_dpto": dpto, "causa": causa, "grupo_edad": g, "defunciones": int(n), "total_fila": int(d.at[i, 5])} for g, n in zip(GRUPOS_EDAD, v)]
+    return pd.DataFrame(filas)
+
+
+def construir_edad(config=None):
+    """Formato largo anio, cod_dpto, grupo_causa (sin COVID-19: el Cuadro 16 no trae edad), grupo_edad, defunciones; la edad desconocida queda aparte."""
+    config = config or cargar_config()
+    largos, control = [], []
+    for anio in ANIOS:
+        e = cuadro5_edad(anio, libro(anio, config))
+        e = e[e["cod_dpto"] != "03"]
+        por_fila = e.groupby(["cod_dpto", "causa"], as_index=False).agg(suma_edades=("defunciones", "sum"), total_fila=("total_fila", "first"))
+        control.append(por_fila.assign(anio=anio, cuadra=por_fila["suma_edades"] == por_fila["total_fila"]))
+        cau = e[e["causa"] != "TOTAL"].assign(grupo_causa=lambda t: t["causa"].map(grupo_de))
+        largos.append(cau.groupby(["anio", "cod_dpto", "grupo_causa", "grupo_edad"], as_index=False)["defunciones"].sum())
+    return pd.concat(largos, ignore_index=True), pd.concat(control, ignore_index=True)
 
 
 def u07_cuadro16(anio, x):
@@ -124,6 +157,9 @@ def main():
     salida.mkdir(parents=True, exist_ok=True)
     verificacion.to_csv(salida / "verificacion_totales.csv", index=False)
     u07.to_csv(salida / "covid_u07_cuadro16.csv", index=False)
+    edad, control = construir_edad(config)
+    edad.to_parquet(ruta(config, "interim") / "eevv_defunciones_edad.parquet", index=False)
+    print("filas de Cuadro 5 donde la suma por edad no cuadra con el total:", int((~control["cuadra"]).sum()), "de", len(control))
     print(interim, len(largo))
     print(verificacion.to_string(index=False))
 
