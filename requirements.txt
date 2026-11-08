@@ -27,3 +27,4 @@ plotly
 python-docx
 pytest
 xgboost
+msoffcrypto-tool
