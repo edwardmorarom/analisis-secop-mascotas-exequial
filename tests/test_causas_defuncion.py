@@ -90,3 +90,45 @@ def test_irr_por_duplicacion_es_exp_beta_ln2():
     x = pd.DataFrame(columns=["const", "causa", "anio_2021"])
     t = irr(Falso, x, ["causa"])
     assert t.loc[0, "irr_por_duplicacion"] == pytest.approx(2 ** 0.5) and t.loc[0, "ic95_inf"] == pytest.approx(2 ** 0.3)
+
+
+INTERIM_EDAD = RAIZ / "data/interim/eevv_defunciones_edad.parquet"
+
+
+@pytest.mark.skipif(not INTERIM_EDAD.exists(), reason="requiere data/interim/eevv_defunciones_edad.parquet")
+def test_defunciones_por_edad_suman_el_total_dane():
+    d = pd.read_parquet(INTERIM_EDAD)
+    assert d.groupby("anio")["defunciones"].sum().to_dict() == TOTALES_DANE
+
+
+def test_repartir_edad_desconocida_conserva_el_total():
+    from src.modelos.causas_robustez import repartir_edad_desconocida
+
+    e = pd.DataFrame({"anio": 2022, "cod_dpto": "05", "grupo_causa": "circulatorio", "grupo_edad": ["15_44", "45_64", "desconocida"], "defunciones": [10, 30, 4]})
+    r = repartir_edad_desconocida(e)
+    assert r["defunciones"].sum() == pytest.approx(44) and r.set_index("grupo_edad").loc["45_64", "defunciones"] == pytest.approx(33)
+
+
+def test_grupos_de_edad_simple_coinciden_con_los_del_cuadro_5():
+    from src.modelos.causas_robustez import grupo_edad_simple
+
+    assert [grupo_edad_simple(x) for x in (0, 1, 4, 5, 44, 45, 64, 65, 85, 100, 105)] == ["menor_1", "1_4", "1_4", "5_14", "15_44", "45_64", "45_64", "65_84", "85_99", "100_mas", "100_mas"]
+
+
+@pytest.mark.skipif(not (RAIZ / "data/raw/dane/dane_proyecciones_departamentales_area_sexo_edad_2018_2050.xlsx").exists(), reason="requiere la proyección departamental por edad")
+def test_poblacion_por_edad_suma_la_poblacion_municipal():
+    from src.modelos.causas_defuncion import poblacion_departamental
+    from src.etl.comun import cargar_config
+    from src.modelos.causas_robustez import poblacion_por_edad
+
+    c = cargar_config()
+    a = poblacion_por_edad(c).groupby(["cod_dpto", "anio"])["poblacion_edad"].sum().reset_index().merge(poblacion_departamental(c), on=["cod_dpto", "anio"])
+    assert len(a) == 198 and (a["poblacion_edad"] - a["poblacion"]).abs().max() < 1
+
+
+def test_cameron_trivedi_robusto_detecta_sobredispersion_con_pocas_observaciones_grandes():
+    rng = np.random.default_rng(3)
+    mu = np.r_[np.full(190, 3.0), np.full(8, 150.0)]
+    y = rng.negative_binomial(1 / 0.3, 1 / (1 + 0.3 * mu))
+    ct = cameron_trivedi(y, mu)
+    assert ct["p"] < 0.05 and {"p_homocedastico", "estadistico_t_homocedastico"} <= set(ct)

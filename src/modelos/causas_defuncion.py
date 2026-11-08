@@ -58,10 +58,9 @@ def contratacion(config=None):
 
 
 def ancho_tasas(t):
-    """Tasa por departamento-año y causa; la COVID-19 no observada se fija en 0 (D107, enmienda) y queda marcada."""
+    """Tasa por departamento-año y causa; la COVID-19 no observada queda como faltante (D107, aprobación)."""
     w = t.pivot_table(index=["cod_dpto", "anio"], columns="grupo_causa", values="tasa_100mil", aggfunc="first", dropna=False)
     observado = w["covid19"].notna()
-    w["covid19"] = w["covid19"].fillna(0.0)
     w = w[CAUSAS].reset_index()
     w["covid_observado"] = observado.values
     return w
@@ -149,9 +148,12 @@ def irr(nb, x, causas):
 
 
 def cameron_trivedi(y, mu):
+    """Regresión sin intercepto de ((y - mu)^2 - y) / mu sobre mu; la decisión usa el t robusto HC3 (D107b)."""
     z = ((y - mu) ** 2 - y) / mu
     r = sm.OLS(z, mu).fit()
-    return {"estadistico_t": float(r.tvalues[0]), "gl": int(r.df_resid), "p": float(r.pvalues[0])}
+    h = sm.OLS(z, mu).fit(cov_type="HC3")
+    return {"estadistico_t": float(h.tvalues[0]), "gl": int(r.df_resid), "p": float(h.pvalues[0]), "coeficiente": float(r.params[0]),
+            "estadistico_t_homocedastico": float(r.tvalues[0]), "p_homocedastico": float(r.pvalues[0])}
 
 
 def residuos_cuantilicos(y, mu, alpha):
@@ -193,8 +195,8 @@ SENSIBILIDADES = {"sin_bogota": lambda p: p[p["cod_dpto"] != "11"], "sin_san_and
                   "sin_2020": lambda p: p[p["anio"] != 2020], "sin_2025": lambda p: p[p["anio"] != 2025]}
 
 
-def panel_conjunto(p):
-    x_cov, quitadas, v = eliminar_por_vif(np.log1p(p[CAUSAS]))
+def panel_conjunto(p, causas_modelo=CAUSAS):
+    x_cov, quitadas, v = eliminar_por_vif(np.log1p(p[causas_modelo]))
     causas = list(x_cov.columns)
     nb, x, y, off, _ = ajustar_nb(p, causas)
     tabla = irr(nb, x, causas)
@@ -205,7 +207,7 @@ def panel_conjunto(p):
 def panel_por_causa(p):
     resultados, filas = {}, []
     for c in CAUSAS:
-        base = p[p["anio"].isin(ANIOS_COVID)] if c == "covid19" else p
+        base = p[p["anio"].isin(ANIOS_COVID) & p["covid_observado"]] if c == "covid19" else p
         nb, x, y, off, _ = ajustar_nb(base, [c])
         fila = irr(nb, x, [c]).iloc[0].to_dict()
         fila["n"] = len(y)
@@ -272,10 +274,11 @@ def calcular(config=None):
     w = ancho_tasas(t)
     trans = transversal(w, c)
     p = preparar_panel(w, c)
-    conj = panel_conjunto(p)
+    conj = panel_conjunto(p, [c for c in CAUSAS if c != "covid19"])
+    conj_covid = panel_conjunto(p[p["anio"].isin(ANIOS_COVID) & p["covid_observado"]].reset_index(drop=True))
     por, res = panel_por_causa(p)
     forma = por_forma_de_compra(trans["media_2020_2025"], participacion_grupos(config))
-    return {"tasas": t, "contratos": c, "ancho": w, "transversal": trans, "panel": p, "conjunto": conj, "por_causa": por, "supuestos": res, "veredicto": veredicto(por, res), "forma": forma}
+    return {"tasas": t, "contratos": c, "ancho": w, "transversal": trans, "panel": p, "conjunto": conj, "conjunto_covid": conj_covid, "por_causa": por, "supuestos": res, "veredicto": veredicto(por, res), "forma": forma}
 
 
 def guardar(r):
@@ -285,6 +288,7 @@ def guardar(r):
         r["transversal"][k].to_csv(SALIDA / f"spearman_transversal_{k}.csv", index=False)
         r["transversal"][f"media_{k}"].to_csv(SALIDA / f"promedios_por_departamento_{k}.csv")
     r["conjunto"]["irr"].to_csv(SALIDA / "panel_nb_conjunto_irr.csv", index=False)
+    r["conjunto_covid"]["irr"].to_csv(SALIDA / "panel_nb_conjunto_con_covid_2020_2022_irr.csv", index=False)
     r["por_causa"].to_csv(SALIDA / "panel_nb_por_causa_irr.csv", index=False)
     r["forma"].to_csv(SALIDA / "spearman_forma_de_compra.csv", index=False)
     filas = []

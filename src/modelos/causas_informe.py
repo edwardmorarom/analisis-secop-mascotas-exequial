@@ -5,10 +5,11 @@ import numpy as np
 import pandas as pd
 
 from src.etl.comun import RAIZ, cargar_config, ruta
-from src.modelos.causas_defuncion import ANIOS, CAUSAS, UMBRAL_P, calcular, guardar
+from src.modelos.causas_defuncion import ANIOS, CAUSAS, SALIDA, UMBRAL_P, calcular, guardar
+from src.modelos.causas_robustez import CAUSA_FOCO, calcular_robustez, guardar_robustez
 
 GRAFICOS = RAIZ / "docs/resultados/graficos/causas"
-NOMBRES = {"agresiones_homicidios": "Agresiones (homicidios)", "accidentes_transporte": "Accidentes de transporte", "otros_accidentes_causas_externas": "Otros accidentes y causas externas",
+NOMBRES = {"agresiones_homicidios": "Agresiones (homicidios)", "accidentes_transporte": "Accidentes de transporte", "otros_accidentes_causas_externas": "Otras causas externas (no homicidio ni transporte)",
            "covid19": "COVID-19", "circulatorio": "Sistema circulatorio", "neoplasias": "Neoplasias", "demas_causas": "Demás causas"}
 
 
@@ -81,7 +82,7 @@ def seccion_datos(r):
         filas.append((a, fmt(e, 0), fmt(ins.get(a), 0), fmt(ins.get(a) - e, 0), fmt((ins.get(a) / e - 1) * 100) + " %"))
     L += tabla(filas, ["Año", "EEVV (U07, suma de departamentos)", "INS (fallecidos)", "INS − EEVV", "Diferencia relativa"])
     L += ["", f"El INS cuenta fallecidos con COVID-19 confirmado por fecha de muerte y las EEVV cuentan la causa certificada por residencia, de modo que no tienen por qué coincidir: el INS supera a las EEVV en 2021 y en 2022 (en 2020 la diferencia es de {fmt((ins.get(2020) / int(ver.loc[ver['anio'] == 2020, 'covid_u07_suma_departamentos'].iloc[0]) - 1) * 100)} %). Esta diferencia se reporta y no se corrige. De 2023 en adelante la COVID-19 no se observa en las EEVV por departamento (queda dentro de «demás causas»), mientras el INS registra {fmt(ins.get(2023), 0)} fallecidos en 2023.", "",
-          "**Cobertura de la COVID-19 por departamento.** `U07` aparece entre las diez primeras causas en " + ", ".join(f"{a}: {int((tasas[(tasas['anio'] == a) & (tasas['grupo_causa'] == 'covid19')]['defunciones'].notna()).sum())} de 33 departamentos" for a in (2020, 2021, 2022)) + "; los demás quedan en «demás causas» y la COVID-19 se toma como 0 en el panel. En 2023 a 2025 no es observable (se fija en 0 en el panel).", "",
+          "**Cobertura de la COVID-19 por departamento.** `U07` aparece entre las diez primeras causas en " + ", ".join(f"{a}: {int((tasas[(tasas['anio'] == a) & (tasas['grupo_causa'] == 'covid19')]['defunciones'].notna()).sum())} de 33 departamentos" for a in (2020, 2021, 2022)) + "; los demás quedan en «demás causas» y la COVID-19 de esos departamentos-año es **faltante** (no 0): el modelo de COVID-19 los excluye (n = 98). En 2023 a 2025 no es observable (faltante).", "",
           "**Tasas por 100.000 habitantes** (mediana de los 33 departamentos, mínimo y máximo de los promedios anuales 2020–2025; COVID-19: 2020–2022):", ""]
     media = r["transversal"]["media_2020_2025"]
     L += tabla([(NOMBRES[c], fmt(media[c].median()), fmt(media[c].min()), fmt(media[c].max())) for c in CAUSAS], ["Causa", "Mediana", "Mínimo", "Máximo"])
@@ -105,11 +106,15 @@ def seccion_panel(r):
     dg = cj["diagnosticos"]
     L = ["## 3. Panel departamento × año (binomial negativa)", "",
          f"Contratos funerarios por departamento-año (n = {cj['n']}: 33 departamentos × 6 años), offset log(población), efectos fijos de año, errores agrupados por departamento. Razón de tasas (IRR) **por cada duplicación de (1 + tasa)**: `exp(β·ln 2)`.", "",
-         "### 3.1 Modelo conjunto (B1)", ""]
+         "### 3.1 Modelo conjunto sin COVID-19 (B1a, 2020–2025)", ""]
     quit_txt = "; ".join(f"{NOMBRES[c]} (VIF {fmt(v, 1)})" for c, v in cj["quitadas"]) or "ninguna"
     L += [f"Variables eliminadas por VIF ≥ 5 (en orden): {quit_txt}. VIF finales: " + ", ".join(f"{NOMBRES[c]} {fmt(v, 2)}" for c, v in cj["vif"].items()) + f". α estimado = {fmt(cj['alpha'], 3)}.", ""]
     L += tabla([(NOMBRES[f.causa], fmt(f.irr_por_duplicacion, 2), f"{fmt(f.ic95_inf, 2)} a {fmt(f.ic95_sup, 2)}", pf(f.p), pf(f.p_holm)) for f in cj["irr"].itertuples()], ["Causa", "IRR por duplicación", "IC 95 %", "p", "p de Holm (entre las del modelo)"])
-    L += ["", "### 3.2 Un modelo por causa (B2)", "", "Una causa a la vez con efectos fijos de año; COVID-19 solo con 2020–2022 (n = 99). Holm entre las siete causas.", ""]
+    cc = r["conjunto_covid"]
+    quit_c = "; ".join(f"{NOMBRES[c]} (VIF {fmt(v, 1)})" for c, v in cc["quitadas"]) or "ninguna"
+    L += ["", f"### 3.1b Modelo conjunto con COVID-19 (B1b, solo 2020–2022, n = {cc['n']})", "", f"Variables eliminadas por VIF ≥ 5: {quit_c}. α estimado = {fmt(cc['alpha'], 3)}. Con tres años y la tasa de COVID-19 correlacionada con las demás, el modelo es inestable; se muestra sin interpretación.", ""]
+    L += tabla([(NOMBRES[f.causa], fmt(f.irr_por_duplicacion, 2), f"{fmt(f.ic95_inf, 2)} a {fmt(f.ic95_sup, 2)}", pf(f.p), pf(f.p_holm)) for f in cc["irr"].itertuples()], ["Causa", "IRR por duplicación", "IC 95 %", "p", "p de Holm (entre las del modelo)"])
+    L += ["", "### 3.2 Un modelo por causa (B2)", "", "Una causa a la vez con efectos fijos de año; COVID-19 solo con 2020–2022 y departamentos-año observados (n = 98). Holm entre las siete causas.", ""]
     L += tabla([(NOMBRES[f.causa], fmt(f.irr_por_duplicacion, 2), f"{fmt(f.ic95_inf, 2)} a {fmt(f.ic95_sup, 2)}", pf(f.p), pf(f.p_holm), int(f.n)) for f in por.itertuples()], ["Causa", "IRR por duplicación", "IC 95 %", "p", "p de Holm", "n"])
     L += ["", "**Sensibilidad** (IRR; p nominal), con la regla de D107: sin Bogotá D.C., sin San Andrés, sin 2020 y sin 2025 (en COVID-19, sin 2025 no aplica):", ""]
     cab = ["Causa", "Sin Bogotá", "Sin San Andrés", "Sin 2020", "Sin 2025"]
@@ -119,11 +124,11 @@ def seccion_panel(r):
         filas.append((NOMBRES[f.causa],) + tuple(f"{fmt(s[k]['irr'], 2)} (p {pf(s[k]['p'])})" if k in s else "n. a." for k in ("sin_bogota", "sin_san_andres", "sin_2020", "sin_2025")))
     L += tabla(filas, cab)
     L += ["", "### 3.3 Supuestos (estadístico, gl, p y decisión)", "",
-          "Sobredispersión: Cameron-Trivedi en el Poisson (t de la regresión auxiliar, gl, p; justifica la binomial negativa si p < 0,05) y χ² de Pearson/gl del Poisson (> 1,5 apoya la sobredispersión); dispersión residual del modelo binomial negativo (χ² de Pearson/gl ≤ 1,5); residuos cuantílicos aleatorizados (semilla 2035: |asimetría| ≤ 1 y |exceso de curtosis| ≤ 3); Cook (máximo ≤ 1); VIF < 5 (modelo conjunto).", ""]
+          "Sobredispersión: Cameron-Trivedi en el Poisson (t de la regresión auxiliar con errores robustos HC3, gl, p, según D107b; se agrega el t homocedástico de D107; justifica la binomial negativa si p < 0,05) y χ² de Pearson/gl del Poisson (> 1,5 apoya la sobredispersión); dispersión residual del modelo binomial negativo (χ² de Pearson/gl ≤ 1,5); residuos cuantílicos aleatorizados (semilla 2035: |asimetría| ≤ 1 y |exceso de curtosis| ≤ 3); Cook (máximo ≤ 1); VIF < 5 (modelo conjunto).", ""]
     filas = []
-    for nombre, d in [("B1 conjunto", dg)] + [(f"B2 {NOMBRES[c]}", res[c]["diagnosticos"]) for c in CAUSAS]:
+    for nombre, d in [("B1a conjunto sin COVID-19", dg), ("B1b conjunto con COVID-19", r["conjunto_covid"]["diagnosticos"])] + [(f"B2 {NOMBRES[c]}", res[c]["diagnosticos"]) for c in CAUSAS]:
         ct = d["cameron_trivedi"]
-        filas.append((nombre, f"t = {fmt(ct['estadistico_t'], 2)}, gl {ct['gl']}, p {pf(ct['p'])}", fmt(d["pearson_gl_poisson"], 1), "sí" if d["pasa_sobredispersion"] else "no", fmt(d["pearson_gl_nb"], 2), "sí" if d["pasa_dispersion_nb"] else "no",
+        filas.append((nombre, f"t = {fmt(ct['estadistico_t'], 2)}, gl {ct['gl']}, p {pf(ct['p'])}; homocedástico: t = {fmt(ct['estadistico_t_homocedastico'], 2)}, p {pf(ct['p_homocedastico'])}", fmt(d["pearson_gl_poisson"], 1), "sí" if d["pasa_sobredispersion"] else "no", fmt(d["pearson_gl_nb"], 2), "sí" if d["pasa_dispersion_nb"] else "no",
                       f"{fmt(d['asimetria_rq'], 2)} / {fmt(d['curtosis_exceso_rq'], 2)}", "sí" if d["pasa_residuos"] else "no", fmt(d["cook_max"], 2), "sí" if d["pasa_cook"] else "no", len(d["cook_indices_4n"])))
     L += tabla(filas, ["Modelo", "Cameron-Trivedi (Poisson)", "Pearson/gl Poisson", "Sobredispersión (ambas)", "Pearson/gl NB", "Dispersión NB ≤ 1,5", "Asimetría / curtosis", "Residuos", "Cook máx.", "Cook ≤ 1", "Cook > 4/n"])
     L += ["", "VIF del modelo conjunto: " + ", ".join(f"{NOMBRES[c]} {fmt(v, 2)}" for c, v in cj["vif"].items()) + " (todos < 5 tras eliminar las variables indicadas).", "",
@@ -146,17 +151,65 @@ def seccion_forma(r):
 LIMITACIONES = [
     "El contrato se ubica en la **sede de la entidad** y la defunción en la **residencia** del fallecido (D66, D67); la contratación de una capital puede atender a población de otros departamentos.",
     "Es un análisis **ecológico**: los coeficientes describen departamentos, no personas ni causas (falacia ecológica). No se interpretan como causales.",
-    "Las tasas son **crudas**, sin estandarizar por edad: los departamentos con población más envejecida tienen tasas más altas de causas circulatorias, neoplasias y demás causas, y esas tasas se confunden con la estructura de edad y con la urbanización. Las proyecciones de población del DANE de 2020 en adelante se revisaron tras la pandemia.",
-    "**COVID-19:** no está separada en las listas 6/67 ni Colombia 105; solo se observa (`U07`, Cuadro 16) en 2020–2022 y en casi todos los departamentos. De 2023 en adelante queda dentro de «demás causas» y se fija en 0 en el panel; las defunciones por COVID-19 de los departamentos-año no observados también quedan en 0.",
+    "Las tasas de las secciones 2, 3 y 4 son **crudas**: los departamentos con población más envejecida tienen tasas más altas de causas circulatorias, neoplasias y demás causas, y se confunden con la estructura de edad. Las secciones 2b y 3.5 repiten el análisis con tasas estandarizadas por edad (método directo, Colombia 2020), salvo la COVID-19, que no trae edad. Las proyecciones de población del DANE de 2020 en adelante se revisaron tras la pandemia.",
+    "**COVID-19:** no está separada en las listas 6/67 ni Colombia 105; solo se observa (`U07`, Cuadro 16) en 2020–2022 y en casi todos los departamentos. De 2023 en adelante queda dentro de «demás causas» y es faltante en el panel (no 0); los departamentos-año de 2020–2022 donde no aparece entre las diez primeras causas también son faltantes. Por eso «demás causas» incluye COVID-19 de 2023 en adelante y, en el análisis estandarizado, también la de 2020 a 2022.",
     "**Pocos departamentos** (33) para inferencia transversal: baja potencia; un resultado no significativo no es evidencia de ausencia de asociación. Con 31 departamentos en la comparación por forma de compra.",
     "Los siete grupos de causa son excluyentes y sus tasas están correlacionadas (por eso el VIF eliminó a las neoplasias del modelo conjunto); los contratos de un mismo departamento y de una misma entidad no son independientes (por eso los errores agrupados y los valores p orientativos).",
-    "La contratación pública funeraria atiende sobre todo a población vulnerable y NN y a servicios de apoyo, no a la mortalidad total: no se espera proporcionalidad con las defunciones. «Otros accidentes y causas externas» incluye suicidios, caídas y eventos de intención no determinada.",
+    "La contratación pública funeraria atiende sobre todo a población vulnerable y NN y a servicios de apoyo, no a la mortalidad total: no se espera proporcionalidad con las defunciones. «Otras causas externas (no homicidio ni transporte)» incluye suicidios, caídas y eventos de intención no determinada; no se separan por ahora.",
     "Los departamentos de poca población (Guainía, Vaupés, Guaviare) tienen tasas de contratación altas por un denominador pequeño (pocos contratos); pesan mucho en las correlaciones de rango y en las razones de tasas, y los errores agrupados no corrigen eso por completo.",
     "Los universos difieren levemente: `departamento_anual.csv` usa el mercado vigente (D66) y la participación de los grupos de HCPC usa los 4.992 contratos de D97 a D99 (D105).",
 ]
 
 
-def conclusiones(r):
+def seccion_robustez(r, rb):
+    t = rb["tabla"].set_index("modelo")
+    nombres = {"base": "Modelo base (B2, tasa cruda)", "a_efectos_fijos_departamento": "(a) Efectos fijos de departamento", "b_control_ruralidad": "(b) Control de ruralidad y densidad", "c_tasas_estandarizadas": "(c) Tasas estandarizadas por edad"}
+    L = ["### 3.5 Robustez de «" + NOMBRES[CAUSA_FOCO] + "» (D107b)", "",
+         "Modelo por causa (NB2, offset log(población), efectos fijos de año, errores agrupados por departamento); razón de tasas por duplicación de (1 + tasa). **Regla fijada antes de correr:** el resultado se mantiene solo si la razón de tasas es > 1 con IC 95 % que excluye 1 en (b) y en (c); (a) se reporta sin regla.", ""]
+    L += tabla([(nombres[m], fmt(f.irr, 2), f"{fmt(f.ic95_inf, 2)} a {fmt(f.ic95_sup, 2)}", pf(f.p), f"{fmt(f.irr_poisson, 2)} ({fmt(f.ic95_inf_poisson, 2)} a {fmt(f.ic95_sup_poisson, 2)})", fmt(f.alpha, 3), "sí" if f.convergio else "no", ("sí" if f.supera_regla == 1 else "no") if m in ("b_control_ruralidad", "c_tasas_estandarizadas") else "—") for m, f in t.iterrows()],
+                ["Modelo", "Razón de tasas (NB)", "IC 95 %", "p", "Razón de tasas (Poisson, errores agrupados)", "α (NB)", "NB convergió", "Cumple la regla"])
+    b = t.loc["b_control_ruralidad"]
+    a = t.loc["a_efectos_fijos_departamento"]
+    L += ["", f"En (b), por cada aumento de 1 en la proporción de población rural la razón de tasas de contratos es {fmt(b.irr_share_rural, 2)} (p {pf(b.p_share_rural)}), y por cada aumento de 1 en el log de la densidad, {fmt(b.irr_log_densidad, 2)} (p {pf(b.p_log_densidad)}). En (a) el NB converge a α ≈ 0 (frontera del espacio de parámetros: los efectos fijos absorben la sobredispersión) y equivale al Poisson; por eso se muestra también el Poisson con errores agrupados, la estimación más fiable con efectos fijos. La razón de tasas dentro de cada departamento ({fmt(a.irr, 2)}, IC {fmt(a.ic95_inf, 2)} a {fmt(a.ic95_sup, 2)}) **no excluye 1**: la asociación se apoya en diferencias **entre** departamentos y no en cambios de un año a otro dentro de cada uno (esperable con 6 años de datos).", ""]
+    L += [f"**Resultado de la regla:** {'se mantiene' if (t.loc['b_control_ruralidad', 'supera_regla'] == 1 and t.loc['c_tasas_estandarizadas', 'supera_regla'] == 1) else 'no se mantiene'} en (b) y (c).", ""]
+    return L
+
+
+def seccion_estandarizada(r, rb):
+    t = rb["transversal"]["2020_2025"]
+    t24 = rb["transversal"]["2020_2024"].set_index(["resultado", "causa"])
+    peso = rb["peso_estandar"]
+    L = ["## 2b. Transversal con tasas estandarizadas por edad (D107b)", "",
+         "Misma prueba de la sección 2 (Spearman, promedio 2020–2025, Holm entre 7 causas) con tasas estandarizadas por el método directo, población estándar Colombia 2020 (pesos por grupo de edad: " + ", ".join(f"{g.replace('_', ' ')} {fmt(v * 100, 1)} %" for g, v in peso.items()) + "). Las defunciones de edad desconocida se reparten en proporción. **La COVID-19 no se puede estandarizar** (el Cuadro 16 no trae edad): se usa su tasa cruda de 2020–2022, y «demás causas» incluye la COVID-19 de 2020–2022.", ""]
+    for res in t["resultado"].unique():
+        L += [f"**{res.capitalize()}**", ""]
+        L += tabla([(NOMBRES[f.causa], f.n, fmt(f.rho, 2), f"{fmt(f.ic95_inf, 2)} a {fmt(f.ic95_sup, 2)}", pf(f.p), pf(f.p_holm), "sí" if f.p_holm < UMBRAL_P else "no", pf(t24.loc[(res, f.causa), "p_holm"]) + f" (ρ = {fmt(t24.loc[(res, f.causa), 'rho'], 2)})") for f in t[t["resultado"] == res].itertuples()],
+                    ["Causa", "n", "ρ", "IC 95 %", "p", "p de Holm", "p de Holm < 0,05", "Sin 2025: p de Holm"]) + [""]
+    return L
+
+
+def resumen_robustez(rb):
+    t = rb["tabla"].set_index("modelo")
+    f = lambda m: f"{fmt(t.loc[m, 'irr'], 2)} ({fmt(t.loc[m, 'ic95_inf'], 2)} a {fmt(t.loc[m, 'ic95_sup'], 2)})"
+    cumple = t.loc["b_control_ruralidad", "supera_regla"] == 1 and t.loc["c_tasas_estandarizadas", "supera_regla"] == 1
+    return (f"La razón de tasas es {f('base')} en el modelo base, {f('a_efectos_fijos_departamento')} con efectos fijos de departamento, {f('b_control_ruralidad')} con control de ruralidad y densidad y {f('c_tasas_estandarizadas')} con tasas estandarizadas. "
+            + ("El resultado se mantiene según la regla (b y c)" if cumple else "El resultado no se mantiene según la regla (b y c)") + ", pero con efectos fijos de departamento el IC incluye 1: la asociación proviene de diferencias entre departamentos, no de la variación anual dentro de cada uno.")
+
+
+def resumen_estandarizado(rb):
+    t = rb["transversal"]["2020_2025"]
+    sig = t[t["p_holm"] < UMBRAL_P]
+    return (f"tras Holm, {len(sig)} de 14 asociaciones son significativas: " + "; ".join(f"{NOMBRES[f.causa]} con {f.resultado} (ρ = {fmt(f.rho, 2)}, p de Holm {pf(f.p_holm)})" for f in sig.itertuples())
+            + ". Con la edad controlada desaparecen las asociaciones negativas con circulatorio, neoplasias y demás causas de la sección 2, lo que confirma que eran un efecto de la estructura de edad. La COVID-19 va con tasa cruda y «demás causas» incluye COVID-19.")
+
+
+def resumen_conjuntos(r):
+    a, b = r["conjunto"]["irr"].set_index("causa"), r["conjunto_covid"]["irr"].set_index("causa")
+    c = CAUSA_FOCO
+    return (f"sin COVID-19 (2020–2025, n = {r['conjunto']['n']}), «{NOMBRES[c]}» tiene IRR {fmt(a.loc[c, 'irr_por_duplicacion'], 2)} (IC 95 % {fmt(a.loc[c, 'ic95_inf'], 2)} a {fmt(a.loc[c, 'ic95_sup'], 2)}, p de Holm {pf(a.loc[c, 'p_holm'])}); con COVID-19 (solo 2020–2022, n = {r['conjunto_covid']['n']}), {fmt(b.loc[c, 'irr_por_duplicacion'], 2)} (IC {fmt(b.loc[c, 'ic95_inf'], 2)} a {fmt(b.loc[c, 'ic95_sup'], 2)}, p de Holm {pf(b.loc[c, 'p_holm'])}) y la COVID-19 {fmt(b.loc['covid19', 'irr_por_duplicacion'], 2)} (IC {fmt(b.loc['covid19', 'ic95_inf'], 2)} a {fmt(b.loc['covid19', 'ic95_sup'], 2)}, p {pf(b.loc['covid19', 'p'])}). El resto de coeficientes es inestable entre ambas versiones (cambian de magnitud, signo o significación) y no se interpreta.")
+
+
+def conclusiones(r, rb):
     t = r["transversal"]["2020_2025"]
     por, ver, forma = r["por_causa"].set_index("causa"), r["veredicto"], r["forma"]
     otros = por.loc["otros_accidentes_causas_externas"]
@@ -166,20 +219,23 @@ def conclusiones(r):
          "- **Totales:** los totales nacionales de 2020 a 2025 coinciden exactamente con los del DANE (diferencia 0); la COVID-19 de las EEVV es menor que la del INS en 2021 y 2022.",
          f"- **Transversal:** tras Holm, {len(sig_trans)} de 14 asociaciones son significativas: " + "; ".join(f"{NOMBRES[f.causa]} con {f.resultado} (ρ = {fmt(f.rho, 2)}, p de Holm {pf(f.p_holm)})" for f in sig_trans.itertuples()) + ". Las asociaciones negativas con circulatorio, neoplasias y demás causas son compatibles con el efecto de la estructura de edad (tasas crudas) y no se interpretan.",
          f"- **Panel:** solo «{NOMBRES['otros_accidentes_causas_externas']}» cumple la regla de D107 (IRR {fmt(otros['irr_por_duplicacion'], 2)}, IC 95 % {fmt(otros['ic95_inf'], 2)} a {fmt(otros['ic95_sup'], 2)}, p de Holm {pf(otros['p_holm'])}; supuestos y sensibilidades superados): duplicar (1 + tasa) se asocia con una razón de tasas de contratos de {fmt(otros['irr_por_duplicacion'], 1)}. Las demás causas son **no concluyentes**. Homicidios no se asocian con la contratación funeraria (IRR {fmt(por.loc['agresiones_homicidios', 'irr_por_duplicacion'], 2)}, p {pf(por.loc['agresiones_homicidios', 'p'])}).",
-         "- **Supuestos:** todos los modelos pasan dispersión residual, residuos cuantílicos y Cook, y el modelo conjunto cumple VIF < 5 tras eliminar neoplasias. Única excepción, en la sobredispersión: en el modelo de accidentes de transporte la prueba de Cameron-Trivedi no rechaza (p 0,21) aunque Pearson/gl del Poisson es 27,8; según la regla de D107 (ambas) no pasa, y esa causa no era significativa de todos modos.",
+         "- **Robustez (D107b, sección 3.5):** " + resumen_robustez(rb),
+         "- **Transversal estandarizado (sección 2b):** " + resumen_estandarizado(rb),
+         "- **Modelo conjunto:** " + resumen_conjuntos(r),
+         "- **Supuestos:** todos los modelos pasan dispersión residual, residuos cuantílicos y Cook, y el modelo conjunto sin COVID-19 cumple VIF < 5 tras eliminar neoplasias. **Cameron-Trivedi (revisión, D107b):** la forma de la prueba era correcta; en transporte el t homocedástico (p 0,21) no detectaba la sobredispersión porque la varianza de la variable auxiliar crece con μ² bajo la alternativa. Con errores robustos HC3 la prueba rechaza H₀ en los siete modelos (transporte: t = " + fmt(r["supuestos"]["accidentes_transporte"]["diagnosticos"]["cameron_trivedi"]["estadistico_t"], 2) + ", p < 0,001) y todos pasan la sobredispersión.",
          f"- **Forma de compra:** {len(sig_forma)} asociación(es) significativa(s) tras Holm" + (": " + "; ".join(f"{x.participacion.replace('part_grupo', 'Grupo ')} con {NOMBRES[x.causa]} (ρ = {fmt(x.rho, 2)}, p de Holm {pf(x.p_holm)})" for x in sig_forma.itertuples()) if len(sig_forma) else "") + "; las demás no superan la corrección. Con 31 departamentos y tasas crudas, es una pista y no un resultado.",
-         "- **Sobre la pregunta de partida:** la contratación funeraria pública no sigue la mortalidad violenta ni la COVID-19 de forma detectable en este diseño; la señal robusta está en «otros accidentes y causas externas» (que incluye suicidios y caídas), y debe leerse como asociación ecológica, sin causalidad.", ""]
+         "- **Sobre la pregunta de partida:** la contratación funeraria pública no sigue la mortalidad violenta ni la COVID-19 de forma detectable en este diseño; la señal está en «otras causas externas (no homicidio ni transporte)» (que incluye suicidios y caídas), se mantiene con ruralidad y con edad estandarizada, pero no dentro de cada departamento a lo largo del tiempo; debe leerse como asociación ecológica entre departamentos, sin causalidad.", ""]
     return L
 
 
-def informe(r):
+def informe(r, rb):
     gr = dispersion(r, "dispersion_homicidios_covid_contratos.png")
     L = ["# Causas de defunción y contratación funeraria pública por departamento (D107)", "",
-         "> **Análisis exploratorio y ecológico (D107, propuesta pendiente de revisión de Edward).** No se interpreta ninguna asociación como causal; la unidad es el departamento (la entidad contratante y el residente fallecido pueden estar en departamentos distintos). Rama `causas-defuncion`, sin integrar a `main`.", ""]
-    L += seccion_datos(r) + seccion_transversal(r) + seccion_panel(r) + seccion_forma(r)
+         "> **Análisis exploratorio y ecológico (D107 aprobada por Edward el 2026-11-08; D107b, pendiente de revisión).** No se interpreta ninguna asociación como causal; la unidad es el departamento (la entidad contratante y el residente fallecido pueden estar en departamentos distintos). Rama `causas-defuncion`, sin integrar a `main`.", ""]
+    L += seccion_datos(r) + seccion_transversal(r) + seccion_estandarizada(r, rb) + seccion_panel(r) + seccion_robustez(r, rb) + seccion_forma(r)
     L += ["## 5. Gráfico", "", "![Dispersión de homicidios y COVID-19 frente a contratos por 100.000](graficos/causas/dispersion_homicidios_covid_contratos.png)", "",
           "Un punto por departamento. Izquierda: tasa de homicidios promedio 2020–2025 frente a contratos por 100.000 (promedio anual 2020–2025). Derecha: tasa de COVID-19 promedio 2020–2022 frente a contratos por 100.000 en esos tres años (el ρ del gráfico es descriptivo y difiere del transversal de la sección 2, que usa 2020–2025). Se rotulan los puntos extremos.", ""]
-    L += conclusiones(r) + ["## 7. Limitaciones", ""] + [f"{i}. {x}" for i, x in enumerate(LIMITACIONES, 1)]
+    L += conclusiones(r, rb) + ["## 7. Limitaciones", ""] + [f"{i}. {x}" for i, x in enumerate(LIMITACIONES, 1)]
     destino = RAIZ / "docs/resultados/causas_defuncion.md"
     destino.write_text(chr(10).join(L).rstrip() + chr(10), encoding="utf-8")
     return destino
@@ -189,7 +245,9 @@ def main():
     warnings.filterwarnings("ignore")
     r = calcular()
     guardar(r)
-    print(informe(r))
+    rb = calcular_robustez(r)
+    guardar_robustez(rb, SALIDA)
+    print(informe(r, rb))
 
 
 if __name__ == "__main__":
