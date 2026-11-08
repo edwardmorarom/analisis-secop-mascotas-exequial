@@ -909,7 +909,7 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Decisión (Edward, 2026-11-08; rama `causas-defuncion`, sin merge a `main`):** no se continúa con los modelos de D107 y D107b (Spearman transversal, binomial negativa en panel, efectos fijos, robustez de «otras causas externas», forma de compra) ni se presentan sus resultados. D107 y D107b quedan **reemplazadas en su parte analítica por esta decisión** (no se borran). Se conserva y se usa la **tabla descriptiva de tasas de defunción por causa, estandarizadas por edad (método directo, población estándar Colombia 2020), por departamento y año** (`data/processed/resultados_secop/causas/tasas_estandarizadas_dpto_anio.csv`), con los datos y verificaciones de D107 (totales nacionales = DANE, diferencia 0) y D107b (población por edad = población municipal, diferencia 0).
 - **Por qué:** el análisis inferencial no se sostiene con 33 departamentos y contratos ubicados por la sede de la entidad (D107, limitaciones 1 a 4); el único resultado que pasó la regla (otras causas externas) no se mantuvo con efectos fijos de departamento (razón de tasas 1,14, IC 95 % 0,89 a 1,47; D107b). Se prefiere describir el perfil de mortalidad sin pruebas de hipótesis.
 - **Descartado:** presentar los modelos como resultado del documento.
-- **Sustento:** D107, D107b, `docs/resultados/causas_defuncion.md` (conservado en el historial de la rama, no se presenta).
+- **Sustento:** D107, D107b, `docs/resultados/causas_defuncion.md` (se conserva en la rama como respaldo; los modelos de D107 y D107b no se presentan).
 - **Estado:** decisión de Edward (2026-11-08).
 
 ### D108. Perfil descriptivo de mortalidad por grupo del clustering (HCPC)
@@ -919,4 +919,4 @@ Las decisiones no se borran: si cambian, se marca la anterior como reemplazada y
 - **Por qué:** `grupos_hcpc.md` y D106 describen cómo se compra pero no el contexto de mortalidad de cada grupo; una tabla descriptiva lo muestra sin inferencia.
 - **Descartado:** pruebas de hipótesis, valores p, modelos y ponderar por valor del contrato.
 - **Sustento:** D97 a D99, D105, D106, D107, D107b, D107c.
-- **Estado:** propuesta, pendiente de revisión de Edward (2026-11-08).
+- **Estado:** aprobada por Edward el 2026-11-08.
