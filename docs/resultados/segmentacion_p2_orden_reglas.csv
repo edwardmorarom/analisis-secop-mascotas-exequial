@@ -1,0 +1,25 @@
+﻿orden,pct_contratos_cambian,max_cambio_pct_valor,segmento_max_cambio
+plan > bienes > traslado > servicio,0.0,0.0,Alcaldía · Ataúdes y bienes
+plan > bienes > servicio > traslado,3.971915747241725,2.49314862601823,Alcaldía · Traslado
+plan > traslado > bienes > servicio,0.8625877632898695,0.4866285842855764,Alcaldía · Traslado
+plan > traslado > servicio > bienes,0.8625877632898695,0.4866285842855764,Alcaldía · Traslado
+plan > servicio > bienes > traslado,3.971915747241725,2.49314862601823,Alcaldía · Traslado
+plan > servicio > traslado > bienes,4.8345035105315946,2.4931486260182254,Alcaldía · Servicio de inhumación
+bienes > plan > traslado > servicio,0.962888665997994,0.5202744048766839,Alcaldía · Ataúdes y bienes
+bienes > plan > servicio > traslado,4.9348044132397195,2.49314862601823,Alcaldía · Traslado
+bienes > traslado > plan > servicio,1.283851554663992,0.7148654429487715,Alcaldía · Plan exequial
+bienes > traslado > servicio > plan,2.4674022066198598,1.1077026383294108,Alcaldía · Plan exequial
+bienes > servicio > plan > traslado,6.318956870611836,2.9757274055977234,Alcaldía · Servicio de inhumación
+bienes > servicio > traslado > plan,6.439317953861584,2.9757274055977234,Alcaldía · Servicio de inhumación
+traslado > plan > bienes > servicio,1.4443329989969909,0.8280516199634698,Alcaldía · Traslado
+traslado > plan > servicio > bienes,1.4443329989969909,0.8280516199634698,Alcaldía · Traslado
+traslado > bienes > plan > servicio,2.1464393179538614,0.8280516199634698,Alcaldía · Traslado
+traslado > bienes > servicio > plan,3.3299899699097293,1.1077026383294108,Alcaldía · Plan exequial
+traslado > servicio > plan > bienes,2.6278836509528585,0.8280516199634698,Alcaldía · Traslado
+traslado > servicio > bienes > plan,3.3299899699097293,1.1077026383294108,Alcaldía · Plan exequial
+servicio > plan > bienes > traslado,5.356068204613842,2.9757274055977234,Alcaldía · Servicio de inhumación
+servicio > plan > traslado > bienes,6.218655967903711,2.9757274055977234,Alcaldía · Servicio de inhumación
+servicio > bienes > plan > traslado,6.318956870611836,2.9757274055977234,Alcaldía · Servicio de inhumación
+servicio > bienes > traslado > plan,6.439317953861584,2.9757274055977234,Alcaldía · Servicio de inhumación
+servicio > traslado > plan > bienes,6.599799398194584,2.9757274055977234,Alcaldía · Servicio de inhumación
+servicio > traslado > bienes > plan,7.301905717151453,2.9757274055977234,Alcaldía · Servicio de inhumación

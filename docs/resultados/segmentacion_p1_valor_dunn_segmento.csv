@@ -1,0 +1,46 @@
+﻿a,b,z,p,p_holm
+Alcaldía · Ataúdes y bienes,Alcaldía · Otro,-3.8528859444528405,0.00011673377418433294,0.0016487209589777277
+Alcaldía · Ataúdes y bienes,Alcaldía · Plan exequial,1.3230116913354237,0.1858314898719734,0.7433259594878936
+Alcaldía · Ataúdes y bienes,Alcaldía · Servicio de inhumación,-7.220632947418916,5.17461519081214e-13,1.7076230129680063e-11
+Alcaldía · Ataúdes y bienes,Alcaldía · Traslado,-3.575079698728408,0.00035012122370597996,0.004551575908177739
+Alcaldía · Ataúdes y bienes,Gobernación · Servicio de inhumación,-7.559747798988704,4.0385162644796115e-14,1.4538658552126602e-12
+Alcaldía · Ataúdes y bienes,Otra · Plan exequial,4.533157351903872,5.810849433112819e-06,0.0001220278380953692
+Alcaldía · Ataúdes y bienes,Otra · Servicio de inhumación,-10.032675777876364,1.0950798645539839e-23,4.818351404037529e-22
+Alcaldía · Ataúdes y bienes,Otros segmentos,-6.124381687864399,9.103642879122791e-10,2.4579835773631536e-08
+Alcaldía · Ataúdes y bienes,Servicios públicos · Servicio de inhumación,-6.224516240835157,4.830441099726233e-10,1.4008279189206077e-08
+Alcaldía · Otro,Alcaldía · Plan exequial,4.014342806508253,5.9611655689275074e-05,0.0011326214580962264
+Alcaldía · Otro,Alcaldía · Servicio de inhumación,-0.907860135160706,0.3639521219385905,1.0
+Alcaldía · Otro,Alcaldía · Traslado,-0.5720595590172716,0.5672816256244607,1.0
+Alcaldía · Otro,Gobernación · Servicio de inhumación,-5.7253724634297996,1.0320705514598688e-08,2.580176378649672e-07
+Alcaldía · Otro,Otra · Plan exequial,6.30859963563353,2.8157144269483144e-10,8.447143280844943e-09
+Alcaldía · Otro,Otra · Servicio de inhumación,-8.062426657852903,7.479462089166567e-16,2.9917848356666264e-14
+Alcaldía · Otro,Otros segmentos,-2.6068518430913814,0.00913788892856291,0.09137888928562911
+Alcaldía · Otro,Servicios públicos · Servicio de inhumación,-3.984005175919268,6.776339552699623e-05,0.001219741119485932
+Alcaldía · Plan exequial,Alcaldía · Servicio de inhumación,-5.583554912952887,2.3565132549297192e-08,5.419980486338355e-07
+Alcaldía · Plan exequial,Alcaldía · Traslado,-3.925268030685894,8.663322021157984e-05,0.0014727647435968574
+Alcaldía · Plan exequial,Gobernación · Servicio de inhumación,-7.675332103270899,1.6499062944308383e-14,6.104653289394102e-13
+Alcaldía · Plan exequial,Otra · Plan exequial,3.245831093275449,0.001171082988177723,0.012881912869954952
+Alcaldía · Plan exequial,Otra · Servicio de inhumación,-9.962830502948949,2.2166032795464787e-23,9.531394102049858e-22
+Alcaldía · Plan exequial,Otros segmentos,-5.929900413649104,3.0311846413434892e-09,7.881080067493072e-08
+Alcaldía · Plan exequial,Servicios públicos · Servicio de inhumación,-6.360911804792177,2.0055958473858212e-10,6.417906711634628e-09
+Alcaldía · Servicio de inhumación,Alcaldía · Traslado,-0.010728537197619964,0.991440030021247,1.0
+Alcaldía · Servicio de inhumación,Gobernación · Servicio de inhumación,-5.6749240138317685,1.3875023087778942e-08,3.3300055410669463e-07
+Alcaldía · Servicio de inhumación,Otra · Plan exequial,7.358884673440845,1.8545316003155698e-13,6.4908606011044945e-12
+Alcaldía · Servicio de inhumación,Otra · Servicio de inhumación,-8.148100227813213,3.69685900142653e-16,1.5157121905848775e-14
+Alcaldía · Servicio de inhumación,Otros segmentos,-2.4222187923419867,0.015426059742522692,0.13883453768270423
+Alcaldía · Servicio de inhumación,Servicios públicos · Servicio de inhumación,-3.867593409527735,0.00010991473059851518,0.0016487209589777277
+Alcaldía · Traslado,Gobernación · Servicio de inhumación,-5.086759012576951,3.642341704373969e-07,8.013151749622733e-06
+Alcaldía · Traslado,Otra · Plan exequial,6.161700043961567,7.196807918467592e-10,2.0151062171709258e-08
+Alcaldía · Traslado,Otra · Servicio de inhumación,-7.268711582330214,3.629323528628422e-13,1.2339699997336634e-11
+Alcaldía · Traslado,Otros segmentos,-1.6955652563308297,0.08996824220489957,0.5398094532293974
+Alcaldía · Traslado,Servicios públicos · Servicio de inhumación,-3.2862058867850057,0.0010154675763686253,0.012185610916423503
+Gobernación · Servicio de inhumación,Otra · Plan exequial,9.081756095617544,1.0683696394361885e-19,4.487152485631992e-18
+Gobernación · Servicio de inhumación,Otra · Servicio de inhumación,-1.642038099425419,0.1005821085706317,0.5398094532293974
+Gobernación · Servicio de inhumación,Otros segmentos,4.113341477664254,3.899728649161485e-05,0.000779945729832297
+Gobernación · Servicio de inhumación,Servicios públicos · Servicio de inhumación,2.049407504104141,0.04042228407719813,0.2915357386367537
+Otra · Plan exequial,Otra · Servicio de inhumación,-11.103595603429394,1.2049666379350731e-28,5.422349870707829e-27
+Otra · Plan exequial,Otros segmentos,-7.70046694806184,1.3556990348802326e-14,5.151656332544884e-13
+Otra · Plan exequial,Servicios públicos · Servicio de inhumación,-8.003063455733097,1.2136135798005045e-15,4.733092961221968e-14
+Otra · Servicio de inhumación,Otros segmentos,6.321541693033283,2.589664830161815e-10,8.027960973501626e-09
+Otra · Servicio de inhumación,Servicios públicos · Servicio de inhumación,3.906902344196592,9.34869147232176e-05,0.0014957906355714816
+Otros segmentos,Servicios públicos · Servicio de inhumación,-2.0919614162977846,0.03644196732959421,0.2915357386367537
