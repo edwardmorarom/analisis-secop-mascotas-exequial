@@ -1,0 +1,639 @@
+<title>Guía metodológica SECOP funerario</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;700&family=Public+Sans:ital,wght@0,400;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: índice fijo a la izquierda en escritorio, columna de lectura a la derecha; fichas con rejilla de definición */
+:root{
+  --bg:#F3F5F9; --panel:#FFFFFF; --ink:#0B1530; --soft:#3A4560; --muted:#5D6782; --line:#D5DBE6;
+  --blue:#0047BB; --navy:#0A1F44; --purple:#5B2A86; --green:#1B7A3E; --orange:#C2410C; --red:#B42318;
+  --chip:#E6ECF7; --code:#EEF2F8;
+  --f-display:'Archivo Narrow','Arial Narrow',Arial,sans-serif;
+  --f-body:'Public Sans',system-ui,-apple-system,'Segoe UI',Arial,sans-serif;
+  --f-mono:'IBM Plex Mono',ui-monospace,'Courier New',monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1222; --panel:#121B30; --ink:#E9EEF8; --soft:#C3CCE0; --muted:#97A2BC; --line:#26314A;
+  --blue:#6E9BF0; --navy:#9FB6E6; --purple:#B48BE0; --green:#5CC487; --orange:#F08A4B; --red:#F07A6C;
+  --chip:#1A2642; --code:#18223A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1222; --panel:#121B30; --ink:#E9EEF8; --soft:#C3CCE0; --muted:#97A2BC; --line:#26314A;
+  --blue:#6E9BF0; --navy:#9FB6E6; --purple:#B48BE0; --green:#5CC487; --orange:#F08A4B; --red:#F07A6C;
+  --chip:#1A2642; --code:#18223A; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.6;margin:0}
+.wrap{max-width:1240px;margin:0 auto;padding-block:32px 80px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;grid-template-columns:250px minmax(0,1fr);gap:48px}
+nav.toc{position:sticky;top:calc(env(safe-area-inset-top,0px) + 20px);align-self:start;max-height:calc(100vh - 40px);overflow:auto;font-size:15px}
+nav.toc p{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+nav.toc ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;border-left:2px solid var(--line)}
+nav.toc a{display:block;padding:5px 12px;color:var(--soft);text-decoration:none;border-left:3px solid transparent;margin-left:-2px}
+nav.toc a:hover,nav.toc a:focus-visible{color:var(--blue);border-left-color:var(--blue);outline:none}
+main{min-width:0;display:flex;flex-direction:column;gap:64px}
+header.top{display:flex;flex-direction:column;gap:14px;border-bottom:3px solid var(--ink);padding-bottom:28px}
+.eyebrow{font-family:var(--f-mono);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--blue);margin:0}
+h1{font-family:var(--f-display);font-weight:700;font-size:clamp(36px,5vw,58px);line-height:1.04;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:clamp(28px,3.4vw,38px);line-height:1.1;margin:0;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:700;font-size:25px;line-height:1.15;margin:0;text-wrap:balance}
+.lead{font-size:19px;color:var(--soft);max-width:68ch;margin:0}
+section{display:flex;flex-direction:column;gap:22px;scroll-margin-top:20px}
+section>p,section>ul,section>ol{max-width:72ch;margin:0}
+.sec-head{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:22px}
+.search{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.search label{font-weight:600;font-size:15px}
+.search input{flex:1;min-width:0;max-width:440px;font:inherit;font-size:16px;padding:10px 14px;border:1.5px solid var(--line);border-radius:6px;background:var(--panel);color:var(--ink)}
+.search input:focus-visible{outline:2px solid var(--blue);outline-offset:1px}
+.search small{color:var(--muted)}
+.ficha{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+.ficha-h{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:8px 16px}
+.ficha-h .meta{font-family:var(--f-mono);font-size:13px;color:var(--muted)}
+.cifra{font-family:var(--f-mono);font-size:15px;background:var(--chip);color:var(--ink);padding:8px 12px;border-radius:4px;margin:0;border-left:4px solid var(--blue)}
+dl{margin:0;display:grid;grid-template-columns:200px minmax(0,1fr);gap:10px 22px}
+dt{font-weight:700;font-size:14px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;padding-top:3px}
+dd{margin:0;min-width:0}
+code,.f{font-family:var(--f-mono);font-size:.9em;background:var(--code);padding:1px 6px;border-radius:3px;overflow-wrap:anywhere}
+.k-mue .cifra{border-left-color:var(--blue)} .k-med .cifra{border-left-color:var(--navy)} .k-des .cifra{border-left-color:var(--green)}
+.k-mod .cifra{border-left-color:var(--orange)} .k-clu .cifra{border-left-color:var(--purple)}
+.ruta{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.paso{background:var(--panel);border:1px solid var(--line);border-top:5px solid var(--blue);border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.paso b{font-family:var(--f-display);font-size:22px}
+.paso span{font-size:14px;color:var(--soft)}
+.paso small{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.paso:nth-child(2){border-top-color:var(--navy)} .paso:nth-child(3){border-top-color:var(--green)} .paso:nth-child(4){border-top-color:var(--orange)} .paso:nth-child(5){border-top-color:var(--purple)}
+.tabla{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:15px;min-width:720px}
+th{background:var(--navy);color:var(--bg);text-align:left;padding:10px 12px;font-weight:600}
+td{padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+td:first-child{font-weight:600}
+.callout{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--orange);border-radius:6px;padding:16px 20px;max-width:80ch}
+.callout p{margin:0}
+.dos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.caja{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:18px 20px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.caja h3{font-size:22px}
+.caja p,.caja ul{margin:0}
+.caja ul{padding-left:20px}
+.estrella{overflow-x:auto}
+.estrella svg{display:block;max-width:100%;height:auto}
+.qa{display:flex;flex-direction:column;gap:10px}
+.qa details{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 18px}
+.qa summary{font-weight:700;cursor:pointer}
+.qa summary:focus-visible{outline:2px solid var(--blue);outline-offset:3px}
+.qa details p{margin:10px 0 0;max-width:75ch}
+.vacio{color:var(--muted);font-style:italic}
+footer{border-top:1px solid var(--line);padding-top:18px;color:var(--muted);font-size:14px}
+@media (max-width:980px){
+  .wrap{grid-template-columns:minmax(0,1fr);gap:28px}
+  nav.toc{position:static;max-height:none}
+  nav.toc ol{flex-direction:row;flex-wrap:wrap;border-left:0;gap:6px}
+  nav.toc a{border:1px solid var(--line);border-radius:4px;margin:0;padding:4px 10px}
+  .ruta{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media (max-width:640px){
+  dl{grid-template-columns:minmax(0,1fr);gap:2px 0}
+  dd{margin-bottom:10px}
+  .dos{grid-template-columns:minmax(0,1fr)}
+  .ruta{grid-template-columns:minmax(0,1fr)}
+  body{font-size:16px}
+}
+@media (prefers-reduced-motion:no-preference){nav.toc a{transition:color .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+<nav class="toc" aria-label="Índice">
+  <p>Índice</p>
+  <ol>
+    <li><a href="#logica">1. La lógica de la presentación</a></li>
+    <li><a href="#inferencia">2. Tres tipos de incertidumbre</a></li>
+    <li><a href="#datos">3. Datos y ETL</a></li>
+    <li><a href="#relacional">4. ¿Relacional o no?</a></li>
+    <li><a href="#semantico">5. Modelo semántico</a></li>
+    <li><a href="#descartes">6. Qué se descartó y por qué</a></li>
+    <li><a href="#fichas">7. Fichas de cada indicador</a></li>
+    <li><a href="#reglas">8. Reglas fijadas antes</a></li>
+    <li><a href="#preguntas">9. Preguntas frecuentes</a></li>
+    <li><a href="#limites">10. Límites del estudio</a></li>
+  </ol>
+</nav>
+
+<main>
+<header class="top">
+  <p class="eyebrow">USTA · Estadística · SECOP I y II, 2020–2025</p>
+  <h1>Cómo contrata el Estado los servicios funerarios: guía para sustentar</h1>
+  <p class="lead">Cada dato de la presentación, qué significa, cómo se infiere, qué supuesto lo sostiene y por qué se trató así. Las cifras y decisiones salen de <code>docs/decisiones.md</code> (D01 a D108) y de <code>docs/resultados/</code> del repositorio. Las láminas citadas son las de la versión de 33 láminas.</p>
+</header>
+
+<!-- 1 -->
+<section id="logica">
+  <div class="sec-head"><p class="eyebrow">1</p><h2>La lógica de la presentación</h2></div>
+  <p>La pregunta es descriptiva: <b>cómo contrata el Estado colombiano los servicios funerarios</b>. El estado del arte (lámina 2) muestra que la contratación pública ya se analiza con microdatos (Fazekas y Kocsis, 2020; Gallego, Rivero y Martínez, 2021), pero no encontramos una medición del mercado funerario y los análisis suelen tomar la clasificación de SECOP sin corregir su error. De ahí sale el orden de la exposición: cada paso resuelve un problema que el siguiente necesita resuelto.</p>
+  <div class="ruta">
+    <div class="paso"><b>Identificar</b><span>¿Cuáles de 39.870 candidatos son funerarios? Muestreo, etiquetado humano y clasificador.</span><small>láminas 7–11</small></div>
+    <div class="paso"><b>Estimar</b><span>¿Cuánto vale el mercado, corrigiendo el error del clasificador?</span><small>láminas 12–13</small></div>
+    <div class="paso"><b>Describir</b><span>¿Dónde, a quién y en qué contexto se compra?</span><small>láminas 14–16</small></div>
+    <div class="paso"><b>Modelar</b><span>¿Qué se asocia al valor de un contrato y en qué meses se contrata?</span><small>láminas 17–20</small></div>
+    <div class="paso"><b>Agrupar</b><span>¿Hay formas típicas de comprar y se sostienen?</span><small>láminas 21–31</small></div>
+  </div>
+  <p>Una regla atraviesa todo (D97): <b>un modelo que falla sus supuestos no se elige</b>, aunque tenga el mejor ajuste, y las reglas de decisión se escribieron antes de ver los resultados. Por eso varias láminas reportan supuestos que no se cumplieron: es parte del resultado, no un descuido.</p>
+</section>
+
+<!-- 2 -->
+<section id="inferencia">
+  <div class="sec-head"><p class="eyebrow">2</p><h2>Tres tipos de incertidumbre, tres formas de inferir</h2></div>
+  <p>Este punto es el que más conviene tener claro en la sustentación. Tenemos <b>todos</b> los contratos candidatos de SECOP, no una muestra de ellos. Entonces, ¿de dónde sale la incertidumbre?</p>
+  <div class="dos">
+    <div class="caja"><h3>Inferencia por diseño</h3><p>La aleatoriedad la pone el <b>sorteo</b> de la muestra de 400. Lo incierto es la <b>clasificación</b>: no sabemos cuáles de los 34.790 del marco son funerarios hasta que una persona los revisa. Los pesos N/n, el estimador de Horvitz-Thompson, Wilson y el bootstrap estratificado salen de aquí. No exige suponer ninguna distribución de los datos: solo que el sorteo fue aleatorio con probabilidades conocidas, y eso se cumple por construcción.</p><p><b>Dónde:</b> láminas 7–12.</p></div>
+    <div class="caja"><h3>Inferencia basada en modelos</h3><p>La aleatoriedad la pone un <b>modelo</b>: se supone que los contratos observados son una realización de un proceso (una superpoblación). Las regresiones del valor, la binomial negativa de la estacionalidad, Kruskal-Wallis y χ² viven aquí. Sus valores p dependen de que los supuestos del modelo se cumplan; por eso se verifican uno por uno.</p><p><b>Dónde:</b> láminas 16–20, 26, 29 y 31.</p></div>
+    <div class="caja"><h3>Descripción del universo</h3><p>Cuando se suman o se promedian contratos ya clasificados (serie anual, valor por habitante, HHI, perfiles de los grupos), no hay inferencia: es un censo de lo clasificado. Lo único incierto es el error de clasificación, y ese ya lo corrige el estimador de la lámina 12.</p><p><b>Dónde:</b> láminas 13–15, 24, 25, 28 y 30.</p></div>
+    <div class="caja"><h3>Validación por remuestreo</h3><p>Para el clustering no hay un parámetro poblacional que estimar. Se pregunta otra cosa: <b>¿el resultado se repite</b> si cambian los datos (bootstrap y Jaccard), la plataforma (ARI con solo SECOP II) o el algoritmo (PAM con Gower)? Es evidencia de estabilidad, no un intervalo de confianza.</p><p><b>Dónde:</b> láminas 23 y 31.</p></div>
+  </div>
+  <div class="callout"><p><b>Por qué los valores p son «orientativos».</b> Las pruebas de los modelos suponen observaciones independientes, y los contratos de una misma entidad no lo son: la correlación intraclase por entidad es 0,52 (lámina 17). Por eso el valor p se lee como señal de la magnitud, no como un nivel de error exacto. Las conclusiones se apoyan en tamaños de efecto (ε², V de Cramér, razones) más que en el p.</p></div>
+</section>
+
+<!-- 3 -->
+<section id="datos">
+  <div class="sec-head"><p class="eyebrow">3</p><h2>Datos y ETL: de la API a 39.870 contratos</h2></div>
+  <div class="tabla"><table>
+    <thead><tr><th>Paso</th><th>Qué se hizo</th><th>Por qué</th><th>Decisión</th></tr></thead>
+    <tbody>
+      <tr><td>Alcance</td><td>Todo el país, solo fuentes públicas descargables.</td><td>Reproducibilidad. Un derecho de petición tarda hasta 15 días hábiles y no garantiza respuesta.</td><td>D01</td></tr>
+      <tr><td>Fuentes</td><td>SECOP II (<code>jbjy-vk9h</code>, 19.306 candidatos) y SECOP I (<code>f789-7hwg</code>, 15.484 de 2020–2022 y 5.080 de 2023–2025). DANE: DIVIPOLA, población, IPC, estadísticas vitales. INS: muertes por COVID-19.</td><td>Entre 2020 y 2022 las entidades migraron de SECOP I a II. Sin SECOP I, 2020 quedaba subrepresentado más de cinco veces.</td><td>D02, D73</td></tr>
+      <tr><td>Extracción</td><td>API SoQL de Socrata, paginada y con token. Huella SHA-256 de cada descarga en un manifiesto.</td><td>La exportación manual se trunca en 1.000 filas. El SHA-256 prueba que el crudo no cambió.</td><td>D03, D11</td></tr>
+      <tr><td>Filtro de candidatos</td><td>Palabra clave funeraria en el texto (10 raíces, como FUNERA o INHUMA) o códigos UNSPSC 851715, 4813 o 422621.</td><td>El UNSPSC solo aporta 173 de 19.307 contratos en SECOP II: las entidades lo diligencian mal.</td><td>D16, D17</td></tr>
+      <tr><td>Limpieza SECOP I</td><td>Solo Celebrado, Liquidado y Terminado sin Liquidar; una fila por <code>uid</code>.</td><td>Convocado y Adjudicado no tienen contrato firmado. SECOP I repite contratos por rubro (245 <code>uid</code> repetidos, idénticos en valor y fecha).</td><td>D42, D18</td></tr>
+      <tr><td>Datos personales</td><td>Texto libre anonimizado; personas naturales reemplazadas por un seudónimo HMAC con sal; personas jurídicas conservan NIT.</td><td>Ley 1581 de 2012. El seudónimo permite contar a un proveedor una sola vez en el HHI sin exponer su nombre.</td><td>D15</td></tr>
+      <tr><td>Territorio</td><td>Cada contrato se ubica por la sede de la entidad compradora, con código DIVIPOLA como texto de 5 dígitos; 95,7 % ubicado.</td><td>Como número, 05001 pierde el cero y el cruce falla. El lugar de ejecución viene en texto libre.</td><td>D13, D66</td></tr>
+      <tr><td>Valor</td><td>Pesos constantes de 2025: valor × IPC promedio de 2025 ÷ IPC del mes de firma. Valor inicial, sin adiciones.</td><td>Sin deflactar, la inflación parece crecimiento. El IPC mensual conserva la variación dentro del año (factor 1,44 para enero de 2020).</td><td>D14, D67</td></tr>
+      <tr><td>Carga</td><td>Tres capas: <code>raw</code> (JSONL, nunca se modifica), <code>interim</code> y <code>processed</code> (Parquet).</td><td>Siempre se puede reconstruir desde el crudo. Parquet guarda tipos (ceros iniciales, fechas).</td><td>D11, D12</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 4 -->
+<section id="relacional">
+  <div class="sec-head"><p class="eyebrow">4</p><h2>¿Los datos son relacionales o no relacionales?</h2></div>
+  <p>Las dos cosas, según la etapa. Conviene responderlo así:</p>
+  <div class="dos">
+    <div class="caja"><h3>Entrada: semiestructurada y texto libre</h3>
+      <ul>
+        <li>La API de Socrata devuelve <b>JSON</b>: registros tipo documento, sin esquema rígido. Se guardan como <b>JSONL</b> (un objeto por línea) para no perder ningún campo (D12). Es almacenamiento no relacional.</li>
+        <li>El <b>objeto del contrato</b> es texto libre, no estructurado. Se anonimiza y se convierte en vectores TF-IDF para el clasificador. Ahí no hay llaves ni relaciones: hay palabras.</li>
+        <li>SECOP I y SECOP II tienen columnas distintas para lo mismo; no comparten esquema.</li>
+      </ul></div>
+    <div class="caja"><h3>Análisis: relacional, en modelo estrella</h3>
+      <ul>
+        <li>En <code>interim</code> y <code>processed</code> todo queda en tablas Parquet tipadas: una fila por contrato, columnas con tipo fijo. Es relacional en su lógica, aunque viva en archivos y no en un motor de base de datos.</li>
+        <li>Las tablas se unen por <b>llaves</b>: identificador del contrato (<code>uid</code> en SECOP I), DIVIPOLA como texto, NIT, código de proveedor o seudónimo, y año-mes.</li>
+        <li>Las fuentes externas (INS, DANE) llegan <b>agregadas</b> y se unen por llave compuesta: departamento y periodo.</li>
+      </ul></div>
+  </div>
+  <div class="callout"><p><b>Dos límites relacionales que hay que decir.</b> (1) Las personas naturales no tienen un identificador común entre SECOP I y II, así que un mismo proveedor puede contarse dos veces y el HHI queda algo subestimado (D69). (2) Los 10 pares de contratos con mismo NIT y valor y fechas cercanas entre SECOP I y II no se borran con una regla automática, porque se verificó que la mayoría son contratos distintos (D19).</p></div>
+</section>
+
+<!-- 5 -->
+<section id="semantico">
+  <div class="sec-head"><p class="eyebrow">5</p><h2>Modelo semántico: un hecho y cinco dimensiones</h2></div>
+  <p>Es un <b>esquema en estrella</b>, el estándar de los modelos analíticos: una tabla de hechos con lo que se mide y tablas de dimensiones con lo que describe. La relación es de muchos a uno: muchos contratos por entidad, por proveedor, por municipio o por mes. El <b>grano</b> (lo que representa cada fila del hecho) es un contrato.</p>
+  <div class="estrella" role="img" aria-label="Diagrama del modelo en estrella: el contrato en el centro, unido a entidad, proveedor, territorio, tiempo y clasificación; las tablas externas de COVID-19 y defunciones se unen por departamento y periodo">
+  <svg viewBox="0 0 900 430" width="900" height="430" xmlns="http://www.w3.org/2000/svg">
+    <g stroke="currentColor" stroke-width="2" fill="none" style="color:var(--muted)">
+      <line x1="450" y1="215" x2="140" y2="70"/><line x1="450" y1="215" x2="450" y2="60"/><line x1="450" y1="215" x2="760" y2="70"/>
+      <line x1="450" y1="215" x2="140" y2="320"/><line x1="450" y1="215" x2="760" y2="320"/>
+      <line x1="260" y1="330" x2="300" y2="372" stroke-dasharray="7 6"/><line x1="640" y1="330" x2="600" y2="372" stroke-dasharray="7 6"/>
+    </g>
+    <g font-family="IBM Plex Mono, monospace" font-size="14">
+      <rect x="290" y="175" width="320" height="80" rx="6" style="fill:var(--navy)"/>
+      <text x="450" y="207" text-anchor="middle" style="fill:var(--bg)" font-weight="600">HECHO · Contrato</text>
+      <text x="450" y="230" text-anchor="middle" style="fill:var(--bg)">valor, fecha, modalidad, peso</text>
+      <rect x="20" y="40" width="240" height="56" rx="6" style="fill:var(--panel);stroke:var(--purple)" stroke-width="2"/>
+      <text x="140" y="64" text-anchor="middle" style="fill:var(--ink)" font-weight="600">Entidad · 2.003</text>
+      <text x="140" y="84" text-anchor="middle" style="fill:var(--soft)">tipo, orden, sector</text>
+      <rect x="320" y="20" width="260" height="56" rx="6" style="fill:var(--panel);stroke:var(--orange)" stroke-width="2"/>
+      <text x="450" y="44" text-anchor="middle" style="fill:var(--ink)" font-weight="600">Clasificación</text>
+      <text x="450" y="64" text-anchor="middle" style="fill:var(--soft)">estrato, etiqueta, grupo</text>
+      <rect x="640" y="40" width="240" height="56" rx="6" style="fill:var(--panel);stroke:var(--green)" stroke-width="2"/>
+      <text x="760" y="64" text-anchor="middle" style="fill:var(--ink)" font-weight="600">Proveedor · 17.873</text>
+      <text x="760" y="84" text-anchor="middle" style="fill:var(--soft)">NIT o seudónimo</text>
+      <rect x="20" y="292" width="240" height="56" rx="6" style="fill:var(--panel);stroke:var(--blue)" stroke-width="2"/>
+      <text x="140" y="316" text-anchor="middle" style="fill:var(--ink)" font-weight="600">Territorio</text>
+      <text x="140" y="336" text-anchor="middle" style="fill:var(--soft)">DIVIPOLA, población</text>
+      <rect x="640" y="292" width="240" height="56" rx="6" style="fill:var(--panel);stroke:var(--navy)" stroke-width="2"/>
+      <text x="760" y="316" text-anchor="middle" style="fill:var(--ink)" font-weight="600">Tiempo</text>
+      <text x="760" y="336" text-anchor="middle" style="fill:var(--soft)">año, mes, IPC</text>
+      <rect x="230" y="372" width="210" height="48" rx="6" style="fill:var(--bg);stroke:var(--orange)" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="335" y="401" text-anchor="middle" style="fill:var(--ink)">COVID-19 · INS</text>
+      <rect x="460" y="372" width="210" height="48" rx="6" style="fill:var(--bg);stroke:var(--purple)" stroke-width="2" stroke-dasharray="6 5"/>
+      <text x="565" y="401" text-anchor="middle" style="fill:var(--ink)">Defunciones · DANE</text>
+    </g>
+  </svg></div>
+  <div class="tabla"><table>
+    <thead><tr><th>Tabla</th><th>Grano y llave</th><th>Para qué se usa</th></tr></thead>
+    <tbody>
+      <tr><td>Contrato (hecho)</td><td>Un contrato; 39.870 filas, 42 variables</td><td>Todo lo que se suma, se promedia o se modela.</td></tr>
+      <tr><td>Entidad</td><td>Una entidad compradora (NIT); 2.003</td><td>Efecto aleatorio de los modelos mixtos, tipo de comprador del ACM.</td></tr>
+      <tr><td>Proveedor</td><td>NIT, código de proveedor o seudónimo HMAC; 17.873</td><td>HHI y CR4.</td></tr>
+      <tr><td>Territorio</td><td>Municipio DIVIPOLA (texto de 5 dígitos) y departamento</td><td>Valor por habitante, mapa, cruce con INS y DANE.</td></tr>
+      <tr><td>Tiempo</td><td>Mes de firma</td><td>Serie anual, estacionalidad, deflactor IPC.</td></tr>
+      <tr><td>Clasificación</td><td>Una fila por contrato</td><td>Estrato, peso N/n, etiqueta humana, predicción, clase final, grupo HCPC.</td></tr>
+      <tr><td>COVID-19 INS (externa)</td><td>Mes × departamento</td><td>Lámina 16 y covariable del modelo 2e.</td></tr>
+      <tr><td>Defunciones DANE (externa)</td><td>Año × departamento × causa</td><td>Perfil de mortalidad por grupo (lámina 30).</td></tr>
+    </tbody></table></div>
+  <p>Las tablas externas tienen un grano más grueso que el contrato. Al unirlas, a cada contrato le toca el valor de su departamento y periodo. Eso hace que el análisis sea <b>ecológico</b>: describe territorios, no a los fallecidos que atiende cada contrato.</p>
+</section>
+
+<!-- 6 -->
+<section id="descartes">
+  <div class="sec-head"><p class="eyebrow">6</p><h2>Qué se descartó y por qué</h2></div>
+  <div class="tabla"><table>
+    <thead><tr><th>Se descartó</th><th>Por qué</th><th>Decisión</th></tr></thead>
+    <tbody>
+      <tr><td>Derechos de petición al INS y a alcaldías</td><td>No llegan a tiempo y no son reproducibles por terceros.</td><td>D01</td></tr>
+      <tr><td>Usar solo SECOP II</td><td>Sesgo de migración: en 2020 SECOP I tenía 2.069 candidatos frente a 345 de SECOP II.</td><td>D02</td></tr>
+      <tr><td>Dejar SECOP I solo hasta 2022</td><td>SECOP I siguió teniendo unos 1.700–1.900 candidatos al año en 2023–2025; la serie quedaba incompleta.</td><td>D70, D73</td></tr>
+      <tr><td>Exportar a mano desde datos.gov.co</td><td>Se trunca en 1.000 filas y no es reproducible.</td><td>D03</td></tr>
+      <tr><td>Filtrar solo por código UNSPSC</td><td>Capta 173 de 19.307 contratos de SECOP II; el texto capta casi todo.</td><td>D16</td></tr>
+      <tr><td>OSARIO y ZOONOSIS sin ajustar</td><td>OSARIO coincidía con «ROSARIO» y ZOONOSIS traía salud pública: juntas eran el 82,6 % del ruido de SECOP II.</td><td>D17</td></tr>
+      <tr><td>Procesos de SECOP I sin contrato (Convocado, Adjudicado)</td><td>No hay contrato ejecutado que contar.</td><td>D42</td></tr>
+      <tr><td>Filas repetidas por rubro en SECOP I</td><td>Son el mismo contrato; se deja una por <code>uid</code>.</td><td>D18</td></tr>
+      <tr><td>Borrar cruces SECOP I–II por fecha cercana</td><td>Una regla automática borraría contratos reales; ninguno era funerario.</td><td>D19</td></tr>
+      <tr><td>Ubicar por lugar de ejecución</td><td>Viene en texto libre, con direcciones. Se usa la sede de la entidad y se dice el límite.</td><td>D66</td></tr>
+      <tr><td>Muestra aleatoria simple o sin pesos</td><td>Sería casi toda ruido y la precisión saldría inflada.</td><td>D22, D79</td></tr>
+      <tr><td>Etiquetar con un modelo de lenguaje como referencia</td><td>Se evaluaría al modelo contra sí mismo; la referencia es siempre humana.</td><td>D23</td></tr>
+      <tr><td>Corrida completa de DeepSeek</td><td>Su intervalo se solapa con el de TF-IDF; por la regla D59 gana el más simple y auditable.</td><td>D59, D94</td></tr>
+      <tr><td>Sumar los contratos mixtos al total</td><td>No se puede separar la parte funeraria en pesos; sumarlos sobrestima y descartarlos subestima. Van en una fila aparte.</td><td>D89</td></tr>
+      <tr><td>Variables del análisis de patrones: duración, oferentes, sector, rama, origen de recursos, <code>es_pyme</code>, lugar de ejecución</td><td>Faltantes, unidades dudosas o existen en una sola plataforma.</td><td>D97</td></tr>
+      <tr><td>Elegir modelos solo por BIC</td><td>Un modelo con buen BIC puede violar supuestos.</td><td>D97</td></tr>
+      <tr><td>Serie de COVID-19 del INS sin filtrar</td><td>La filtrada por estado «Fallecido» (143.125) coincide con la cifra oficial de la OPS; sin filtrar eran 184.393.</td><td>D99</td></tr>
+      <tr><td>Modelos de causas de defunción (Spearman, binomial negativa en panel)</td><td>Con 33 departamentos y contratos ubicados por sede, no se sostienen: el único resultado cae con efectos fijos de departamento (1,14; IC 0,89–1,47). Se conserva solo la tabla descriptiva.</td><td>D107c, D108</td></tr>
+      
+    </tbody></table></div>
+</section>
+
+<!-- 7 -->
+<section id="fichas">
+  <div class="sec-head"><p class="eyebrow">7</p><h2>Fichas de cada indicador</h2></div>
+  <p>Cada ficha responde lo mismo: qué mide, cómo se lee, cómo se infiere, qué supuesto necesita y cómo se verificó, y por qué se eligió.</p>
+  <div class="search"><label for="filtro">Buscar indicador</label><input id="filtro" type="search" placeholder="Ej.: kappa, HHI, Jaccard, lámina 19" autocomplete="off"><small id="conteo"></small></div>
+
+  <h3 class="grupo-t">Muestreo</h3>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Marco muestral y estratos</h3><span class="meta">láminas 7–9 · D22</span></div>
+  <p class="cifra">34.790 candidatos en 9 estratos · D sin señal: 26.396 (76 % del marco)</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>El marco es la lista de la que se sortea. Los estratos agrupan los candidatos según la señal que tienen: palabra y código (A1), solo palabra (A2), solo código (A3), animales (B), cuatro estratos C (cadáver, cementerio, osario y mixtas, necropsia) y D, sin señal tras el filtro afinado.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Los 39.870 de los que habla la presentación son el marco más 5.080 contratos de SECOP I 2023–2025, que se descargaron después y no estaban en el marco (D73). Esos 5.080 se corrigen con 30 contratos etiquetados aparte.</dd></div>
+    <div><dt>Supuesto</dt><dd>Estratificar sirve si los estratos <b>difieren entre sí</b> y son <b>parecidos por dentro</b>. Se verificó con la proporción funeraria por estrato (lámina 9): entre estratos va de 0 % a 100 %; por dentro A1, B, C y D son homogéneos, pero A2 (44 %) y A3 (72 %) son mixtos, y por eso recibieron más muestra.</dd></div>
+    <div><dt>Por qué</dt><dd>Una muestra aleatoria simple de 400 tendría unos 300 contratos del estrato D, casi todos sin interés, y muy pocos de los estratos donde está la incertidumbre.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Peso muestral w = N / n</h3><span class="meta">láminas 8–9 · D22, D79</span></div>
+  <p class="cifra">D: 26.396 / 50 = 527,9 · A1: 38,5 · B: 1,0 (censo)</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>El inverso de la probabilidad de selección dentro del estrato: cuántos contratos del marco representa cada contrato de la muestra.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Un contrato del estrato D representa a 528; uno de B se representa solo a sí mismo, porque B se tomó completo (23 de 23).</dd></div>
+    <div><dt>Cómo se infiere</dt><dd>Todo total o proporción del marco se calcula ponderando: Σ w·y. Sin pesos, los estratos sobremuestreados (A1, A2) inflarían la proporción de funerarios.</dd></div>
+    <div><dt>Supuesto</dt><dd>Selección aleatoria sin reemplazo dentro de cada estrato, con probabilidad conocida. Se cumple por diseño: sorteo con semilla fija (2026), proporcional por fuente y año.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Proporción funeraria con Horvitz-Thompson</h3><span class="meta">lámina 7 · D79</span></div>
+  <p class="cifra">10,5 % del marco · IC 95 %: 10,0 a 11,1 · error estándar 0,3 puntos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>La proporción de funerarios en el marco, estimada con la muestra: <span class="f">p̂ = Σ w·y / Σ w</span>, donde y = 1 si la etiqueta humana es «funerario».</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Uno de cada diez candidatos del marco es funerario. Nueve de cada diez son ruido que trajo la búsqueda léxica.</dd></div>
+    <div><dt>Cómo se infiere</dt><dd>La varianza es la suma de las varianzas de cada estrato ponderadas por (N_h/N)²; el IC es normal. Es inferencia por diseño.</dd></div>
+    <div><dt>Cautela</dt><dd>El IC es optimista: 6 de los 9 estratos tienen cero funerarios y aportan varianza cero. Con la validación de 60 la proporción sale 21,0 % (IC 2,2 a 39,9), y la diferencia viene casi toda de un solo contrato del estrato D con peso 3.293.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Intervalo de Wilson por estrato</h3><span class="meta">lámina 9 · D79</span></div>
+  <p class="cifra">A2: 44 % (34,6–54,7) · D: 0 de 50 → 0 a 7,1 %</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Un intervalo de confianza para una proporción que invierte la prueba de puntuación en lugar de usar p̂ ± z·√(p̂(1−p̂)/n).</dd></div>
+    <div><dt>Por qué este</dt><dd>Con proporciones de 0 % o 100 %, el intervalo clásico de Wald tiene ancho cero y dice que no hay incertidumbre. Wilson da un rango real: 0 de 50 no significa 0 %, sino «entre 0 y 7,1 %».</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Si los intervalos de dos estratos no se tocan, sus proporciones son claramente distintas, que es lo que justifica haberlos separado.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Efecto de diseño de Kish y tamaño efectivo</h3><span class="meta">lámina 9 · D79</span></div>
+  <p class="cifra">deff 4,70 → los 400 rinden como 85,2 · en los 143 funerarios: deff 1,18 → 120,8</p>
+  <dl>
+    <div><dt>Qué es</dt><dd><span class="f">deff = n·Σw² / (Σw)²</span> y <span class="f">n_ef = n / deff</span>. Mide cuánta precisión se pierde porque los pesos son desiguales.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Para estimar algo sobre todo el marco, los 400 contratos valen lo mismo que 85 tomados al azar. Para lo que se calcula solo con funerarios (por ejemplo, el F1), casi no hay pérdida: rinden como 121 de 143.</dd></div>
+    <div><dt>Por qué importa</dt><dd>Explica por qué el estrato D, con peso 528, es el que más pesa en la incertidumbre del total, y por qué se reforzó con 150 contratos más (D91).</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Asignación de Neyman (comparación)</h3><span class="meta">lámina 8 · D79, D91</span></div>
+  <p class="cifra">Neyman: A1 0 · A2 33 · A3 20 · B 23 · D 281 (suma 402 por redondeo)</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>La asignación que minimiza la varianza de una sola estimación: <span class="f">n_h ∝ N_h·S_h</span>, con S_h = √(p_h(1−p_h)). Se calcula después, con las proporciones observadas, para comparar.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Neyman pondría 0 en A1 (es 100 % funerario: varianza cero) y 281 en D (es enorme). B se fija como censo.</dd></div>
+    <div><dt>Por qué no se usó</dt><dd>La muestra tenía tres trabajos a la vez: entrenar el clasificador (necesita funerarios, de ahí A1 y A2), estimar la proporción y medir lo que escapa al filtro (C y D). Neyman optimiza solo uno. La distancia con Neyman en D se cubrió después con 150 contratos de D (D91). El tamaño de 400 lo fijó el presupuesto de doble etiquetado, no un cálculo de precisión, y así se reporta.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Regla del tres</h3><span class="meta">láminas 7 y 12 · D22, D93</span></div>
+  <p class="cifra">0 de 100 no recuperados → ≤ 3 % · estrato D: 0 de 208 → &lt; 1,44 %, como máximo 381 contratos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Si en n observaciones no aparece ningún caso, el límite superior del IC del 95 % para la proporción es aproximadamente 3/n. Sale de resolver (1 − p)ⁿ = 0,05.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>De lo que la búsqueda no trae, como mucho el 3 % sería funerario. En el estrato D, como mucho 381 de 26.396.</dd></div>
+    <div><dt>Cómo se usa</dt><dd>La cota de D <b>no</b> entra en el intervalo del total: en los 200 contratos de D de la muestra no hubo ningún error, así que en el bootstrap D aporta varianza cero. Por eso se reporta aparte, como límite. Los 100 no recuperados no tienen pesos y no corrigen el total: el total es una cota inferior respecto de lo que la búsqueda no recupera.</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Medición</h3>
+
+  <article class="ficha k-med"><div class="ficha-h"><h3>κ de Cohen (acuerdo entre revisores)</h3><span class="meta">lámina 10 · D23, D54</span></div>
+  <p class="cifra">0,683 en los 400 · calibración 0,812 (40 filas) · ronda principal 0,668 (360) · umbral fijado 0,70</p>
+  <dl>
+    <div><dt>Qué es</dt><dd><span class="f">κ = (p_o − p_e) / (1 − p_e)</span>: el acuerdo observado descontando el que se esperaría por azar.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Según Landis y Koch (1977), 0,61–0,80 es acuerdo sustancial. Pero el umbral que fijamos antes era 0,70, así que <b>no se cumple</b>, y se reporta así.</dd></div>
+    <div><dt>Por qué κ</dt><dd>El porcentaje de acuerdo engaña cuando una clase domina: si casi todo es «no funerario», dos revisores coinciden mucho aunque no sepan nada. κ corrige eso.</dd></div>
+    <div><dt>Qué se hizo</dt><dd>Un tercer revisor desempató los desacuerdos y se revisaron uno por uno los 50 contratos de mayor valor (D83). La caída entre calibración y ronda principal se explica porque reglas del libro de códigos (D21) se fijaron durante el etiquetado. Limitación: el desempate no fue ciego.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-med"><div class="ficha-h"><h3>Clasificador: TF-IDF con regresión logística</h3><span class="meta">lámina 11 · D55, D56, D59, D94</span></div>
+  <p class="cifra">F1 ponderado: 0,932 (CV, 392) · 0,956 (externa, 60) · 0,976 (humanitarios, 40) · 150/150 en D · 30/30 SECOP I nuevos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>TF-IDF convierte cada texto en un vector: cada palabra (y par de palabras) pesa más si es frecuente en ese contrato y rara en el conjunto. Una <b>regresión logística multinomial</b> de tres clases (funerario, no funerario, mixto) estima la probabilidad de cada clase. La regularización C se elige por validación cruzada interna.</dd></div>
+    <div><dt>F1</dt><dd><span class="f">F1 = 2·P·S / (P + S)</span>, con P la precisión (de lo que marca funerario, cuánto lo es) y S la sensibilidad (de lo funerario, cuánto encuentra). Es «ponderado» porque cada caso pesa N/n.</dd></div>
+    <div><dt>Cómo se infiere</dt><dd>IC del 95 % por bootstrap estratificado: se remuestrea dentro de cada estrato y se recalcula el F1 muchas veces.</dd></div>
+    <div><dt>Supuesto</dt><dd>Que el modelo <b>generalice</b> a contratos que no vio. Se verificó con datos fuera del entrenamiento: validación externa, lote humanitario, estrato D (0 falsos positivos en 150; ahí el F1 no está definido porque no hay positivos) y 30 contratos de SECOP I 2023–2025.</dd></div>
+    <div><dt>Por qué este</dt><dd>Regla D59, fijada antes: un modelo más complejo solo desplaza a TF-IDF si su intervalo queda <b>entero por encima</b>. DeepSeek (0,963; IC 0,869–1,000) se solapa con TF-IDF (0,956; IC 0,908–0,996), así que gana el más simple y auditable. SVM y XGBoost tampoco lo superan.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-med"><div class="ficha-h"><h3>Jerarquía de etiquetas</h3><span class="meta">láminas 12–13 · D84</span></div>
+  <p class="cifra">542 contratos con etiqueta humana reemplazan la predicción del modelo</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>En las cifras del mercado, si una persona etiquetó el contrato, manda su etiqueta; si no, la del modelo.</dd></div>
+    <div><dt>Por qué</dt><dd>Dejar la predicción en contratos ya revisados ponía al mercado en contradicción con las etiquetas. Las métricas del clasificador no cambian: se evalúa al modelo, no a la jerarquía.</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Estimación</h3>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Estimador de diferencia del total</h3><span class="meta">lámina 12 · D85, D90, D93</span></div>
+  <p class="cifra">262,9 − 33,5 + 24,6 + 0,1 = 254,0 mil millones de 2025 · IC 95 %: 225,4 a 304,5</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Un estimador asistido por modelo (Särndal, Swensson y Wretman, 1992): <span class="f">t̂ = Σ_U ŷ·v + Σ_s w·(y − ŷ)·v</span>. Parte del total que da el modelo sobre todo el universo y le suma la diferencia ponderada entre la etiqueta humana y la predicción.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>El modelo sumaría 262,9. La revisión de los 50 de mayor valor resta 33,5 (marcaba como funerarios contratos grandes que no lo eran). La muestra de 400 y el estrato D suman 24,6 (funerarios que el modelo no vio). El lote humanitario suma 0,1.</dd></div>
+    <div><dt>Cómo se infiere</dt><dd>Bootstrap estratificado: 2.000 veces se remuestrean, con reemplazo y dentro de cada uno de los 13 estratos (los 9 de la muestra, D con 200 contratos, 2 de SECOP I nuevo y 2 de humanitarios), los contratos etiquetados, y se recalculan las correcciones. El total del modelo (262,9) y la revisión de los 50 (−33,5) no varían: son el universo y un censo. El IC es el percentil 2,5 y 97,5 de las 2.000 réplicas; error estándar 21,0. Es asimétrico (−28,6 y +50,5) porque la corrección depende de pocos contratos grandes mal clasificados con pesos altos (A2 pesa 16): una réplica que repite uno de ellos sube mucho el total. Un IC normal (±1,96 × 21,0) sería simétrico y no captaría esa cola.</dd></div>
+    <div><dt>Supuesto</dt><dd>Muestra probabilística con pesos conocidos. Se cumple por diseño. No supone que el modelo sea correcto: si el modelo se equivoca, la muestra lo corrige.</dd></div>
+    <div><dt>Por qué no la suma</dt><dd>La suma de lo clasificado (229,6 en 4.985 contratos, lámina 13) solo corrige los contratos revisados. El estimador extiende al resto los errores que la muestra muestra. Con e5 en vez de TF-IDF daría 221,9 (sensibilidad).</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mue"><div class="ficha-h"><h3>Contratos mixtos aparte</h3><span class="meta">láminas 7 y 13 · D89</span></div>
+  <p class="cifra">111 contratos · 157,4 mil millones · 133,0 en 14 contratos de 2020</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Contratos donde lo funerario viene junto con otra cosa (por ejemplo, ayuda humanitaria con «asistencia de gastos funerarios» entre diez asistencias).</dd></div>
+    <div><dt>Por qué aparte</dt><dd>El texto no permite separar la parte funeraria en pesos. Sumarlos sobrestima, descartarlos subestima, y repartirlos con una fracción supuesta sería inventar. Se reportan en una fila aparte, sin sumarse ni usarse como límite superior.</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Descripción</h3>
+
+  <article class="ficha k-des"><div class="ficha-h"><h3>Serie anual y valor promedio</h3><span class="meta">lámina 13 · D67, D86</span></div>
+  <p class="cifra">Valor: 44,6 → 37,9 mil millones · Contratos: 1.064 → 688 · Promedio: 42 → 55 millones</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Suma por año de los contratos clasificados funerarios (etiqueta humana o TF-IDF), en pesos de 2025, sin mixtos.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Los contratos caen 35 % y el valor menos, así que el contrato promedio sube de 42 a 55 millones. No es encarecimiento: dentro de SECOP I se mantiene (28 → 27) y dentro de SECOP II baja (203 → 82); sube porque SECOP II pasó del 8 al 51 % de los contratos (paradoja de Simpson).</dd></div>
+    <div><dt>Inferencia</dt><dd>Ninguna: es descriptivo sobre el universo clasificado. Suma 229,6; el estimador de la lámina 12 corrige el total a 254,0.</dd></div>
+    <div><dt>Por qué deflactar</dt><dd>Con pesos corrientes, la inflación parecería crecimiento del gasto.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-des"><div class="ficha-h"><h3>Valor por 100.000 habitantes</h3><span class="meta">lámina 14 · D14, D66</span></div>
+  <p class="cifra">Guainía 425,0 millones · Bogotá 123,8 · Bogotá en valor total: 58,3 mil millones con 150 contratos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Millones de pesos de 2025 por cada 100.000 habitantes al año (población DANE del año de firma, promedio de los años con contratos).</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Normaliza por tamaño: sin dividir por población, los departamentos grandes siempre aparecen arriba. Los departamentos pequeños (Guainía, Vaupés) lideran porque pocos contratos pesan mucho sobre poca población; San Andrés aparece por un solo contrato.</dd></div>
+    <div><dt>Límite</dt><dd>El contrato se ubica en la sede de la entidad. Las entidades nacionales tienen sede en Bogotá aunque el servicio se preste en otro lugar, y por eso Bogotá concentra la cuarta parte del valor.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-des"><div class="ficha-h"><h3>HHI y CR4 (concentración de proveedores)</h3><span class="meta">láminas 15 y 28 · D69, D77</span></div>
+  <p class="cifra">HHI nacional 242 → 662 · mediana departamental 1.297 → 2.003 (máx. 2.034) · CR4 24 % → 34 % · departamentos &gt; 2.500: 4 → 9</p>
+  <dl>
+    <div><dt>Qué es</dt><dd><span class="f">HHI = Σ s_i²</span>, con s_i la participación de cada proveedor en el valor, en porcentaje (de 0 a 10.000). CR4 es la suma de las cuatro mayores participaciones.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Umbrales del Departamento de Justicia de EE. UU. (guías de 2010): menos de 1.500, competido; entre 1.500 y 2.500, moderadamente concentrado; más de 2.500, muy concentrado. Si preguntan: las guías de 2023 bajaron el umbral de alta concentración a 1.800, y con ese corte la mediana departamental de 2024–2025 ya sería «alta».</dd></div>
+    <div><dt>Supuesto clave</dt><dd>El <b>mercado relevante</b>. Una alcaldía no le compra a un proveedor del otro extremo del país, así que la medida principal es el HHI por departamento; el nacional va como contexto (condición de D69).</dd></div>
+    <div><dt>Límites</dt><dd>Las personas naturales no se unen entre SECOP I y II, así que el HHI queda algo subestimado. Por grupo (lámina 28), un grupo con pocos contratos tiene menos proveedores por construcción: la concentración está ligada al tamaño.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-des"><div class="ficha-h"><h3>COVID-19: cuándo sí, dónde no</h3><span class="meta">lámina 16 · D99</span></div>
+  <p class="cifra">+38 % contratos/año en 2020–2021 · ×1,07 si se duplican las muertes del mes (IC 1,04–1,11) · Spearman ρ = 0,09, p = 0,63 (32 departamentos)</p>
+  <dl>
+    <div><dt>En el tiempo</dt><dd>En el modelo mensual 2e, la variable es log(1 + muertes del mes). Duplicar las muertes multiplica los contratos por exp(β·ln 2) = 1,074. Errores de Newey-West.</dd></div>
+    <div><dt>En el territorio</dt><dd>Correlación de Spearman entre la mortalidad por COVID-19 de cada departamento y cuánto aumentó su contratación en la pandemia. Spearman usa rangos: no supone normalidad ni linealidad y resiste valores extremos, lo que importa con solo 32 departamentos (San Andrés no entra).</dd></div>
+    <div><dt>Cómo se lee</dt><dd>La pandemia explica cuándo se contrató más, no dónde: Bogotá, con la mortalidad más alta (357 por 100.000), firmó menos contratos por año en la pandemia que después (razón 0,75). La geografía la explica más la forma de comprar de cada región.</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Modelos del valor</h3>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Asimetría, curtosis y transformación log</h3><span class="meta">lámina 17 · D97</span></div>
+  <p class="cifra">Asimetría del valor 20,4 → del log −0,46 · mediana 22 millones, media 46</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>La asimetría mide cuán cargada está la cola; la curtosis, qué tan pesadas son las colas. Una normal tiene asimetría 0 y exceso de curtosis 0.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Media mayor que mediana y asimetría de 20 indican unos pocos contratos enormes. El logaritmo corrige casi toda la asimetría, pero las colas siguen pesadas.</dd></div>
+    <div><dt>Umbral fijado</dt><dd>En los residuos del modelo: |asimetría| &gt; 1 o curtosis &gt; 3 es falla de normalidad (D97, antes de ver los datos).</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Correlación intraclase por entidad</h3><span class="meta">lámina 17 · D97</span></div>
+  <p class="cifra">ICC = 0,52 · 912 entidades</p>
+  <dl>
+    <div><dt>Qué es</dt><dd><span class="f">ICC = σ²_entidad / (σ²_entidad + σ²_residual)</span>: la parte de la variación del log del valor que se debe a qué entidad compra.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Más de la mitad de la variación está entre entidades. Los contratos de una misma entidad se parecen: no son independientes.</dd></div>
+    <div><dt>Para qué se usa</dt><dd>Justifica el efecto aleatorio por entidad (modelos mixtos), el bootstrap agrupado por entidad y la advertencia de que los valores p son orientativos.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Lineal, lineal mixto y gamma mixto</h3><span class="meta">lámina 17 · D97</span></div>
+  <p class="cifra">Los tres fallan normalidad · cumplen varianza constante y colinealidad · Cook máx. 0,60 en el lineal</p>
+  <dl>
+    <div><dt>Qué son</dt><dd>Lineal sobre el log del valor; lineal mixto, que agrega un intercepto aleatorio por entidad; gamma con enlace log y efecto aleatorio, que modela directamente valores positivos y asimétricos.</dd></div>
+    <div><dt>Supuestos y prueba</dt><dd>Normalidad de residuos (asimetría y curtosis); varianza constante (correlación de Spearman entre residuos absolutos y ajustados); influencia (distancia de Cook &lt; 1, solo aplica al lineal); colinealidad (GVIF).</dd></div>
+    <div><dt>Decisión</dt><dd>Por la regla de D97, ninguno se elige. En lugar de relajar los umbrales, se pasó a un método que no supone normalidad (D98).</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Regresión por cuantiles y triangulación</h3><span class="meta">lámina 18 · D98, D99</span></div>
+  <p class="cifra">Selección abreviada ×3,3–×5,0 · gobernación ×1,9–×2,5 · SECOP II ×1,3–×1,6 · 3 de 21 efectos sobreviven</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>La regresión por cuantiles en la mediana minimiza la suma de residuos absolutos: modela la mediana del log del valor y no necesita normalidad. Su IC sale de un bootstrap agrupado por entidad (500 remuestreos, 912 entidades).</dd></div>
+    <div><dt>Cómo se lee</dt><dd>El coeficiente está en escala log; exp(β) es un multiplicador. Selección abreviada: 1,603 en la mediana → ×4,97; 1,187 en el lineal mixto → ×3,28; 1,256 en el gamma → ×3,51. De ahí el rango ×3,3 a ×5,0 frente a mínima cuantía.</dd></div>
+    <div><dt>Por qué tres modelos</dt><dd>Como ningún modelo cumplía todo, se reporta solo lo que coincide en signo y significancia en tres modelos que no dependen del mismo supuesto. De 21 coeficientes, 9 cambian de signo y 11 de significancia; quedan 3. Es exploratorio (D98 se decidió después de ver D97).</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Modelos de estacionalidad</h3>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Poisson y sobredispersión</h3><span class="meta">lámina 19 · D97</span></div>
+  <p class="cifra">Cameron-Trivedi α = 0,035 (p &lt; 0,001) · Pearson χ²/gl = 4,39 (55 gl)</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>El Poisson modela conteos (contratos por mes) y supone media igual a varianza.</dd></div>
+    <div><dt>Prueba</dt><dd>Cameron y Trivedi: regresión auxiliar sin intercepto de ((y − μ)² − y)/μ sobre μ; α &gt; 0 significativo indica sobredispersión. Pearson χ²/gl debería estar cerca de 1; 4,39 es más de cuatro veces la varianza esperada.</dd></div>
+    <div><dt>Decisión</dt><dd>Falla: sus errores estándar serían demasiado pequeños. Se pasa a la binomial negativa.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Binomial negativa y Ljung-Box</h3><span class="meta">lámina 19 · D97, D98</span></div>
+  <p class="cifra">BN: χ²/gl 1,26 (p 0,095) cumple · Ljung-Box Q = 24,0 (12 rezagos, p 0,020) falla</p>
+  <dl>
+    <div><dt>Binomial negativa</dt><dd>Agrega un parámetro de dispersión, de modo que la varianza puede superar a la media. Resuelve la sobredispersión.</dd></div>
+    <div><dt>Ljung-Box</dt><dd><span class="f">Q = n(n+2) Σ ρ̂_k² / (n − k)</span> sobre los residuos, hasta 12 rezagos. Si p &lt; 0,05, los residuos están autocorrelacionados: un mes predice al siguiente, y los errores estándar no son válidos.</dd></div>
+    <div><dt>Decisión</dt><dd>Se agrega la covariable de muertes por COVID-19 (modelo 2e): Q = 16,7, p = 0,161, cumple, y sus residuos cuantílicos son normales (curtosis −0,78). Cautela: quitar un solo mes cambia la conclusión del Ljung-Box (p de 0,020 a 0,271).</dd></div>
+  </dl></article>
+
+  <article class="ficha k-mod"><div class="ficha-h"><h3>Newey-West, Wald y razones de tasas</h3><span class="meta">láminas 19–20 · D99</span></div>
+  <p class="cifra">Wald de los 11 meses χ² = 559,6 (11 gl, p &lt; 0,0001) · feb ×2,03 · mar ×2,20 · abr ×1,71 frente a enero</p>
+  <dl>
+    <div><dt>Newey-West</dt><dd>Errores estándar robustos a heterocedasticidad y a autocorrelación. Se usan porque el Ljung-Box está en el borde.</dd></div>
+    <div><dt>Wald</dt><dd>Prueba conjunta de que los 11 coeficientes de mes (frente a enero) son cero. Rechazarla dice que hay estacionalidad.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>exp(β_mes) es una razón de tasas: en marzo se firman 2,2 veces los contratos de enero. El patrón se repite en los seis años; 2020 es la excepción, con el pico corrido a abril por la pandemia. La lectura administrativa (las entidades contratan al abrir la vigencia presupuestal) es interpretación nuestra, no un resultado del modelo.</dd></div>
+    <div><dt>Límite</dt><dd>D99 reporta los meses de mayor contratación como resultado; la forma exacta del modelo es una limitación (empate de BIC entre 2e y 2c).</dd></div>
+  </dl></article>
+
+  <h3 class="grupo-t">Clustering</h3>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Clases latentes y residuo bivariado</h3><span class="meta">lámina 21 · D97, D98</span></div>
+  <p class="cifra">0 de 45 modelos cumplen BVR ≤ 10 · mínimo 9,4 sin repetir su ajuste</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Un modelo probabilístico que supone que hay clases ocultas y que, dentro de cada clase, las variables son independientes (<b>independencia local</b>).</dd></div>
+    <div><dt>Prueba</dt><dd>El residuo bivariado (BVR) compara, para cada par de variables, lo observado con lo que predice el modelo. Umbral fijado: 10. Se probaron 18 modelos propios y 27 de poLCA con 100 arranques.</dd></div>
+    <div><dt>Decisión</dt><dd>Ninguno cumple. El único que baja de 10 no repite su mejor ajuste, así que no se distingue de un máximo local. Conclusión: no hay tipología latente, y se pasa a un método descriptivo.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Análisis de correspondencias múltiples</h3><span class="meta">lámina 22 · D98</span></div>
+  <p class="cifra">Eje 1: 12,6 % («a quién se atiende») · Eje 2: 9,2 % («qué se compra») · plano: 21,8 %</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>La versión del análisis de componentes principales para variables categóricas. Resume 10 variables (comprador, modalidad, tipo de contrato, orden y seis componentes del servicio) en ejes ordenados por la inercia que retienen.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Cada eje se nombra por las categorías que más contribuyen. Eje 1: alcaldías y población vulnerable frente a hospitales, servicios públicos y régimen especial. Eje 2: servicio de inhumación frente a ataúdes, bienes y planes.</dd></div>
+    <div><dt>Por qué no preocupa el 21,8 %</dt><dd>En el ACM la inercia total depende del número de categorías, y los primeros ejes siempre retienen porcentajes bajos. Por eso la clasificación se hace sobre varios ejes retenidos, no solo sobre el plano: los grupos 1, 3 y 5 se superponen en el plano y se separan en otros ejes.</dd></div>
+    <div><dt>Por qué ACM y no k-means</dt><dd>K-means usa distancia euclidiana sobre números; con categorías no tiene sentido directo. El ACM convierte las categorías en coordenadas continuas que sí admiten distancias.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Clasificación jerárquica de Ward (HCPC)</h3><span class="meta">láminas 22–24 · D98</span></div>
+  <p class="cifra">11 grupos sugeridos · 8 reportados con 4.910 de 4.992 contratos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Sobre las coordenadas del ACM se unen grupos de a pares, eligiendo en cada paso la fusión que menos aumenta la inercia dentro de los grupos (criterio de Ward). El número de grupos se sugiere donde la ganancia de inercia cae.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>El codo en 11 es moderado, no un corte nítido (validación D106). Se reportan los grupos estables con al menos 1 % de los contratos.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Estabilidad por bootstrap (Jaccard)</h3><span class="meta">lámina 23 · D99 (enmienda)</span></div>
+  <p class="cifra">Jaccard medio ≥ 0,75 (Hennig, 2007) · G4, G5 y G6 se disuelven en el 8 %, 9,5 % y 26 % de los remuestreos</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Se remuestrean los contratos 200 veces, se repite el agrupamiento y se mide el índice de Jaccard <span class="f">|A ∩ B| / |A ∪ B|</span> entre cada grupo original y su mejor coincidencia.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Un grupo con Jaccard medio de 0,96 reaparece casi idéntico. El percentil 5 dice qué tan mal le va en los peores remuestreos; un grupo «se disuelve» cuando su Jaccard baja de 0,5.</dd></div>
+    <div><dt>Por qué</dt><dd>Un clustering siempre produce grupos, aunque no existan. La estabilidad es la evidencia de que no son un artefacto de la muestra. Este criterio se fijó después de ver los datos, y así quedó registrado.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Prueba v (perfil de los grupos)</h3><span class="meta">lámina 25 · D99</span></div>
+  <p class="cifra">|v| &gt; 2 ≈ p &lt; 0,05 · G4: 100 % compraventa · G5: 100 % selección abreviada</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Compara el porcentaje de una categoría dentro del grupo con su porcentaje global, estandarizado bajo un modelo hipergeométrico. Es la salida estándar de FactoMineR para describir grupos.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>v positivo y grande: la categoría está sobrerrepresentada y define al grupo. v negativo: está ausente. Así se nombran los grupos, por ejemplo «G1 alcaldías: servicio».</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Kruskal-Wallis y Dunn-Holm</h3><span class="meta">lámina 26 · D106</span></div>
+  <p class="cifra">H = 701,0, ε² = 0,143 (moderado) · 17 de 28 pares difieren · G5 frente a los otros 7: p &lt; 10⁻²⁵ · G1–G2: p = 0,33</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>Kruskal-Wallis compara la distribución del valor entre grupos usando rangos: no supone normalidad. ε² ≈ H/(n − 1) es el tamaño del efecto. Dunn compara pares, y Holm ajusta los p por las 28 comparaciones.</dd></div>
+    <div><dt>Por qué es validación externa</dt><dd>El valor no entró al ACM. Si los grupos difieren en algo que no se usó para formarlos, no son solo un reflejo de sus propias variables.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>El grupo 5 tiene mediana de 113,9 millones, unas cinco veces la del resto (13 a 32). G1 y G2, las dos formas de comprar de las alcaldías, cuestan prácticamente lo mismo.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>χ², V de Cramér y residuos ajustados</h3><span class="meta">lámina 29 · D106</span></div>
+  <p class="cifra">V = 0,34 (grupo × departamento) · 63 de 176 celdas con |residuo| &gt; 3 · G1 domina en 21 departamentos, G2 en 7</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>χ² prueba si el grupo es independiente del departamento. <span class="f">V = √(χ² / (n·(min(r, c) − 1)))</span> lo lleva a una escala de 0 a 1. El residuo ajustado de cada celda se compara con una normal estándar.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>V = 0,34 es una asociación mediana: la forma de comprar depende de la región. Un residuo mayor que 3 marca combinaciones que aparecen mucho más de lo esperado (por ejemplo, G7 en Bogotá, +45,8). Con tantas celdas, el umbral de Bonferroni sería |z| ≈ 3,5.</dd></div>
+    <div><dt>Supuesto</dt><dd>Frecuencias esperadas suficientes (regla de Cochran): los departamentos pequeños se agruparon en «Otros». El p por permutación (9.999) confirma el de χ².</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>ARI, PAM con Gower y silueta</h3><span class="meta">lámina 31 · D106</span></div>
+  <p class="cifra">Solo SECOP II: ARI = 0,76 (umbral 0,5) · PAM con Gower: ARI = 0,32 · silueta sin máximo claro</p>
+  <dl>
+    <div><dt>ARI</dt><dd>Índice de Rand ajustado: compara dos particiones descontando el acuerdo por azar. 1 = idénticas; 0 = lo esperable al azar.</dd></div>
+    <div><dt>Cómo se lee</dt><dd>Rehechos solo con SECOP II, los grupos salen casi iguales: no son un efecto de la plataforma. Con otro algoritmo (PAM sobre la distancia de Gower) la partición exacta no se reproduce. La silueta sube con k y no señala un número natural de grupos.</dd></div>
+    <div><dt>Conclusión</dt><dd>La estructura grande es real; los bordes finos entre grupos pequeños dependen del método. Por eso los grupos se presentan como descripción, no como tipología confirmada.</dd></div>
+  </dl></article>
+
+  <article class="ficha k-clu"><div class="ficha-h"><h3>Perfil de mortalidad por grupo</h3><span class="meta">lámina 30 · D108</span></div>
+  <p class="cifra">G7: homicidios 14,5 frente a 25,5 del total · el resto, cerca del total</p>
+  <dl>
+    <div><dt>Qué es</dt><dd>A cada contrato se le asigna la tasa de defunción de su departamento en el año de firma, por causa, y se reporta la mediana por grupo. Fuente: cuadros 5 y 16 de las Estadísticas Vitales del DANE, 2020–2025 definitivas.</dd></div>
+    <div><dt>Tasa estandarizada</dt><dd>Método directo: las tasas por edad de cada departamento se aplican a una población estándar (Colombia 2020). Así un departamento envejecido no aparece con más muertes solo por su estructura de edad. La COVID-19 va como tasa cruda (el cuadro 16 no trae edad) y solo existe en 2020–2022.</dd></div>
+    <div><dt>Inferencia</dt><dd>Ninguna: es descriptivo. Los modelos de D107 se retiraron (D107c) porque con 33 departamentos y contratos ubicados por sede no se sostenían.</dd></div>
+    <div><dt>Límite</dt><dd>La tasa es la del departamento de la entidad, no la de los fallecidos que atiende cada contrato, y los departamentos con más contratos pesan más en la mediana.</dd></div>
+  </dl></article>
+
+  <p class="vacio" id="sin-resultados" hidden>Ningún indicador coincide con esa búsqueda.</p>
+</section>
+
+<!-- 8 -->
+<section id="reglas">
+  <div class="sec-head"><p class="eyebrow">8</p><h2>Reglas fijadas antes de ver los resultados</h2></div>
+  <p>Registrar la regla antes de correr el análisis evita ajustar el criterio al resultado. Es la respuesta a la pregunta «¿no eligieron lo que les convenía?».</p>
+  <div class="tabla"><table>
+    <thead><tr><th>Regla</th><th>Qué dice</th><th>Qué pasó</th></tr></thead>
+    <tbody>
+      <tr><td>κ ≥ 0,70 (D23)</td><td>Acuerdo mínimo entre revisores.</td><td>0,683: no se cumple; se reporta y se compensa.</td></tr>
+      <tr><td>D59</td><td>Un modelo complejo desplaza a TF-IDF solo si su IC queda entero por encima.</td><td>Los intervalos se solapan: gana TF-IDF.</td></tr>
+      <tr><td>D97</td><td>Gana el menor BIC; ΔBIC &lt; 2 → el más simple; un modelo que falla supuestos no se elige.</td><td>Ningún modelo cumplió en las tres preguntas.</td></tr>
+      <tr><td>D98 (exploratoria)</td><td>Modelos alternativos con reglas propias, decididos después de ver D97.</td><td>Sus hallazgos se reportan como exploratorios.</td></tr>
+      <tr><td>D99</td><td>Solo se reporta lo que sobrevive a tres especificaciones o a los remuestreos.</td><td>3 efectos de valor, 8 grupos, meses de mayor contratación.</td></tr>
+      <tr><td>D106</td><td>Criterios de validación de los grupos (ARI ≥ 0,5, etc.).</td><td>4 de 6 pruebas se sostienen.</td></tr>
+      <tr><td>D107 → D107c</td><td>Plan de modelos de causas de defunción con umbrales previos.</td><td>No se sostuvo con efectos fijos; se retiró y quedó la tabla descriptiva.</td></tr>
+    </tbody></table></div>
+</section>
+
+<!-- 9 -->
+<section id="preguntas">
+  <div class="sec-head"><p class="eyebrow">9</p><h2>Preguntas frecuentes</h2></div>
+  <div class="qa">
+    <details><summary>Si tienen todos los contratos de SECOP, ¿para qué muestrear?</summary><p>Porque lo que no sabemos no es cuáles contratos existen, sino cuáles son funerarios. La búsqueda trae 39.870 candidatos y solo uno de cada diez lo es. Revisar todos a mano no era posible, así que se revisó una muestra probabilística y con ella se corrigió el error del clasificador.</p></details>
+    <details><summary>¿Por qué el total es 254,0 y no 229,6 o 262,9?</summary><p>262,9 es lo que suma el modelo sin corregir. 229,6 es la suma de lo ya clasificado (etiqueta humana donde existe, modelo en el resto). 254,0 es el estimador de diferencia, que extiende a los contratos no revisados los errores que la muestra detectó. Es el único de los tres con intervalo de confianza válido por diseño.</p></details>
+    <details><summary>¿Por qué el intervalo del total es asimétrico?</summary><p>Porque el valor de los contratos es muy asimétrico y la corrección depende de pocos contratos grandes mal clasificados que pesan mucho. En el bootstrap, una réplica que repite uno de esos contratos sube bastante el total; por eso la cola de arriba (+50,5) es más larga que la de abajo (−28,6). El intervalo no incluye lo que la búsqueda no trae, los posibles funerarios ocultos en el estrato D (hasta 381 por la regla del tres) ni los contratos mixtos: en ese sentido es optimista.</p></details>
+    <details><summary>¿Por qué no agruparon simplemente por quién compra y qué compra?</summary><p>Lo probamos (D109). Clasificamos los contratos por comprador (alcaldía, gobernación, hospital, servicios públicos, nacional, otra) y por lo que compran (plan, ataúdes, traslado, servicio de inhumación, otro). Esa segmentación casi no distingue los contratos en lo que importa: en valor da ε² = 0,055, frente a 0,143 del clustering, y en territorio V = 0,15, frente a 0,34. Además cambia según el orden en que se apliquen las reglas y según unos pocos contratos grandes. Conclusión: saber quién compra y qué compra no basta para separar las formas de comprar; hay que combinarlo con la modalidad, el tipo de contrato y el orden de la entidad, y eso es lo que hace el clustering. Una parte de esa ventaja viene de la modalidad, que está ligada al valor por ley.</p></details>
+    <details><summary>Si el κ no llegó a 0,70, ¿la clasificación no sirve?</summary><p>0,683 es acuerdo sustancial según Landis y Koch, y queda a 0,017 del umbral que nos pusimos. Lo reportamos como no cumplido, desempatamos los desacuerdos con un tercer revisor y revisamos uno por uno los 50 contratos de mayor valor, que son los que más mueven el total.</p></details>
+    <details><summary>DeepSeek tuvo mejor F1, ¿por qué no lo usaron?</summary><p>Porque la regla, fijada antes de evaluarlo, exige que su intervalo quede entero por encima del de TF-IDF, y se solapan. Además su F1 en validación cruzada es optimista (sus ejemplos salieron de esos mismos casos). Ante empate estadístico, gana el modelo más simple, más barato y auditable.</p></details>
+    <details><summary>¿Por qué reportan efectos del valor si ningún modelo cumplió los supuestos?</summary><p>Porque no confiamos en un modelo: reportamos solo los tres efectos que coinciden en signo y significancia en tres modelos que no dependen del mismo supuesto (mediana, lineal mixto y gamma). Los otros 18 coeficientes se declaran no concluyentes. Y se presenta como exploratorio.</p></details>
+    <details><summary>¿Por qué Bogotá aparece tan alta en valor?</summary><p>Porque el contrato se ubica en la sede de la entidad compradora, y las entidades nacionales tienen sede en Bogotá aunque el servicio se preste en otro departamento. Es una limitación que decimos en la lámina.</p></details>
+    <details><summary>¿El 21,8 % de inercia del plano no es muy poco?</summary><p>En el ACM es lo normal: la inercia total crece con el número de categorías y los primeros ejes siempre retienen porcentajes bajos. Por eso la clasificación usa varios ejes retenidos, no solo el plano que se muestra.</p></details>
+    <details><summary>¿Cómo saben que los grupos son reales y no un artefacto?</summary><p>Por tres pruebas: se repiten al remuestrear (Jaccard ≥ 0,75), se repiten con solo SECOP II (ARI 0,76) y difieren en cosas que no se usaron para formarlos (valor, territorio, proveedores). Lo que no se sostiene es la partición exacta con otro algoritmo, y por eso los presentamos como descripción, no como tipología.</p></details>
+    <details><summary>¿Por qué los valores p son «orientativos»?</summary><p>Porque las pruebas suponen observaciones independientes y los contratos de una misma entidad se parecen (ICC 0,52). El p se lee como señal de magnitud; las conclusiones se apoyan en tamaños de efecto.</p></details>
+    <details><summary>¿Por qué no presentan un modelo de causas de defunción?</summary><p>Lo corrimos con reglas fijadas antes. Con 33 departamentos y contratos ubicados por la sede, la única asociación (otras causas externas) desaparece al controlar por departamento: razón de tasas 1,14, IC 0,89 a 1,47. Por eso nos quedamos con la tabla descriptiva de la lámina 30.</p></details>
+    <details><summary>¿Por qué unas láminas dicen 4.992 contratos y otras 4.985?</summary><p>El clustering y los modelos se corrieron con 4.992. Después, al revisar los contratos del grupo 5 sin señal funeraria, 7 resultaron no funerarios (1,7 % del valor del grupo, D105). El mercado vigente tiene 4.985; los análisis de patrones no se rehicieron porque esos 7 no cambian sus rasgos.</p></details>
+    <details><summary>¿La estacionalidad de febrero a abril es causal?</summary><p>No. El modelo muestra un patrón que se repite en los seis años. La explicación administrativa (las entidades contratan al abrir su vigencia presupuestal) es nuestra lectura, no algo que el modelo pruebe.</p></details>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="limites">
+  <div class="sec-head"><p class="eyebrow">10</p><h2>Límites del estudio</h2></div>
+  <ul>
+    <li>El κ (0,683) no alcanza el umbral de 0,70, y el desempate no fue ciego.</li>
+    <li>El total es una cota inferior respecto de lo que la búsqueda no recupera, y excluye los contratos mixtos.</li>
+    <li>La ubicación es la de la entidad compradora, no la de ejecución.</li>
+    <li>Las personas naturales no se unen entre SECOP I y II: el HHI puede estar subestimado.</li>
+    <li>Ningún modelo del valor cumple normalidad; los efectos reportados son exploratorios.</li>
+    <li>No hay tipología latente; los grupos son descriptivos y sus bordes finos dependen del método.</li>
+    <li>Los valores p son orientativos porque los contratos de una misma entidad no son independientes.</li>
+    <li>El cruce con defunciones es ecológico: describe territorios, no personas.</li>
+  </ul>
+</section>
+
+<footer>Fuentes: <code>docs/decisiones.md</code> (D01–D108), <code>docs/resultados/cierre_f4.md</code>, <code>grupos_hcpc.md</code>, <code>patrones_compra.md</code>, <code>mortalidad_por_grupo.md</code>. Referencias completas en el código «Referencias y Fuentes» de la lámina 33.</footer>
+</main>
+</div>
+
+<script>
+(function(){
+  var input=document.getElementById('filtro');
+  var fichas=[].slice.call(document.querySelectorAll('.ficha'));
+  var titulos=[].slice.call(document.querySelectorAll('.grupo-t'));
+  var conteo=document.getElementById('conteo');
+  var vacio=document.getElementById('sin-resultados');
+  function norm(s){return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');}
+  var textos=fichas.map(function(f){return norm(f.textContent);});
+  function aplicar(){
+    var q=norm(input.value.trim());
+    var n=0;
+    fichas.forEach(function(f,i){var ok=!q||textos[i].indexOf(q)>-1;f.hidden=!ok;if(ok)n++;});
+    titulos.forEach(function(t){
+      var el=t.nextElementSibling,vis=false;
+      while(el&&!el.classList.contains('grupo-t')&&el.classList.contains('ficha')){if(!el.hidden)vis=true;el=el.nextElementSibling;}
+      t.hidden=!vis;
+    });
+    conteo.textContent=q?(n+' de '+fichas.length+' indicadores'):(fichas.length+' indicadores');
+    vacio.hidden=n>0;
+  }
+  input.addEventListener('input',aplicar);
+  aplicar();
+})();
+</script>
