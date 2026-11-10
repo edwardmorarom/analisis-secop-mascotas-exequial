@@ -12,13 +12,10 @@ logs/*
 !logs/.gitkeep
 *.log
 
-# Etiquetado ciego: no versionar libros con etiquetas ni lo derivado de ellas hasta que se indique
-docs/etiquetado/etiquetado_*.xlsx
 docs/etiquetado/desacuerdos_para_harold.xlsx
 docs/etiquetado/kappa_etiquetado.csv
 docs/etiquetado/~$*
 docs/revision_f2/
-docs/etiquetado/validacion_*.xlsx
 .claude/settings.local.json
-docs/revision_f4/
 docs/revision_f5/
+publicacion/

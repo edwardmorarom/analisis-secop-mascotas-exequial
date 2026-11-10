@@ -1,0 +1,386 @@
+% Plantilla de póster · Statistical DataPulse 2026
+% Facultad de Estadística, Universidad Santo Tomás · Bogotá, 11 y 12 de noviembre de 2026
+%
+% Tamaño final: 90 × 120 cm (ancho × alto), en vertical, como dice la
+% convocatoria. Compila con pdfLaTeX (también en Overleaf).
+%
+% Qué editar:
+%   1. Los datos del póster, en la sección «Datos del póster».
+%   2. El logo de tu institución: reemplaza Logo.png o cambia \logoinstitucion.
+%   3. El contenido de los bloques, entre \begin{document} y \end{document}.
+%
+% Gráficas: están hechas en TikZ/pgfplots (carpeta figs_tikz/, generadas por
+% gen_tikz.py con los datos del estudio), así usan la misma fuente del póster.
+
+\documentclass[final]{beamer}
+
+% ====================
+% Paquetes
+% ====================
+
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands]{babel}
+\usepackage[orientation=portrait,size=custom,width=90,height=120,scale=1.2]{beamerposter}
+\usepackage[sfdefault]{plex-sans}
+\usepackage{plex-mono}
+\usepackage{ragged2e}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usepackage[most]{tcolorbox}
+\usepackage{anyfontsize}
+\usepackage{pgfplots}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}}
+\pgfplotsset{compat=1.18}
+
+% ====================
+% Datos del póster
+% ====================
+
+% Un título de hasta tres líneas cabe; el encabezado crece y las columnas se
+% ajustan solas. Usa ~ para que algo no se parta entre líneas: «D.~C.».
+\title{Cómo contrata el Estado los servicios funerarios: muestreo y clustering en SECOP, 2020--2025}
+
+% Separa los autores con comas; \inst{n} es el número de su afiliación.
+\author{Edward Mora\inst{1}, Natalia Carrero\inst{1}, Harold Funeme\inst{1}}
+
+\institute{\inst{1}\,Universidad Santo Tomás, Pregrado en Estadística}
+
+% Logo de la institución de los autores (va en un recuadro blanco).
+\newcommand{\logoinstitucion}{Logo.png}
+
+% Correos del equipo.
+\newcommand{\correocontacto}{edwardmora@usantotomas.edu.co\\nataliacarrero@usantotomas.edu.co\\haroldfuneme@usantotomas.edu.co}
+
+% ====================
+% Colores del simposio (los mismos del sitio)
+% ====================
+
+\definecolor{noche}{HTML}{000D1C}
+\definecolor{naranja}{HTML}{F29200}
+\definecolor{naranjatexto}{HTML}{A65400}
+\definecolor{crema}{HTML}{FFE6BE}
+\definecolor{cremafondo}{HTML}{FFF0DA}
+\definecolor{tinta}{HTML}{111820}
+\definecolor{tintamedia}{HTML}{2C3743}
+\definecolor{sobrenoche}{HTML}{C3CCD6}
+\definecolor{lineafuerte}{HTML}{D8D0C4}
+\definecolor{gris}{HTML}{8A94A3}
+% Grupos del clustering (G1 a G8)
+\definecolor{g1}{HTML}{0047BB}\definecolor{g2}{HTML}{5B2A86}\definecolor{g3}{HTML}{C2410C}\definecolor{g4}{HTML}{0F766E}
+\definecolor{g5}{HTML}{A16207}\definecolor{g6}{HTML}{BE185D}\definecolor{g7}{HTML}{1B7A3E}\definecolor{g8}{HTML}{0A1F44}
+% Fuente de cada conclusión.
+\newcommand{\fuente}[1]{\par{\footnotesize\color{tintamedia}Fuente: #1\par}}
+% Tarjeta de indicador: cifra grande y explicación corta.
+\newcommand{\kpi}[2]{%
+  \begin{tcolorbox}[enhanced,colback=cremafondo,colframe=naranja,boxrule=0pt,toprule=0.25cm,arc=0.3cm,
+    left=0.7cm,right=0.7cm,top=0.45cm,bottom=0.45cm,equal height group=kpi]
+  {\fontsize{58}{62}\selectfont\bfseries\color{tinta}#1\par}\vskip0.3em
+  {\footnotesize\raggedright\color{tintamedia}#2\par}
+  \end{tcolorbox}}
+
+% ====================
+% Estilo
+% ====================
+
+\usefonttheme{professionalfonts}
+\setbeamercolor{background canvas}{bg=white}
+\setbeamercolor{normal text}{fg=tintamedia,bg=white}
+\setbeamercolor{structure}{fg=tinta}
+\setbeamercolor{headline}{fg=white,bg=noche}
+\setbeamercolor{footline}{fg=white,bg=noche}
+\setbeamercolor{caption name}{fg=naranjatexto}
+\setbeamerfont{title}{size=\Huge,series=\bfseries}
+\setbeamerfont{author}{size=\LARGE}
+\setbeamerfont{institute}{size=\large}
+\setbeamerfont{block title}{size=\huge,series=\bfseries}
+\setbeamerfont{caption}{size=\small}
+\setbeamerfont{caption name}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}[period]
+
+% Viñetas: cuadros naranja. Pasos numerados: círculos naranja, como en el sitio.
+\setbeamertemplate{itemize item}{\textcolor{naranja}{\rule[0.18em]{0.42em}{0.42em}}}
+\setbeamertemplate{itemize subitem}{\textcolor{naranja}{\rule[0.22em]{0.3em}{0.3em}}}
+\setbeamertemplate{enumerate item}{%
+  \tikz[baseline=(n.base)]\node[circle,fill=naranja,text=tinta,inner sep=0pt,
+    minimum size=1.35em,font=\small\bfseries](n){\insertenumlabel};}
+
+% Regla bajo el título de cada bloque: tramo naranja y línea gris.
+\newcommand{\reglabloque}{%
+  {\color{naranja}\rule{3.2cm}{0.24cm}}%
+  {\color{lineafuerte}\rule[0.09cm]{\dimexpr\linewidth-3.2cm\relax}{0.06cm}}}
+
+\setbeamertemplate{block begin}{%
+  \par\vskip0.85cm
+  {\usebeamerfont{block title}\color{tinta}\insertblocktitle\par}%
+  \vskip0.45cm\reglabloque\par\vskip0.8cm
+  \raggedright\setlength{\parskip}{0.6em}%
+}
+\setbeamertemplate{block end}{\par}
+
+% Bloque destacado (alertblock): fondo crema con borde naranja a la izquierda.
+\setbeamertemplate{block alerted begin}{%
+  \par\vskip0.85cm
+  \begin{tcolorbox}[enhanced,colback=cremafondo,colframe=naranja,boxrule=0pt,
+    leftrule=0.3cm,arc=0.4cm,left=1.2cm,right=1.2cm,top=1cm,bottom=1cm]
+  {\usebeamerfont{block title}\color{tinta}\insertblocktitle\par}%
+  \vskip0.8cm
+  \raggedright\setlength{\parskip}{0.6em}%
+}
+\setbeamertemplate{block alerted end}{\end{tcolorbox}}
+
+% Subtítulo dentro de un bloque.
+\newcommand{\subtitulo}[1]{\par\vskip0.5em{\large\bfseries\color{tinta}#1\par}\vskip0.2em}
+
+% ====================
+% Encabezado y pie
+% ====================
+
+\newlength{\sepwidth}
+\newlength{\colwidth}
+\setlength{\sepwidth}{0.03\paperwidth}
+\setlength{\colwidth}{0.455\paperwidth}   % 3 × 0,03 + 2 × 0,455 = 1
+\newcommand{\separatorcolumn}{\begin{column}{\sepwidth}\end{column}}
+% Alto de las columnas: se calcula al empezar el póster con lo que dejan
+% libre el encabezado (crece si el título ocupa más líneas) y el pie. Los
+% \vfill entre bloques reparten el espacio sobrante para que las dos
+% columnas terminen a la misma altura.
+\newlength{\altocolumnas}
+\newlength{\anchologo}
+\setlength{\anchologo}{8cm}
+
+\setbeamertemplate{headline}{%
+  \begin{beamercolorbox}[wd=\paperwidth]{headline}
+    \vskip2.4cm
+    \hspace*{\sepwidth}%
+    \begin{minipage}[c]{\dimexpr\anchologo+1.6cm\relax}
+      \begin{tikzpicture}
+        \node[fill=white,rounded corners=0.5cm,inner sep=0.8cm]
+          {\includegraphics[width=\anchologo,height=\anchologo,keepaspectratio]{\logoinstitucion}};
+      \end{tikzpicture}
+    \end{minipage}%
+    \hspace{2.2cm}%
+    \begin{minipage}[c]{\dimexpr\paperwidth-2\sepwidth-\anchologo-3.8cm\relax}
+      \raggedright
+      {\usebeamerfont{title}\color{white}\inserttitle\par}
+      \vskip1.3cm
+      {\usebeamerfont{author}\color{crema}\insertauthor\par}
+      \vskip0.6cm
+      {\usebeamerfont{institute}\color{sobrenoche}\insertinstitute\par}
+    \end{minipage}%
+    \vskip2.4cm
+    \noindent{\color{naranja}\rule{\paperwidth}{0.5cm}}%
+  \end{beamercolorbox}%
+}
+
+\setbeamertemplate{footline}{%
+  \begin{beamercolorbox}[wd=\paperwidth]{footline}
+    \vskip1.6cm
+    \hspace*{\sepwidth}%
+    \begin{minipage}[c]{13cm}
+      \includegraphics[width=\linewidth]{logo_evento_blanco.png}
+    \end{minipage}%
+    \hspace{2.2cm}%
+    \begin{minipage}[c]{40cm}
+      \raggedright\normalsize
+      {\color{white}\bfseries Simposio de la Facultad de Estadística · Universidad Santo Tomás\par}
+      \vskip0.25em
+      {\color{sobrenoche}Bogotá, 11 y 12 de noviembre de 2026\par}
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{20cm}
+      \raggedleft\normalsize
+      {\color{sobrenoche}\small\ttfamily CONTACTO\par}
+      \vskip0.2em
+      {\color{white}\small\correocontacto\par}
+    \end{minipage}%
+    \hspace*{\sepwidth}
+    \vskip1.6cm
+  \end{beamercolorbox}%
+}
+
+% ====================
+% Contenido
+% ====================
+
+\begin{document}
+
+\begin{frame}[t]
+\setlength{\altocolumnas}{\dimexpr\textheight-5.1cm\relax}
+\vskip0.6cm
+\begin{columns}[t]
+\separatorcolumn
+
+\begin{column}{\colwidth}
+\begin{minipage}[t][\altocolumnas][s]{\linewidth}
+
+  \begin{block}{Contexto}
+
+    Alcaldías, gobernaciones, hospitales públicos y empresas de servicios públicos contratan con funerarias, cementerios y entidades sin ánimo de lucro el servicio funerario de población vulnerable, víctimas y cuerpos no identificados. En SECOP \textbf{no hay un código que identifique estos contratos}: el UNSPSC se diligencia mal y buscar por palabras trae sobre todo ruido.
+
+    \textbf{Por qué medirlo.} Es un gasto público anual que hoy no se puede filtrar ni vigilar en SECOP. La contratación pública ya se estudia con microdatos (Fazekas y Kocsis, 2020), pero no existía una medición del mercado funerario público que corrigiera el error de clasificación.
+
+  \end{block}
+  \vfill
+
+  \begin{block}{Objetivos}
+    \textbf{\color{tinta}Objetivo general:} caracterizar cómo contrata el Estado colombiano los servicios funerarios en SECOP I y II, 2020–2025.
+
+    {\bfseries\color{tinta}Objetivos específicos\par}
+    \begin{itemize}
+      \setlength{\itemsep}{0.4em}
+      \item \textbf{Identificar} los contratos funerarios entre 39.870 candidatos.
+      \item \textbf{Estimar} el valor del mercado y su incertidumbre.
+      \item \textbf{Modelar} qué se asocia al valor de un contrato y en qué meses se contrata.
+      \item \textbf{Agrupar} las formas de contratar y comprobarlas con valor, territorio y proveedores.
+    \end{itemize}
+  \end{block}
+  \vfill
+
+  \begin{alertblock}{Metodología}
+    \begin{enumerate}
+      \setlength{\itemsep}{0.4em}
+      \item \textbf{ETL:} API de SECOP I y II; 39.870 candidatos por palabra clave o UNSPSC, deduplicados y en pesos de 2025.
+      \item \textbf{Muestreo estratificado:} 400 contratos en 9 estratos, pesos $w_h = N_h/n_h$, Horvitz-Thompson ($\hat{p} = \sum w_k y_k / \sum w_k$) e intervalos de Wilson.
+      \item \textbf{Medición:} etiquetado doble ($\kappa$ de Cohen) y clasificador TF-IDF con regresión logística; otro modelo lo reemplaza solo si su IC del F1 queda entero por encima.
+      \item \textbf{Estimador de diferencia} del total, $\hat{T} = \sum_{U} \hat{y}_k + \sum_h \frac{N_h}{n_h} \sum_{s_h} (y_k - \hat{y}_k)$, con bootstrap estratificado.
+      \item \textbf{Modelos} del log del valor (lineal, mixto, gamma, cuantiles) y del conteo mensual (binomial negativa). Normalidad de residuos: $|\text{asimetría}| \leq 1$ y $\text{curtosis} \leq 3$.
+      \item \textbf{ACM y HCPC}; estable si su Jaccard medio es $\geq 0{,}75$.
+    \end{enumerate}
+  \end{alertblock}
+  \vfill
+
+  \begin{block}{Muestreo y medición}
+    \begin{columns}[t]
+      \begin{column}{0.32\linewidth}\kpi{0,683}{$\kappa$ de Cohen entre revisores: sustancial, bajo el umbral fijado de 0,70.}\end{column}
+      \begin{column}{0.32\linewidth}\kpi{0,956}{F1 del clasificador en validación externa (IC 95\,\%: 0,908–0,996).}\end{column}
+      \begin{column}{0.32\linewidth}\kpi{4,70}{Efecto de diseño de Kish: los 400 contratos rinden como 85.}\end{column}
+    \end{columns}
+    \vskip0.4em
+    \begin{figure}
+      \centering
+      \input{figs_tikz/t1_estratos.tex}
+      \caption{Proporción funeraria por estrato en la muestra de 400. En total, $\hat{p} = 10{,}5$\,\% (IC 95\,\%: 10,0–11,1): uno de cada diez candidatos}
+    \end{figure}
+  \end{block}
+
+\end{minipage}
+\end{column}
+
+\separatorcolumn
+
+\begin{column}{\colwidth}
+\begin{minipage}[t][\altocolumnas][s]{\linewidth}
+
+  \begin{block}{Resultados}
+    \begin{columns}[t]
+      \begin{column}{0.49\linewidth}
+        \begin{figure}
+          \centering
+          \input{figs_tikz/t2_estimador.tex}
+          \caption{Del modelo al estimador de diferencia}
+        \end{figure}
+      \end{column}
+      \begin{column}{0.49\linewidth}
+        \begin{figure}
+          \centering
+          \input{figs_tikz/t3_serie.tex}
+          \caption{Valor anual por plataforma}
+        \end{figure}
+      \end{column}
+    \end{columns}
+
+    \begin{columns}[t]
+      \begin{column}{0.50\linewidth}
+        \begin{figure}
+          \centering
+          \input{figs_tikz/t7_acm.tex}
+          \caption{Plano del ACM: ocho grupos estables (burbuja: igual perfil)}
+        \end{figure}
+      \end{column}
+      \begin{column}{0.48\linewidth}
+        \begin{figure}
+          \centering
+          \input{figs_tikz/t5_mapa.tex}
+          \caption{Grupo dominante por departamento (V de Cramér 0,34). *Uno es San Andrés}
+        \end{figure}
+      \end{column}
+    \end{columns}
+
+    \begin{columns}[t]
+      \begin{column}{0.49\linewidth}
+        \begin{figure}
+          \centering
+          \input{figs_tikz/t6_estacionalidad.tex}
+          \caption{Contratos por mes}
+        \end{figure}
+      \end{column}
+      \begin{column}{0.49\linewidth}
+        \begin{table}
+        \caption{Efectos sobre el valor con igual signo y $p < 0{,}05$ en los tres modelos}
+        \vskip0.3em
+        {\small
+        \begin{tabular}{@{}lccc@{}}
+          \toprule
+          Frente a & Mediana & Mixto & Gamma \\
+          \midrule
+          Selección abreviada & $\times$4,97 & $\times$3,28 & $\times$3,51 \\
+          Gobernación & $\times$1,94 & $\times$2,50 & $\times$2,39 \\
+          SECOP II & $\times$1,61 & $\times$1,27 & $\times$1,26 \\
+          \bottomrule
+        \end{tabular}\par}
+        \vskip0.6em
+        {\small\raggedright Frente a mínima cuantía, alcaldía y SECOP I; 3 de 21 efectos. La modalidad depende de la cuantía por ley.\par}
+        \end{table}
+      \end{column}
+    \end{columns}
+
+  \end{block}
+  \vfill
+
+  \begin{block}{Conclusiones}
+    \begin{itemize}
+      \setlength{\itemsep}{0.5em}
+      \item Entre 2020 y 2025 el Estado gastó en servicios funerarios unos \textbf{254 mil millones de pesos de 2025} (IC 95\,\%: 225–305), unos 42 mil millones al año.
+        \fuente{SECOP I y II (Colombia Compra Eficiente) y muestra etiquetada de 400 contratos; IPC del DANE.}
+      \item El contrato promedio sube de 42 a 55 millones \textbf{sin encarecerse}: en SECOP I se mantiene (28 a 27) y en SECOP II baja (203 a 82); sube porque la contratación migró a SECOP II.
+        \fuente{SECOP I y II, 4.985 contratos funerarios.}
+      \item Las alcaldías firman 9 de cada 10 contratos y contratan de dos formas según la región; de febrero a abril se firma el 43\,\% de los contratos.
+        \fuente{SECOP I y II; Marco Geoestadístico Nacional del DANE.}
+      \item \textbf{Límites:} $\kappa = 0{,}683 < 0{,}70$, residuos del valor con colas pesadas y grupos que se separan en ejes que el plano no muestra.
+    \end{itemize}
+  \end{block}
+  \vfill
+
+  \begin{block}{Referencias}
+    \begin{minipage}[c]{0.50\linewidth}
+    \footnotesize
+    \begin{itemize}
+      \setlength{\itemsep}{0.2em}
+      \item Fazekas, M., y Kocsis, G. (2020). Uncovering high-level corruption: Cross-national objective corruption risk indicators using public procurement data. \textit{British Journal of Political Science, 50}(1), 155–164.
+      \item Särndal, C.-E., Swensson, B., y Wretman, J. (1992). \textit{Model assisted survey sampling}. Springer.
+      \item Husson, F., Lê, S., y Pagès, J. (2011). \textit{Exploratory multivariate analysis by example using R}. Chapman \& Hall/CRC.
+    \end{itemize}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.23\linewidth}
+      \centering
+      \includegraphics[width=\linewidth]{qr_referencias.png}\par\vspace{0.2em}
+      {\footnotesize\bfseries\color{tinta}Referencias y Fuentes\par}
+    \end{minipage}\hfill
+    \begin{minipage}[c]{0.23\linewidth}
+      \centering
+      \includegraphics[width=\linewidth]{qr_repo.png}\par\vspace{0.2em}
+      {\footnotesize\bfseries\color{tinta}Investigación y Código\par}
+    \end{minipage}\par\vspace{1pt}
+  \end{block}
+
+\end{minipage}
+\end{column}
+
+\separatorcolumn
+\end{columns}
+\end{frame}
+
+\end{document}
